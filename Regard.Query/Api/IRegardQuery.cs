@@ -5,5 +5,9 @@
     /// </summary>
     public interface IRegardQuery
     {
+        /// <summary>
+        /// The object that built this query (and which can be used to refine it)
+        /// </summary>
+        IQueryBuilder Builder { get; }
     }
 }
