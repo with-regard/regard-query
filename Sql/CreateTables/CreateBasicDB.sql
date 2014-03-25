@@ -48,6 +48,7 @@ CREATE TABLE EventPropertyValues
 		[PropertyName] NVARCHAR(256) NOT NULL,		-- For simplicity, but at the cost of performance + DB size, avoid using the eventproperty table in the first iteration
 		[Value] NVARCHAR(256) NOT NULL,
 		
-		PRIMARY KEY ([EventId], [PropertyId])
+		PRIMARY KEY ([EventId], [PropertyName])
 	)
-	
+
+GO
