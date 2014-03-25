@@ -8,13 +8,23 @@ SET ANSI_NULLS ON
 GO
 
 --
+-- Delete the existing tables (danger!)
+--
+DROP TABLE Product;
+DROP TABLE Event;
+DROP TABLE EventProperty;
+DROP TABLE EventPropertyValues;
+
+GO
+
+--
 -- Represents an individual product that can generate events
 --
 CREATE TABLE Product
 	(
-		[Id] int NOT NULL,
+		[Id] int NOT NULL IDENTITY(1,1) PRIMARY KEY,
 		[Name] NVARCHAR(256) NOT NULL,
-		[Organisation] NVARCHAR(256) NOT NULL
+		[Organization] NVARCHAR(256) NOT NULL
 	)
 
 --
