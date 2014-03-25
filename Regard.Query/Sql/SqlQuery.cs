@@ -27,14 +27,10 @@ namespace Regard.Query.Sql
         /// <summary>
         /// Creates a SQL query limited by a new element
         /// </summary>
-        public SqlQuery(IQueryBuilder builder, IEnumerable<SqlQueryElement> oldElements, SqlQueryElement newElement)
+        public SqlQuery(SqlQuery query, SqlQueryElement newElement)
         {
-            Builder = builder;
-
-            if (oldElements != null)
-            {
-                m_Elements = new List<SqlQueryElement>(oldElements);
-            }
+            Builder = query.Builder;
+            m_Elements = new List<SqlQueryElement>(query.m_Elements);
 
             if (newElement != null)
             {
@@ -60,6 +56,9 @@ namespace Regard.Query.Sql
             StringBuilder fromPart      = new StringBuilder();
             StringBuilder wherePart     = new StringBuilder();
             StringBuilder groupPart     = new StringBuilder();
+
+            // We always count the number of events
+            selectPart.Append("COUNT(DISTINCT [ep1].EventId)");
 
             // Each element forms a new inner join
             for (int tableId = 0; tableId < m_Elements.Count; ++tableId)
@@ -123,10 +122,6 @@ namespace Regard.Query.Sql
             }
 
             // Fill in any blanks that need filling in
-            if (selectPart.Length == 0)
-            {
-                selectPart.Append("COUNT(DISTINCT [ep1].EventId)");
-            }
             if (fromPart.Length == 0)
             {
                 fromPart.Append("[EventPropertyValues] AS ep1");

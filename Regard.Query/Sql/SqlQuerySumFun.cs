@@ -28,7 +28,14 @@
         /// </summary>
         public string ToQuery(string tableName)
         {
-            return Function + "(" + (Distinct?"DISTINCT ":"") + "[" + FieldName + "])";
+            if (string.IsNullOrEmpty(Function))
+            {
+                return "[" + FieldName + "]";
+            }
+            else
+            {
+                return Function + "(" + (Distinct ? "DISTINCT " : "") + "[" + FieldName + "])";
+            }
         }
     }
 }
