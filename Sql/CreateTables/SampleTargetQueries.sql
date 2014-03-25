@@ -26,9 +26,44 @@ INNER JOIN	EventPropertyValues as ep2 ON (ep2.EventId = ep1.EventId AND ep1.Prop
 GROUP BY	ep2.Value
 GO
 
+-- Variant of above, use WHERE clause instead; think I prefer this style as it simplifies how 'ONLY' is processed
+SELECT		ep2.Value as Day, COUNT(DISTINCT ep1.EventId) as NumEvents
+FROM		EventPropertyValues AS ep1
+INNER JOIN	EventPropertyValues as ep2 ON (ep2.EventId = ep1.EventId)
+WHERE		ep1.PropertyName = 'EventType' AND ep1.Value = 'DoSomething'
+AND			ep2.PropertyName = 'Day'
+GROUP BY	ep2.Value
+GO
+
+-- builder.AllEvents().Only("EventType", "DoSomething").CountUniqueValues("SessionId")
+SELECT		COUNT(DISTINCT ep3.Value) as NumSessions
+FROM		EventPropertyValues AS ep1
+INNER JOIN	EventPropertyValues AS ep2 ON (ep3.EventId = ep1.EventId AND ep3.PropertyName = 'SessionId')
+WHERE		ep1.PropertyName = 'EventType' AND ep1.Value = 'DoSomething'
+GO
+
 -- builder.AllEvents().Only("EventType", "DoSomething").CountUniqueValues("SessionId").BrokenDownBy("Day");
 SELECT		ep2.Value as Day, COUNT(DISTINCT ep3.Value) as NumSessions
 FROM		EventPropertyValues AS ep1
-INNER JOIN	EventPropertyValues AS ep2 ON (ep2.EventId = ep1.EventId AND ep1.PropertyName = 'EventType' AND ep1.Value = 'DoSomething' AND ep2.PropertyName = 'Day')
+INNER JOIN	EventPropertyValues AS ep2 ON (ep2.EventId = ep1.EventId AND ep2.PropertyName = 'Day')
 INNER JOIN	EventPropertyValues AS ep3 ON (ep3.EventId = ep2.EventId AND ep3.PropertyName = 'SessionId')
+WHERE		ep1.PropertyName = 'EventType' AND ep1.Value = 'DoSomething'
 GROUP BY	ep2.Value;
+GO
+
+-- builder.AllEvents().Only("EventType", "DoSomething").Only("SessionId", "2")
+-- Dual 'Only' illustration. Session ID 2 is the only one with 2 events in our demo
+SELECT		COUNT(DISTINCT ep1.EventId)
+FROM		EventPropertyValues AS ep1
+INNER JOIN	EventPropertyValues AS ep2 ON (ep2.EventId = ep1.EventId)
+WHERE		ep1.PropertyName = 'EventType' AND ep1.Value = 'DoSomething'
+AND			ep2.PropertyName = 'SessionId' AND ep2.Value = '2';
+GO
+
+-- builder.AllEvents().Only("EventType", "DoSomething").Only("SessionId", "1")
+SELECT		COUNT(DISTINCT ep1.EventId)
+FROM		EventPropertyValues AS ep1
+INNER JOIN	EventPropertyValues AS ep2 ON (ep2.EventId = ep1.EventId)
+WHERE		ep1.PropertyName = 'EventType' AND ep1.Value = 'DoSomething'
+AND			ep2.PropertyName = 'SessionId' AND ep2.Value = '1';
+GO
