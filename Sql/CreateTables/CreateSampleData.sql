@@ -40,6 +40,7 @@ INSERT INTO Event (ProductId) VALUES (@productId);
 SET @eventId = SCOPE_IDENTITY();
 INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'EventType', 'DoSomething');
 INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'Day', '1');
+INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'SessionId', '1');
 
 INSERT INTO Event (ProductId) VALUES (@productId);
 SET @eventId = SCOPE_IDENTITY();
@@ -56,11 +57,13 @@ INSERT INTO Event (ProductId) VALUES (@productId);
 SET @eventId = SCOPE_IDENTITY();
 INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'EventType', 'DoSomething');
 INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'Day', '2');
+INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'SessionId', '2');
 
 INSERT INTO Event (ProductId) VALUES (@productId);
 SET @eventId = SCOPE_IDENTITY();
 INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'EventType', 'DoSomething');
 INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'Day', '2');
+INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'SessionId', '2');
 
 INSERT INTO Event (ProductId) VALUES (@productId);
 SET @eventId = SCOPE_IDENTITY();
@@ -77,5 +80,38 @@ INSERT INTO Event (ProductId) VALUES (@productId);
 SET @eventId = SCOPE_IDENTITY();
 INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'EventType', 'Stop');
 INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'Day', '3');
+
+-- Day 4
+INSERT INTO Event (ProductId) VALUES (@productId);
+SET @eventId = SCOPE_IDENTITY();
+INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'EventType', 'Start');
+INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'Day', '4');
+
+INSERT INTO Event (ProductId) VALUES (@productId);
+SET @eventId = SCOPE_IDENTITY();
+INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'EventType', 'DoSomething');
+INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'Day', '4');
+INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'SessionId', '3');
+
+INSERT INTO Event (ProductId) VALUES (@productId);
+SET @eventId = SCOPE_IDENTITY();
+INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'EventType', 'Stop');
+INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'Day', '4');
+
+INSERT INTO Event (ProductId) VALUES (@productId);
+SET @eventId = SCOPE_IDENTITY();
+INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'EventType', 'Start');
+INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'Day', '4');
+
+INSERT INTO Event (ProductId) VALUES (@productId);
+SET @eventId = SCOPE_IDENTITY();
+INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'EventType', 'DoSomething');
+INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'Day', '4');
+INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'SessionId', '4');
+
+INSERT INTO Event (ProductId) VALUES (@productId);
+SET @eventId = SCOPE_IDENTITY();
+INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'EventType', 'Stop');
+INSERT INTO EventPropertyValues (EventId, PropertyName, Value) VALUES (@eventId, 'Day', '4');
 
 GO
