@@ -38,6 +38,12 @@ WHERE		ep1.PropertyName = 'EventType' AND ep1.Value = 'DoSomething'
 AND			ep2.PropertyName = 'SessionId'
 GO
 
+-- builder.AllEvents().CountUniqueValues("SessionId")
+SELECT		COUNT(DISTINCT ep1.Value) as NumSessions
+FROM		EventPropertyValues AS ep1
+WHERE		ep1.PropertyName = 'SessionId'
+GO
+
 -- builder.AllEvents().Only("EventType", "DoSomething").CountUniqueValues("SessionId").BrokenDownBy("Day");
 SELECT		ep3.Value as Day, COUNT(DISTINCT ep2.Value) as NumSessions
 FROM		EventPropertyValues AS ep1
