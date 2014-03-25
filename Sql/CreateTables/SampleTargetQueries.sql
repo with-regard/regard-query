@@ -13,7 +13,9 @@ GO
 -- This is the simple way but the results don't contain zeros for days with no events
 SELECT		ep2.Value as Day, COUNT(DISTINCT ep1.EventId) as NumEvents
 FROM		EventPropertyValues AS ep1
-INNER JOIN	EventPropertyValues as ep2 ON (ep2.EventId = ep1.EventId AND ep1.PropertyName = 'EventType' AND ep1.Value = 'Start' AND ep2.PropertyName = 'Day')
+INNER JOIN	EventPropertyValues as ep2 ON (ep2.EventId = ep1.EventId)
+WHERE		ep1.PropertyName = 'EventType' AND ep1.Value = 'Start'
+AND			ep2.PropertyName = 'Day'
 GROUP BY	ep2.Value
 GO
 
@@ -22,7 +24,9 @@ GO
 -- Possibly OK? Pretty easy to infer the value of missing items.
 SELECT		ep2.Value as Day, COUNT(DISTINCT ep1.EventId) as NumEvents
 FROM		EventPropertyValues AS ep1
-INNER JOIN	EventPropertyValues as ep2 ON (ep2.EventId = ep1.EventId AND ep1.PropertyName = 'EventType' AND ep1.Value = 'DoSomething' AND ep2.PropertyName = 'Day')
+INNER JOIN	EventPropertyValues as ep2 ON (ep2.EventId = ep1.EventId)
+WHERE		ep1.PropertyName = 'EventType' AND ep1.Value = 'DoSomething'
+AND			ep2.PropertyName = 'Day'
 GROUP BY	ep2.Value
 GO
 
