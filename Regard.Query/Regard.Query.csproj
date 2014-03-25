@@ -46,6 +46,9 @@
     <Compile Include="Api\IResultEnumerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sql\SqlQuery.cs" />
+    <Compile Include="Sql\SqlQueryElement.cs" />
+    <Compile Include="Sql\SqlQuerySumFun.cs" />
+    <Compile Include="Sql\SqlQueryWhere.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

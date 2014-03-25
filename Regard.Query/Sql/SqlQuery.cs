@@ -1,46 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using Regard.Query.Api;
 
 namespace Regard.Query.Sql
 {
-    /// <summary>
-    /// Describes a result we want in the query answer
-    /// </summary>
-    struct SqlResultDescription
-    {
-        public SqlResultDescription(string query, string name)
-        {
-            QueryPart   = query;
-            NamePart    = name;
-        }
-
-        /// <summary>
-        /// The query (in SQL: eg COUNT(DISTINCT property))
-        /// </summary>
-        public string QueryPart;
-
-        /// <summary>
-        /// The name it should appear as 
-        /// </summary>
-        public string NamePart;
-    }
-
-    /// <summary>
-    /// Describes a filter to add to the query
-    /// </summary>
-    struct SqlFilterDescription
-    {
-        /// <summary>
-        /// The name of the property to filter on
-        /// </summary>
-        public string PropertyName;
-
-        /// <summary>
-        /// The value that the property must be equal to in order to be included in the results
-        /// </summary>
-        public string PropertyValue;
-    }
 
     /// <summary>
     /// Representation of a query run against a SQL database
@@ -48,24 +12,34 @@ namespace Regard.Query.Sql
     class SqlQuery : IRegardQuery
     {
         /// <summary>
-        /// The computed results (a list of name/query part pairs)
+        /// The elements to this query
         /// </summary>
-        private readonly List<SqlResultDescription> m_Results = new List<SqlResultDescription>(); 
+        private readonly List<SqlQueryElement> m_Elements = new List<SqlQueryElement>(); 
 
         /// <summary>
-        /// Things to break down the query by
+        /// Creates the 'all events' SQL query
         /// </summary>
-        private readonly List<string> m_GroupBy = new List<string>();
-
-        /// <summary>
-        /// The list of queries to perform
-        /// </summary>
-        private readonly List<SqlFilterDescription> m_Query = new List<SqlFilterDescription>(); 
-
-        public SqlQuery()
+        public SqlQuery(IQueryBuilder builder)
         {
-            // Default result is everything in a field called 'count'
-            m_Results.Add(new SqlResultDescription("count", "Count(DISTINCT EventId)"));
+            Builder = builder;
+        }
+
+        /// <summary>
+        /// Creates a SQL query limited by a new element
+        /// </summary>
+        public SqlQuery(IQueryBuilder builder, IEnumerable<SqlQueryElement> oldElements, SqlQueryElement newElement)
+        {
+            Builder = builder;
+
+            if (oldElements != null)
+            {
+                m_Elements = new List<SqlQueryElement>(oldElements);
+            }
+
+            if (newElement != null)
+            {
+                m_Elements.Add(newElement);
+            }
         }
 
         /// <summary>
@@ -73,7 +47,7 @@ namespace Regard.Query.Sql
         /// </summary>
         public IQueryBuilder Builder
         {
-            get { throw new NotImplementedException(); }
+            get; private set;
         }
 
         /// <summary>
@@ -81,7 +55,108 @@ namespace Regard.Query.Sql
         /// </summary>
         public string GenerateQuery()
         {
-            throw new NotImplementedException();
+            // We build up the 4 parts of the query seperately
+            StringBuilder selectPart    = new StringBuilder();
+            StringBuilder fromPart      = new StringBuilder();
+            StringBuilder wherePart     = new StringBuilder();
+            StringBuilder groupPart     = new StringBuilder();
+
+            // Each element forms a new inner join
+            for (int tableId = 0; tableId < m_Elements.Count; ++tableId)
+            {
+                // Get the table name (here's why overloading '+' to mean different things is a bad language design descision)
+                var     element     = m_Elements[tableId];
+                string  tableName   = "ep" + (tableId + 1);
+
+                // Add to the from part
+                if (tableId == 0)
+                {
+                    fromPart.Append("[EventPropertyValues] AS [" + tableName + "]");
+                }
+                else
+                {
+                    fromPart.Append("\nINNER JOIN [EventPropertyValues] AS [" + tableName + "] WHERE [ep1].[EventId] = [" + tableName + "].[EventId]");
+                }
+
+                // Build up the select part as needed
+                if (element.Summarisation != null)
+                {
+                    foreach (var sum in element.Summarisation)
+                    {
+                        if (selectPart.Length > 0)
+                        {
+                            selectPart.Append(", ");
+                        }
+                        selectPart.Append(sum.ToQuery(tableName));
+                    }
+                }
+
+                // Then the WHERE part
+                if (element.Wheres != null)
+                {
+                    if (wherePart.Length > 0)
+                    {
+                        wherePart.Append("\n");
+                    }
+                    foreach (var where in element.Wheres)
+                    {
+                        if (wherePart.Length > 0)
+                        {
+                            wherePart.Append(" AND ");
+                        }
+                        wherePart.Append(where.ToQuery(tableName));
+                    }
+                }
+
+                // Finally, the group part
+                if (element.GroupBy != null)
+                {
+                    foreach (var group in element.GroupBy)
+                    {
+                        if (groupPart.Length > 0)
+                        {
+                            groupPart.Append(", ");
+                        }
+                        groupPart.Append("[" + tableName + "].[" + group + "]");
+                    }
+                }
+            }
+
+            // Fill in any blanks that need filling in
+            if (selectPart.Length == 0)
+            {
+                selectPart.Append("COUNT(DISTINCT [ep1].EventId)");
+            }
+            if (fromPart.Length == 0)
+            {
+                fromPart.Append("[EventPropertyValues] AS ep1");
+            }
+
+            // Build up the final query
+            StringBuilder finalQuery = new StringBuilder();
+
+            finalQuery.Append("SELECT ");
+            finalQuery.Append(selectPart);
+            finalQuery.Append('\n');
+            finalQuery.Append("FROM ");
+            finalQuery.Append(fromPart);
+            finalQuery.Append('\n');
+
+            if (wherePart.Length > 0)
+            {
+                finalQuery.Append("WHERE ");
+                finalQuery.Append(wherePart);
+                finalQuery.Append('\n');
+            }
+
+            if (groupPart.Length > 0)
+            {
+                finalQuery.Append("GROUP BY ");
+                finalQuery.Append(groupPart);
+                finalQuery.Append('\n');
+            }
+
+            return finalQuery.ToString();
         }
     }
 }
