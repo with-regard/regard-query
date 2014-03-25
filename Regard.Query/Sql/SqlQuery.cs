@@ -65,7 +65,7 @@ namespace Regard.Query.Sql
         public SqlQuery()
         {
             // Default result is everything in a field called 'count'
-            m_Results.Add(new SqlResultDescription("count", "Count(*)"));
+            m_Results.Add(new SqlResultDescription("count", "Count(DISTINCT EventId)"));
         }
 
         /// <summary>

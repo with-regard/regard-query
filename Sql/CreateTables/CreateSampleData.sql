@@ -17,6 +17,7 @@ DECLARE @eventId int;
 -- Clear the database (danger!)
 --
 DELETE FROM Product;
+DELETE FROM EventPropertyValues;
 
 --
 -- Product
