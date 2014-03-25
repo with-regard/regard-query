@@ -30,11 +30,11 @@
         {
             if (string.IsNullOrEmpty(Function))
             {
-                return "[" + FieldName + "]";
+                return "[" + tableName + "].[" + FieldName + "]";
             }
             else
             {
-                return Function + "(" + (Distinct ? "DISTINCT " : "") + "[" + FieldName + "])";
+                return Function + "(" + (Distinct ? "DISTINCT " : "") + "[" + tableName + "].[" + FieldName + "])";
             }
         }
     }

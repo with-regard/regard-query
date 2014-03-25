@@ -5,7 +5,7 @@ namespace Regard.Query.Sql
     /// <summary>
     /// Builds queries for SQL server
     /// </summary>
-    class SqlQueryBuilder : IQueryBuilder
+    public class SqlQueryBuilder : IQueryBuilder
     {
         #region 'Raw' implementation
 
