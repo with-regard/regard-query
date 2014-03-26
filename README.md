@@ -6,48 +6,57 @@ performing queries on events gathered by Regard.
 
 Requirements:
 
-    * Reasonably simple
-    * Easily replaceable in the first version
-    * Serializable
-    * Designable
+* Reasonably simple
+* Easily replaceable in the first version
+* Serializable
+* Designable
 
 Eventual requirements:
 
-    * Fast
-    * Cheap
-    * Scalable
+* Fast
+* Cheap
+* Scalable
 
 Notes: events
 =============
 
 Each event contains the following items:
 
-    * Product + organisation it is for
-    * Data in the form of key/value pairs
-    * A session identifier (desired, but not currently present)
+* Product + organisation it is for
+* Unstructured data in the form of key/value pairs
+* A session identifier (desired, but not currently present)
 
 There may also be some optional but common key/value pairs
 
-    * Timestamp
+* Timestamp
 
 Notes: queries
 ==============
 
-It's desirable to avoid raw SQL queries in the implementation of Regard as
-this would tie us to a single data implementation, which would limit
-our options when we want to scale things out.
+Queries are designed to produce aggregate results rather than
+individual events. The 'basic' query simply counts the number
+of events from a particular source, and can then be broken
+down or restricted to produce more general aggregations.
 
-The main goal of this project is to put everything that accesses the
-event database in a single place, so it is easy to find, review and
-if necessary change or replace.
+Examples: queries
+=================
+ 
+This query will produce a break down of the number of sessions
+per day (suitable for drawing a graph for instance):
 
-A secondary goal is to help with the way that queries are designed
-and used, by providing an abstraction that works in a way that mirrors
-that of the developer dashboard.
+   queryBuilder.AllEvents()
+               .CountUniqueValues("SessionId")
+               .BrokenDownBy("Day")
 
-Services provided by this library to further these goals:
+At least, it will assuming that your events have a SessionId and Day
+property. Take away the 'CountUniqueValues' and it will count the number
+of events per day. Take away the 'BrokenDownBy' and it will give you the
+total number of unique sessions over the lifetime of the product.
 
-    * Fake data to aid with visualising queries before there are any
-      events associated with them (Regard requires that queries be
-      designed up front).
-    * Enforcement of any anonymity guarantees that we might provide
+Here's a complicated query: number of sessions that performed an event
+at least once, broken down by day (suitable for generating a heat map):
+
+   queryBuilder.AllEvents()
+               .CountUniqueValues("SessionId")
+               .BrokenDownBy("Day")
+               .BrokenDownBy("EventType")
