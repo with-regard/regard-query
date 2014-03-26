@@ -152,6 +152,8 @@ namespace Regard.Query.Sql
                 finalQuery.Append(groupPart);
                 finalQuery.Append('\n');
             }
+            finalQuery.Append(";\n");
+            finalQuery.Append("GO\n");
 
             return finalQuery.ToString();
         }
