@@ -11,7 +11,7 @@ namespace Regard.Query.Samples
         {
             Console.WriteLine(@"builder.AllEvents().Only(""EventType"", ""DoSomething"").CountUniqueValues(""SessionId"").BrokenDownBy(""Day"");");
 
-            var builder = new SqlQueryBuilder();
+            var builder = new SqlQueryBuilder(null);
             IRegardQuery result = builder.AllEvents();
             result = result.Only("EventType", "DoSomething").CountUniqueValues("SessionId").BrokenDownBy("Day");
 
