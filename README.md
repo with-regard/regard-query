@@ -6,7 +6,7 @@ performing queries on events gathered by Regard.
 
 Requirements:
 
-* Reasonably simple
+* Simple API
 * Easily replaceable in the first version
 * Serializable
 * Designable
@@ -17,6 +17,9 @@ Eventual requirements:
 * Cheap
 * Scalable
 
+The API design should support these requirements, but the implementation
+need not in the first version.
+
 Notes: events
 =============
 
@@ -26,9 +29,16 @@ Each event contains the following items:
 * Unstructured data in the form of key/value pairs
 * A session identifier (desired, but not currently present)
 
-There may also be some optional but common key/value pairs
+There may also be some optional but common key/value pairs, like these:
 
 * Timestamp
+
+These fields perhaps deserve to have a well-known format so we can write
+richer queries easily.
+
+It may be useful to have derived properties as well. For example having
+something like 'Timestamp-Day' as a way of retrieving the day value from
+a time stamp.
 
 Notes: queries
 ==============
@@ -45,8 +55,8 @@ This query will produce a break down of the number of sessions
 per day (suitable for drawing a graph for instance):
 
     queryBuilder.AllEvents()
-               .CountUniqueValues("SessionId")
-               .BrokenDownBy("Day")
+                .CountUniqueValues("SessionId")
+                .BrokenDownBy("Day")
 
 At least, it will assuming that your events have a SessionId and Day
 property. Take away the 'CountUniqueValues' and it will count the number
@@ -57,6 +67,6 @@ Here's a complicated query: number of sessions that performed an event
 at least once, broken down by day (suitable for generating a heat map):
 
     queryBuilder.AllEvents()
-               .CountUniqueValues("SessionId")
-               .BrokenDownBy("Day")
-               .BrokenDownBy("EventType")
+                .CountUniqueValues("SessionId")
+                .BrokenDownBy("Day")
+                .BrokenDownBy("EventType")
