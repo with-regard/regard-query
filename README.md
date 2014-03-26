@@ -44,7 +44,7 @@ Examples: queries
 This query will produce a break down of the number of sessions
 per day (suitable for drawing a graph for instance):
 
-   queryBuilder.AllEvents()
+    queryBuilder.AllEvents()
                .CountUniqueValues("SessionId")
                .BrokenDownBy("Day")
 
@@ -56,7 +56,7 @@ total number of unique sessions over the lifetime of the product.
 Here's a complicated query: number of sessions that performed an event
 at least once, broken down by day (suitable for generating a heat map):
 
-   queryBuilder.AllEvents()
+    queryBuilder.AllEvents()
                .CountUniqueValues("SessionId")
                .BrokenDownBy("Day")
                .BrokenDownBy("EventType")
