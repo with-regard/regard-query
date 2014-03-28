@@ -8,16 +8,16 @@
         /// <summary>
         /// The name for this column
         /// </summary>
-        string Name { get; set; }
+        public string Name { get; set; }
 
         /// <summary>
         /// The raw string value for this column
         /// </summary>
-        string Value { get; set; }
+        public string Value { get; set; }
 
         /// <summary>
         /// If this column represents a count of values, this is that count
         /// </summary>
-        long Count { get; set; }
+        public long Count { get; set; }
     }
 }

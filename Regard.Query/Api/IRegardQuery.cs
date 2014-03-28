@@ -1,4 +1,6 @@
-﻿namespace Regard.Query.Api
+﻿using System.Threading.Tasks;
+
+namespace Regard.Query.Api
 {
     /// <summary>
     /// Class representing a query for Regard data
@@ -9,5 +11,10 @@
         /// The object that built this query (and which can be used to refine it)
         /// </summary>
         IQueryBuilder Builder { get; }
+
+        /// <summary>
+        /// Runs this query against the database
+        /// </summary>
+        Task<IResultEnumerator<QueryResultLine>> RunQuery();
     }
 }

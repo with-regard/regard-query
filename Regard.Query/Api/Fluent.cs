@@ -10,19 +10,19 @@
             return query.Builder.Only(query, key, value);
         }
 
-        public static IRegardQuery BrokenDownBy(this IRegardQuery query, string key)
+        public static IRegardQuery BrokenDownBy(this IRegardQuery query, string key, string name)
         {
-            return query.Builder.BrokenDownBy(query, key);
+            return query.Builder.BrokenDownBy(query, key, name);
         }
 
-        public static IRegardQuery Sum(this IRegardQuery query, string key)
+        public static IRegardQuery Sum(this IRegardQuery query, string key, string name)
         {
-            return query.Builder.Sum(query, key);
+            return query.Builder.Sum(query, key, name);
         }
 
-        public static IRegardQuery CountUniqueValues(this IRegardQuery query, string key)
+        public static IRegardQuery CountUniqueValues(this IRegardQuery query, string key, string name)
         {
-            return query.Builder.CountUniqueValues(query, key);
+            return query.Builder.CountUniqueValues(query, key, name);
         }
     }
 }

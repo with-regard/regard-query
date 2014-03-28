@@ -19,9 +19,15 @@ namespace Regard.Query.Sql
         /// </summary>
         public SqlQueryBuilder(SqlConnection connection)
         {
-            if (connection == null) throw new ArgumentNullException("connection");
-
             m_Connection = connection;
+        }
+
+        /// <summary>
+        /// The database connection that queries should run on
+        /// </summary>
+        public SqlConnection Connection
+        {
+            get { return m_Connection; }
         }
 
         #region 'Raw' implementation
@@ -73,7 +79,8 @@ namespace Regard.Query.Sql
         /// </summary>
         /// <param name="query">The query that should be split</param>
         /// <param name="key">The key that this should break the results down using</param>
-        public SqlQuery BrokenDownBy(SqlQuery query, string key)
+        /// <param name="name">The name to assign to the result</param>
+        public SqlQuery BrokenDownBy(SqlQuery query, string key, string name)
         {
             // Where we've got the right property + group by its value
             // table.Value ... WHERE table.PropertyName = key ... GROUP BY table.Value
@@ -83,7 +90,8 @@ namespace Regard.Query.Sql
                         {
                             new SqlQuerySumFun
                             {
-                                FieldName = "Value"
+                                FieldName = "Value",
+                                ResultName = name
                             }
                         },
                     Wheres = new []
@@ -105,7 +113,8 @@ namespace Regard.Query.Sql
         /// </summary>
         /// <param name="query">The query to add a new sum to</param>
         /// <param name="key">The key to sum</param>
-        public SqlQuery Sum(SqlQuery query, string key)
+        /// <param name="name">The name to assign to the result</param>
+        public IRegardQuery Sum(SqlQuery query, string key, string name)
         {
             // SELECT SUM(table.Value) ... WHERE table.PropertyName = key
             var countUniqueElement = new SqlQueryElement()
@@ -116,7 +125,8 @@ namespace Regard.Query.Sql
                                                              {
                                                                  Distinct = false,
                                                                  FieldName = "Value",
-                                                                 Function = "SUM"
+                                                                 Function = "SUM",
+                                                                 ResultName = name
                                                              }
                                                          },
                                         Wheres = new []
@@ -137,8 +147,9 @@ namespace Regard.Query.Sql
         /// </summary>
         /// <param name="query">The query to perform counting in</param>
         /// <param name="key">The key to count</param>
+        /// <param name="name">The name to assign to the result</param>
         /// <returns>A query that counts the number of unique values in the specified key (in each partition if there is more than one)</returns>
-        public SqlQuery CountUniqueValues(SqlQuery query, string key)
+        public IRegardQuery CountUniqueValues(SqlQuery query, string key, string name)
         {
             // SELECT COUNT(DISTINCT table.Value) ... WHERE table.PropertyName = key
             var countUniqueElement = new SqlQueryElement()
@@ -149,7 +160,8 @@ namespace Regard.Query.Sql
                                                              {
                                                                  Distinct = true,
                                                                  FieldName = "Value",
-                                                                 Function = "COUNT"
+                                                                 Function = "COUNT",
+                                                                 ResultName = name
                                                              }
                                                          },
                                         Wheres = new []
@@ -186,9 +198,10 @@ namespace Regard.Query.Sql
         /// </summary>
         /// <param name="query">The query that should be split</param>
         /// <param name="key">The key that this should break the results down using</param>
-        public IRegardQuery BrokenDownBy(IRegardQuery query, string key)
+        /// <param name="name">The name to assign to the result</param>
+        public IRegardQuery BrokenDownBy(IRegardQuery query, string key, string name)
         {
-            return BrokenDownBy((SqlQuery) query, key);
+            return BrokenDownBy((SqlQuery) query, key, name);
         }
 
         /// <summary>
@@ -196,10 +209,11 @@ namespace Regard.Query.Sql
         /// </summary>
         /// <param name="query">The query to perform counting in</param>
         /// <param name="key">The key to count</param>
+        /// <param name="name">The name to assign to the result</param>
         /// <returns>A query that counts the number of unique values in the specified key (in each partition if there is more than one)</returns>
-        public IRegardQuery CountUniqueValues(IRegardQuery query, string key)
+        public IRegardQuery CountUniqueValues(IRegardQuery query, string key, string name)
         {
-            return CountUniqueValues((SqlQuery) query, key);
+            return CountUniqueValues((SqlQuery) query, key, name);
         }
 
         /// <summary>
@@ -218,9 +232,10 @@ namespace Regard.Query.Sql
         /// </summary>
         /// <param name="query">The query to add a new sum to</param>
         /// <param name="key">The key to sum</param>
-        public IRegardQuery Sum(IRegardQuery query, string key)
+        /// <param name="name">The name to assign to the result</param>
+        public IRegardQuery Sum(IRegardQuery query, string key, string name)
         {
-            return Sum((SqlQuery) query, key);
+            return Sum((SqlQuery) query, key, name);
         }
 
         #endregion

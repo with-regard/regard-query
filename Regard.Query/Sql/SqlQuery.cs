@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Text;
+using System.Threading.Tasks;
 using Regard.Query.Api;
 
 namespace Regard.Query.Sql
@@ -18,7 +21,7 @@ namespace Regard.Query.Sql
         /// <summary>
         /// Creates the 'all events' SQL query
         /// </summary>
-        internal SqlQuery(IQueryBuilder builder)
+        internal SqlQuery(SqlQueryBuilder builder)
         {
             Builder = builder;
         }
@@ -40,9 +43,41 @@ namespace Regard.Query.Sql
         /// <summary>
         /// The object that built this query (and which can be used to refine it)
         /// </summary>
-        public IQueryBuilder Builder
+        public SqlQueryBuilder Builder
         {
             get; private set;
+        }
+
+        /// <summary>
+        /// The object that built this query (and which can be used to refine it)
+        /// </summary>
+        IQueryBuilder IRegardQuery.Builder { get { return Builder; } }
+
+        /// <summary>
+        /// Ensure that all the clauses in the query have assigned parameter names
+        /// </summary>
+        private void GenerateParameterNames()
+        {
+            int paramNum = 1;
+
+            // Assign parameter names to each element...
+            foreach (var element in m_Elements)
+            {
+                // The where clause is what generates the parameters
+                if (element.Wheres != null)
+                {
+                    foreach (var whereClause in element.Wheres)
+                    {
+                        // Assign a name
+                        if (whereClause.ParameterName == null)
+                        {
+                            // TODO: if we start using these queries in more complicated circumstances, this could result in the same parameter name being assigned to two clauses
+                            whereClause.ParameterName = @"@P" + paramNum;
+                            ++paramNum;
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -53,6 +88,9 @@ namespace Regard.Query.Sql
         /// </remarks>
         public string GenerateQuery()
         {
+            // Ensure that all the parameter names are generated
+            GenerateParameterNames();
+
             // We build up the 4 parts of the query seperately
             StringBuilder selectPart    = new StringBuilder();
             StringBuilder fromPart      = new StringBuilder();
@@ -161,7 +199,7 @@ namespace Regard.Query.Sql
         /// <summary>
         /// Returns the parameters to be substituted for the query
         /// </summary>
-        public IEnumerable<string> GenerateSubstitutions()
+        public IEnumerable<SqlSubstitution> GenerateSubstitutions()
         {
             // This is just the where values in order
             foreach (var elem in m_Elements)
@@ -169,9 +207,141 @@ namespace Regard.Query.Sql
                 if (elem.Wheres == null) continue;
                 foreach (var where in elem.Wheres)
                 {
-                    yield return where.FieldValue;
+                    yield return new SqlSubstitution(where.ParameterName, where.FieldValue);
                 }
             }
+        }
+
+        /// <summary>
+        /// Runs this query against the database
+        /// </summary>
+        public Task<IResultEnumerator<QueryResultLine>> RunQuery()
+        {
+            return RunQuery(Builder.Connection);
+        }
+
+        /// <summary>
+        /// Runs this query against the database
+        /// </summary>
+        public async Task<IResultEnumerator<QueryResultLine>> RunQuery(SqlConnection connection)
+        {
+            // Sanity check
+            if (connection == null)
+            {
+                // Can't execute a query if there's no connection
+                throw new ArgumentNullException("connection");
+            }
+
+            // Ensure that the parameter names exist
+            GenerateParameterNames();
+
+            // Create the query command
+            var queryText       = GenerateQuery();
+            var queryCommand    = new SqlCommand(queryText, connection);
+
+            // Substitute parameters
+            foreach (var param in GenerateSubstitutions())
+            {
+                queryCommand.Parameters.Add(new SqlParameter(param.Name, param.Value));
+            }
+
+            // Execute the command
+            var queryReader = await queryCommand.ExecuteReaderAsync();
+            bool finished = false;
+
+            // Format as query result lines
+            var result = new GenericQueryEnumerator(async () =>
+                {
+                    if (finished)
+                    {
+                        // If we already finished, just return any amount of nulls
+                        return null;
+                    }
+
+                    // Read the next item
+                    var readNext = await queryReader.ReadAsync();
+
+                    if (!readNext)
+                    {
+                        // Finished with the query reader
+                        queryReader.Dispose();
+
+                        // Reached the end
+                        finished = true;
+                        return null;
+                    }
+
+                    // Get the event count for this line (always the first field)
+                    var eventCount = await queryReader.GetFieldValueAsync<long>(0);
+
+                    // Read the user-generated field values, and turn them into result columns
+                    List<QueryResultColumn> columns = new List<QueryResultColumn>();
+
+                    // Each summarisation function produces one column. The first column is the count, so we start from the second.
+                    int fieldCount  = queryReader.FieldCount;
+                    int fieldId     = 1;
+
+                    foreach (var elem in m_Elements)
+                    {
+                        foreach (var summarisation in elem.Summarisation)
+                        {
+                            // Handle the (buggy) case where there are more summarisations than fields
+                            if (fieldId >= fieldCount)
+                            {
+                                break;
+                            }
+
+                            // Read the value if this is a summarisation field
+                            if (!string.IsNullOrEmpty(summarisation.FieldName))
+                            {
+                                string  stringValue = "";
+                                long    intValue    = 0;
+
+                                // Get the type of this field
+                                var fieldType = queryReader.GetFieldType(fieldId);
+
+                                if (fieldType == null)
+                                {
+                                }
+                                else if (fieldType.Equals(typeof (int)))
+                                {
+                                    intValue = await queryReader.GetFieldValueAsync<int>(fieldId);
+                                    stringValue = intValue.ToString();
+                                }
+                                else if (fieldType.Equals(typeof (string)))
+                                {
+                                    stringValue = await queryReader.GetFieldValueAsync<string>(fieldId);
+                                }
+
+                                // Store this column
+                                columns.Add(new QueryResultColumn
+                                    {
+                                        Name = summarisation.FieldName,
+                                        Value = stringValue,
+                                        Count = intValue
+                                    });
+                            }
+
+                            // Move on to the next field
+                            ++fieldId;
+                        }
+                    }
+
+                    // Generate the line
+                    var newLine = new QueryResultLine(eventCount, columns);
+                    return newLine;
+                },
+                () =>
+                {
+                    // Dispose of the query reader if we haven't reached the end already
+                    if (!finished)
+                    {
+                        queryReader.Dispose();
+                        finished = true;
+                    }
+                });
+
+            return result;
         }
     }
 }

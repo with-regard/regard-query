@@ -25,13 +25,13 @@ namespace Regard.Query.Samples
             // Assumes a 'day' field, due to the simplified API I'm using. I can think of several ways to enhance this so there just needs to be
             // a timestamp but don't want to implement any of them until we need to
             // Results ought to be suitable to shove straight into a graph
-            var sessionsPerDay = builder.AllEvents().Only("EventType", "NewSession").BrokenDownBy("Day");
+            var sessionsPerDay = builder.AllEvents().Only("EventType", "NewSession").BrokenDownBy("Day", "Day");
         }
 
         public void SessionsThatDidSomethingPerDay(IQueryBuilder builder)
         {
             // The number of sessions that perform an action at least once, broken down by day
-            var actionsPerSessionPerDay = builder.AllEvents().Only("EventType", "DidSomething").CountUniqueValues("SessionId").BrokenDownBy("Day");
+            var actionsPerSessionPerDay = builder.AllEvents().Only("EventType", "DidSomething").CountUniqueValues("SessionId", "NumSessions").BrokenDownBy("Day", "Day");
         }
     }
 }

@@ -24,6 +24,11 @@
         public string FieldName { get; set; }
 
         /// <summary>
+        /// The nae as it should appear in teh resulting <see cref="QueryResultLine"></see>
+        /// </summary>
+        public string ResultName { get; set; }
+
+        /// <summary>
         /// Generates this clause as part of a query
         /// </summary>
         public string ToQuery(string tableName)

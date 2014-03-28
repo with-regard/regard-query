@@ -6,7 +6,7 @@ performing queries on events gathered by Regard.
 
 Requirements:
 
-* Simple API
+* Simple API that is easy to consume for the query builder
 * Easily replaceable in the first version
 * Serializable
 * Designable

@@ -13,7 +13,7 @@ namespace Regard.Query.Samples
 
             var builder = new SqlQueryBuilder(null);
             IRegardQuery result = builder.AllEvents();
-            result = result.Only("EventType", "DoSomething").CountUniqueValues("SessionId").BrokenDownBy("Day");
+            result = result.Only("EventType", "DoSomething").CountUniqueValues("SessionId", "NumSessions").BrokenDownBy("Day", "Day");
 
             Console.WriteLine("");
             Console.WriteLine(((SqlQuery)result).GenerateQuery());

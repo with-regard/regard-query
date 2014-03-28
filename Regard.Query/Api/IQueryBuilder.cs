@@ -27,21 +27,24 @@
         /// </summary>
         /// <param name="query">The query that should be split</param>
         /// <param name="key">The key that this should break the results down using</param>
-        IRegardQuery BrokenDownBy(IRegardQuery query, string key);                      // TODO: I think a final version of this will need to do ranges and other comparisons
+        /// <param name="name">The name to assign to the result</param>
+        IRegardQuery BrokenDownBy(IRegardQuery query, string key, string name);                      // TODO: I think a final version of this will need to do ranges and other comparisons
 
         /// <summary>
         /// Given a key that exists in the database, sums the total of all its values (in each partition if there is more than one)
         /// </summary>
         /// <param name="query">The query to add a new sum to</param>
         /// <param name="key">The key to sum</param>
-        IRegardQuery Sum(IRegardQuery query, string key);
+        /// <param name="name">The name to assign to the result</param>
+        IRegardQuery Sum(IRegardQuery query, string key, string name);
 
         /// <summary>
         /// Creates a query that counts the number of unique values of a particular key
         /// </summary>
         /// <param name="query">The query to perform counting in</param>
         /// <param name="key">The key to count</param>
+        /// <param name="name">The name to assign to the result</param>
         /// <returns>A query that counts the number of unique values in the specified key (in each partition if there is more than one)</returns>
-        IRegardQuery CountUniqueValues(IRegardQuery query, string key);
+        IRegardQuery CountUniqueValues(IRegardQuery query, string key, string name);
     }
 }
