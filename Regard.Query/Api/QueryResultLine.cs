@@ -22,11 +22,11 @@ namespace Regard.Query.Api
         /// <summary>
         /// The total number of events represented by this line
         /// </summary>
-        long EventCount { get; set; }
+        public long EventCount { get; private set; }
 
         /// <summary>
         /// The columns that make up this result
         /// </summary>
-        IEnumerable<QueryResultColumn> Columns { get; set; }
+        public IEnumerable<QueryResultColumn> Columns { get; private set; }
     }
 }
