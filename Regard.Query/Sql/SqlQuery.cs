@@ -337,7 +337,7 @@ namespace Regard.Query.Sql
                                 // Store this column
                                 columns.Add(new QueryResultColumn
                                     {
-                                        Name = summarisation.FieldName,
+                                        Name = summarisation.ResultName,
                                         Value = stringValue,
                                         Count = intValue
                                     });

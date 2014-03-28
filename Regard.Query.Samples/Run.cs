@@ -45,6 +45,8 @@ namespace Regard.Query.Samples
                         Console.WriteLine("  {0} = {1}", column.Name, column.Value);
                     }
                 }
+
+                Console.ReadLine();
             });
 
             runIt.Wait();
