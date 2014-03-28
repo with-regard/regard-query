@@ -191,7 +191,6 @@ namespace Regard.Query.Sql
                 finalQuery.Append('\n');
             }
             finalQuery.Append(";\n");
-            finalQuery.Append("GO\n");
 
             return finalQuery.ToString();
         }
@@ -272,7 +271,17 @@ namespace Regard.Query.Sql
                     }
 
                     // Get the event count for this line (always the first field)
-                    var eventCount = await queryReader.GetFieldValueAsync<long>(0);
+                    long eventCount;
+                    Type firstFieldType = queryReader.GetFieldType(0);
+
+                    if (firstFieldType == typeof (int))
+                    {
+                        eventCount = await queryReader.GetFieldValueAsync<int>(0);
+                    }
+                    else
+                    {
+                        eventCount = await queryReader.GetFieldValueAsync<long>(0);
+                    }
 
                     // Read the user-generated field values, and turn them into result columns
                     List<QueryResultColumn> columns = new List<QueryResultColumn>();
@@ -283,6 +292,13 @@ namespace Regard.Query.Sql
 
                     foreach (var elem in m_Elements)
                     {
+                        // Ignore elements that don't generate any fields
+                        if (elem.Summarisation == null)
+                        {
+                            continue;
+                        }
+
+                        // One field per named summarisation function
                         foreach (var summarisation in elem.Summarisation)
                         {
                             // Handle the (buggy) case where there are more summarisations than fields
@@ -303,12 +319,17 @@ namespace Regard.Query.Sql
                                 if (fieldType == null)
                                 {
                                 }
-                                else if (fieldType.Equals(typeof (int)))
+                                else if (fieldType == typeof (int))
                                 {
-                                    intValue = await queryReader.GetFieldValueAsync<int>(fieldId);
+                                    intValue    = await queryReader.GetFieldValueAsync<int>(fieldId);
                                     stringValue = intValue.ToString();
                                 }
-                                else if (fieldType.Equals(typeof (string)))
+                                else if (fieldType == typeof(long))
+                                {
+                                    intValue    = await queryReader.GetFieldValueAsync<long>(fieldId);
+                                    stringValue = intValue.ToString();
+                                }
+                                else if (fieldType == typeof(string))
                                 {
                                     stringValue = await queryReader.GetFieldValueAsync<string>(fieldId);
                                 }
