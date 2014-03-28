@@ -100,6 +100,10 @@ namespace Regard.Query.Sql
             // We always count the number of events
             selectPart.Append("COUNT(DISTINCT [ep1].EventId)");
 
+            // Restrict to events from the specified product
+            fromPart.Append("[Event] AS event INNER JOIN [EventPropertyValues] AS [ep1] ON event.Id = ep1.EventId");
+            wherePart.Append("event.ProductId = @productId");
+
             // Each element forms a new inner join
             for (int tableId = 0; tableId < m_Elements.Count; ++tableId)
             {
@@ -110,7 +114,7 @@ namespace Regard.Query.Sql
                 // Add to the from part
                 if (tableId == 0)
                 {
-                    fromPart.Append("[EventPropertyValues] AS [" + tableName + "]");
+                    // Start with all the events from the product
                 }
                 else
                 {
@@ -159,12 +163,6 @@ namespace Regard.Query.Sql
                         groupPart.Append("[" + tableName + "].[" + group + "]");
                     }
                 }
-            }
-
-            // Fill in any blanks that need filling in
-            if (fromPart.Length == 0)
-            {
-                fromPart.Append("[EventPropertyValues] AS ep1");
             }
 
             // Build up the final query
@@ -239,6 +237,7 @@ namespace Regard.Query.Sql
             var queryCommand    = new SqlCommand(queryText, connection);
 
             // Substitute parameters
+            queryCommand.Parameters.Add(new SqlParameter("@productId", Builder.ProductID));
             foreach (var param in GenerateSubstitutions())
             {
                 queryCommand.Parameters.Add(new SqlParameter(param.Name, param.Value));

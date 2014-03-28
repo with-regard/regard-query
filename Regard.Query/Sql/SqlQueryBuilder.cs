@@ -1,5 +1,4 @@
-﻿using System;
-using System.Data.SqlClient;
+﻿using System.Data.SqlClient;
 using Regard.Query.Api;
 
 namespace Regard.Query.Sql
@@ -10,25 +9,23 @@ namespace Regard.Query.Sql
     public class SqlQueryBuilder : IQueryBuilder
     {
         /// <summary>
-        /// The database connection that this will generate queries for
-        /// </summary>
-        private readonly SqlConnection m_Connection;
-
-        /// <summary>
         /// Creates a new query builder that will query events stored in a SQL server database
         /// </summary>
-        public SqlQueryBuilder(SqlConnection connection)
+        public SqlQueryBuilder(SqlConnection connection, int productId)
         {
-            m_Connection = connection;
+            Connection  = connection;
+            ProductID   = productId;
         }
 
         /// <summary>
         /// The database connection that queries should run on
         /// </summary>
-        public SqlConnection Connection
-        {
-            get { return m_Connection; }
-        }
+        public SqlConnection Connection { get; private set; }
+
+        /// <summary>
+        /// The identifier for the product that is being queried
+        /// </summary>
+        public int ProductID { get; private set; }
 
         #region 'Raw' implementation
 
