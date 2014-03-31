@@ -59,7 +59,7 @@ CREATE TABLE [EventProperty]
 --
 CREATE TABLE [EventPropertyValues]
 	(
-		[EventId] int NOT NULL,
+		[EventId] bigint NOT NULL,
 		-- [PropertyId] int NOT NULL,
 		[PropertyName] NVARCHAR(256) NOT NULL,		-- For simplicity, but at the cost of performance + DB size, avoid using the eventproperty table in the first iteration
 		[Value] NVARCHAR(256) NOT NULL,
@@ -88,7 +88,7 @@ CREATE TABLE [OptInUser]
 CREATE TABLE [Session]
 	(
 		[FullSessionID] uniqueidentifier PRIMARY KEY,					-- How the user's app identifies the session to us
-		[ShortSessionID] bigint NOT NULL,								-- How the session is identified within the database
+		[ShortSessionID] bigint NOT NULL IDENTITY(1,1),					-- How the session is identified within the database
 		[ShortUserID] bigint NOT NULL									-- Identifies the user that the session is for
 	)
 	;
