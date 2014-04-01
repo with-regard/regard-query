@@ -24,7 +24,7 @@ namespace Regard.Query.Serializable
             JObject appliesTo = new JObject();
             if (query.AppliesTo != null)
             {
-                appliesTo = query.ToJson();
+                appliesTo = query.AppliesTo.ToJson();
             }
 
             // Create the result object
