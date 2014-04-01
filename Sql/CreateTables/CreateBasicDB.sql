@@ -15,6 +15,7 @@ DROP TABLE [Event];
 DROP TABLE [EventProperty];
 DROP TABLE [EventPropertyValues];
 DROP TABLE [OptInUser]
+DROP TABLE [OptInState]
 DROP TABLE [Session]
 
 GO
@@ -69,6 +70,26 @@ CREATE TABLE [EventPropertyValues]
 	;
 
 --
+-- Possible opt-in states
+--
+-- Users may be opted in but have chosen not to share their data with the developer
+--
+-- There is no 'opted-out' state. Users who are opted out are not present in the database.
+--
+-- That is, users can see their data, but the developer must not be able to see it or have it influence the
+-- results of their queries.
+--
+CREATE TABLE [OptInState]
+	(
+		[StateID] int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+		[Name] varchar(20) NOT NULL
+	)
+	;
+
+INSERT INTO OptInState (Name) VALUES ('UserOnly');
+INSERT INTO OptInState (Name) VALUES ('ShareWithDeveloper');
+
+--
 -- The users table identifies opted-in users
 --
 -- Events MUST NOT be recorded for users who are not in this table.
@@ -76,7 +97,10 @@ CREATE TABLE [EventPropertyValues]
 CREATE TABLE [OptInUser]
 	(
 		[FullUserID] uniqueidentifier PRIMARY KEY,						-- How the user identifies to us
-		[ShortUserID] bigint NOT NULL IDENTITY(1,1)						-- How the user is identified within the database
+		[ShortUserID] bigint NOT NULL IDENTITY(1,1),					-- How the user is identified within the database
+		[OptInStateID] int NOT NULL,
+
+		CONSTRAINT [FK_OptInState] FOREIGN KEY ([OptInStateID]) REFERENCES [OptInState] ([StateId])
 	)
 	;
 

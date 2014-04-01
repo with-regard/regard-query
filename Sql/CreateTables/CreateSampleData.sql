@@ -14,6 +14,7 @@ DECLARE @productId bigint;
 DECLARE @eventId bigint;
 DECLARE @userId bigint;
 DECLARE @sessionId bigint;
+DECLARE @optInStateId int;
 
 --
 -- Clear the database (danger!)
@@ -31,10 +32,12 @@ INSERT INTO Product (Name, Organization) VALUES ('Test', 'WithRegard');
 SET @productId = SCOPE_IDENTITY();
 PRINT 'Product ID = ' + Convert(varchar(20), @productId);
 
+SET @optInStateId = (SELECT StateID FROM [OptInState] WHERE Name = 'ShareWithDeveloper');
+
 --
 -- Sample opted-in user
 --
-INSERT INTO [OptInUser] ([FullUserId]) VALUES (NEWID());
+INSERT INTO [OptInUser] ([FullUserId], [OptInStateID]) VALUES (NEWID(), @optInStateId);
 SET @userId = SCOPE_IDENTITY();
 PRINT 'User ID = ' + Convert(varchar(20), @userId);
 
