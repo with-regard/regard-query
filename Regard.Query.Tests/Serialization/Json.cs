@@ -7,27 +7,15 @@ namespace Regard.Query.Tests.Serialization
     [TestFixture]
     public class Json
     {
-        [Test]
-        public static void AllEvents()
+        /// <summary>
+        /// Sees if the specified serializable query serializes and deserializes to the same thing
+        /// </summary>
+        /// <param name="query"></param>
+        private static void Try(SerializableQuery query)
         {
-            // Create the query
-            var builder         = new SerializableQueryBuilder(null);
-            var query           = builder.AllEvents();
+            Assert.IsNotNull(query);
 
-            // Serialize and deserialize it
-            var serialized      = query.ToJson();
-            var deserialized    = (SerializableQuery) builder.FromJson(serialized);
-
-            // Check that the result is the same
-            Util.AssertEqual(query, deserialized, true);
-        }
-
-        [Test]
-        public static void AllComponents()
-        {
-            // Create the query
             var builder = new SerializableQueryBuilder(null);
-            var query = (SerializableQuery) builder.AllEvents().Only("Test1", "Test2").BrokenDownBy("Test3", "Test4").Sum("Test5", "Test6").CountUniqueValues("Test7", "Test8");
 
             // Serialize and deserialize it
             var serialized = query.ToJson();
@@ -35,6 +23,55 @@ namespace Regard.Query.Tests.Serialization
 
             // Check that the result is the same
             Util.AssertEqual(query, deserialized, true);
+        }
+
+        [Test]
+        public static void AllEvents()
+        {
+            // Create the query
+            var builder         = new SerializableQueryBuilder(null);
+            Try(builder.AllEvents());
+        }
+
+        [Test]
+        public static void Only()
+        {
+            // Create the query
+            var builder = new SerializableQueryBuilder(null);
+            Try((SerializableQuery) builder.AllEvents().Only("Test1", "Test2"));
+        }
+
+        [Test]
+        public static void BrokenDownBy()
+        {
+            // Create the query
+            var builder = new SerializableQueryBuilder(null);
+            Try((SerializableQuery)builder.AllEvents().BrokenDownBy("Test1", "Test2"));
+        }
+
+        [Test]
+        public static void CountUnique()
+        {
+            // Create the query
+            var builder = new SerializableQueryBuilder(null);
+            Try((SerializableQuery)builder.AllEvents().CountUniqueValues("Test1", "Test2"));
+        }
+
+
+        [Test]
+        public static void Sum()
+        {
+            // Create the query
+            var builder = new SerializableQueryBuilder(null);
+            Try((SerializableQuery)builder.AllEvents().Sum("Test1", "Test2"));
+        }
+
+        [Test]
+        public static void AllComponents()
+        {
+            // Create the query
+            var builder = new SerializableQueryBuilder(null);
+            Try((SerializableQuery) builder.AllEvents().Only("Test1", "Test2").BrokenDownBy("Test3", "Test4").Sum("Test5", "Test6").CountUniqueValues("Test7", "Test8"));
         }
     }
 }
