@@ -99,13 +99,16 @@ INSERT INTO OptInState (Name) VALUES ('ShareWithDeveloper');
 --
 CREATE TABLE [OptInUser]
 	(
-		[FullUserId] uniqueidentifier PRIMARY KEY,						-- How the user identifies to us
+		[FullUserId] uniqueidentifier PRIMARY KEY NONCLUSTERED,			-- How the user identifies to us
 		[ShortUserId] bigint NOT NULL IDENTITY(1,1),					-- How the user is identified within the database
 		[OptInStateId] int NOT NULL,
 
 		CONSTRAINT [FK_OptInState] FOREIGN KEY ([OptInStateId]) REFERENCES [OptInState] ([StateId])
 	)
 	;
+
+-- For developer queries we want to quickly look up the users who are opted in
+CREATE CLUSTERED INDEX [IDX_OptInState] ON [OptInUser] ([OptInStateId], [FullUserId]) ;
 
 --
 -- The session table indicate runs through the application
@@ -114,10 +117,15 @@ CREATE TABLE [OptInUser]
 --
 CREATE TABLE [Session]
 	(
-		[FullSessionId] uniqueidentifier PRIMARY KEY,					-- How the user's app identifies the session to use
+		[FullSessionId] uniqueidentifier,								-- How the user's app identifies the session to use
 		[ShortSessionId] bigint NOT NULL IDENTITY(1,1),					-- How the session is identified within the database
-		[ShortUserId] bigint NOT NULL									-- Identifies the user that the session is for
+		[ShortUserId] bigint NOT NULL,									-- Identifies the user that the session is for
+
+		PRIMARY KEY NONCLUSTERED ([FullSessionId])
 	)
 	;
+
+-- Typically we want to run queries like 'get all the sessions for an individual user'
+CREATE CLUSTERED INDEX [IDX_Session] ON [Session] ([ShortUserId], [FullSessionId]);
 
 GO
