@@ -101,8 +101,15 @@ namespace Regard.Query.Sql
             selectPart.Append("COUNT(DISTINCT [ep1].EventId)");
 
             // Restrict to events from the specified product
-            fromPart.Append("[Event] AS event INNER JOIN [EventPropertyValues] AS [ep1] ON event.Id = ep1.EventId");
+            fromPart.Append("[Event] AS event INNER JOIN [EventPropertyValues] AS [ep1] ON [ep1].[EventId] = [event].[Id]");
             wherePart.Append("event.ProductId = @productId");
+
+            // Restrict to users who are opted-in
+            fromPart.Append("\nINNER JOIN [Session] AS [session] ON [session].[ShortSessionId] = [event].[ShortSessionId]");
+            fromPart.Append("\nINNER JOIN [OptInUser] AS [user] ON [user].[ShortUserId] = [session].[ShortUserId]");
+            fromPart.Append("\nINNER JOIN [OptInState] AS [optin] ON [optin].[StateId] = [user].[OptInStateId]");
+
+            wherePart.Append("\nAND [optin].[Name] = 'ShareWithDeveloper'");
 
             // Each element forms a new inner join
             for (int tableId = 0; tableId < m_Elements.Count; ++tableId)

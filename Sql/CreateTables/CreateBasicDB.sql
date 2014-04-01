@@ -81,7 +81,7 @@ CREATE TABLE [EventPropertyValues]
 --
 CREATE TABLE [OptInState]
 	(
-		[StateID] int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+		[StateId] int NOT NULL IDENTITY(1,1) PRIMARY KEY,
 		[Name] varchar(20) NOT NULL
 	)
 	;
@@ -96,11 +96,11 @@ INSERT INTO OptInState (Name) VALUES ('ShareWithDeveloper');
 --
 CREATE TABLE [OptInUser]
 	(
-		[FullUserID] uniqueidentifier PRIMARY KEY,						-- How the user identifies to us
-		[ShortUserID] bigint NOT NULL IDENTITY(1,1),					-- How the user is identified within the database
-		[OptInStateID] int NOT NULL,
+		[FullUserId] uniqueidentifier PRIMARY KEY,						-- How the user identifies to us
+		[ShortUserId] bigint NOT NULL IDENTITY(1,1),					-- How the user is identified within the database
+		[OptInStateId] int NOT NULL,
 
-		CONSTRAINT [FK_OptInState] FOREIGN KEY ([OptInStateID]) REFERENCES [OptInState] ([StateId])
+		CONSTRAINT [FK_OptInState] FOREIGN KEY ([OptInStateId]) REFERENCES [OptInState] ([StateId])
 	)
 	;
 
@@ -111,9 +111,9 @@ CREATE TABLE [OptInUser]
 --
 CREATE TABLE [Session]
 	(
-		[FullSessionID] uniqueidentifier PRIMARY KEY,					-- How the user's app identifies the session to us
-		[ShortSessionID] bigint NOT NULL IDENTITY(1,1),					-- How the session is identified within the database
-		[ShortUserID] bigint NOT NULL									-- Identifies the user that the session is for
+		[FullSessionId] uniqueidentifier PRIMARY KEY,					-- How the user's app identifies the session to use
+		[ShortSessionId] bigint NOT NULL IDENTITY(1,1),					-- How the session is identified within the database
+		[ShortUserId] bigint NOT NULL									-- Identifies the user that the session is for
 	)
 	;
 
