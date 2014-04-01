@@ -1,4 +1,5 @@
-﻿using System.Data.SqlClient;
+﻿using System;
+using System.Data.SqlClient;
 using Regard.Query.Api;
 
 namespace Regard.Query.Sql
@@ -11,10 +12,18 @@ namespace Regard.Query.Sql
         /// <summary>
         /// Creates a new query builder that will query events stored in a SQL server database
         /// </summary>
-        public SqlQueryBuilder(SqlConnection connection, int productId)
+        /// <param name="connection">The connection to the database to use for queries created by this object</param>
+        /// <param name="productId">The product that this query is for</param>
+        /// <param name="userId">The ID of the user that this query is being run on behalf of (use <see cref="WellKnownUserIdentifier.ProductDeveloper"></see> for aggregation
+        /// queries on behalf of the product developer)</param>
+        /// <remarks>
+        /// Note that query results for a specific user should only be displayed to that user. This library has no way to enforce this restriction.
+        /// </remarks>
+        public SqlQueryBuilder(SqlConnection connection, int productId, Guid userId)
         {
             Connection  = connection;
-            ProductID   = productId;
+            ProductId   = productId;
+            UserId      = userId;
         }
 
         /// <summary>
@@ -25,7 +34,12 @@ namespace Regard.Query.Sql
         /// <summary>
         /// The identifier for the product that is being queried
         /// </summary>
-        public int ProductID { get; private set; }
+        public int ProductId { get; private set; }
+
+        /// <summary>
+        /// The identifier for the user whose data is to be queried
+        /// </summary>
+        public Guid UserId { get; private set; }
 
         #region 'Raw' implementation
 

@@ -104,12 +104,23 @@ namespace Regard.Query.Sql
             fromPart.Append("[Event] AS event INNER JOIN [EventPropertyValues] AS [ep1] ON [ep1].[EventId] = [event].[Id]");
             wherePart.Append("event.ProductId = @productId");
 
-            // Restrict to users who are opted-in
-            fromPart.Append("\nINNER JOIN [Session] AS [session] ON [session].[ShortSessionId] = [event].[ShortSessionId]");
-            fromPart.Append("\nINNER JOIN [OptInUser] AS [user] ON [user].[ShortUserId] = [session].[ShortUserId]");
-            fromPart.Append("\nINNER JOIN [OptInState] AS [optin] ON [optin].[StateId] = [user].[OptInStateId]");
+            if (Builder.UserId.Equals(WellKnownUserIdentifier.ProductDeveloper))
+            { 
+                // Restrict to users who are opted-in
+                fromPart.Append("\nINNER JOIN [Session] AS [session] ON [session].[ShortSessionId] = [event].[ShortSessionId]");
+                fromPart.Append("\nINNER JOIN [OptInUser] AS [user] ON [user].[ShortUserId] = [session].[ShortUserId]");
+                fromPart.Append("\nINNER JOIN [OptInState] AS [optin] ON [optin].[StateId] = [user].[OptInStateId]");
 
-            wherePart.Append("\nAND [optin].[Name] = 'ShareWithDeveloper'");
+                wherePart.Append("\nAND [optin].[Name] = 'ShareWithDeveloper'");
+            }
+            else
+            {
+                // Restrict to the specified user ID
+                fromPart.Append("\nINNER JOIN [Session] AS [session] ON [session].[ShortSessionId] = [event].[ShortSessionId]");
+                fromPart.Append("\nINNER JOIN [OptInUser] AS [user] ON [user].[ShortUserId] = [session].[ShortUserId]");
+
+                wherePart.Append("\nAND [user].[FullUserId] = @userId");
+            }
 
             // Each element forms a new inner join
             for (int tableId = 0; tableId < m_Elements.Count; ++tableId)
@@ -244,10 +255,11 @@ namespace Regard.Query.Sql
             var queryCommand    = new SqlCommand(queryText, connection);
 
             // Substitute parameters
-            queryCommand.Parameters.Add(new SqlParameter("@productId", Builder.ProductID));
+            queryCommand.Parameters.AddWithValue("@productId", Builder.ProductId);
+            queryCommand.Parameters.AddWithValue("@userId", Builder.UserId);
             foreach (var param in GenerateSubstitutions())
             {
-                queryCommand.Parameters.Add(new SqlParameter(param.Name, param.Value));
+                queryCommand.Parameters.AddWithValue(param.Name, param.Value);
             }
 
             // Execute the command
