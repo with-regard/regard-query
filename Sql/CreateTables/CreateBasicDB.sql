@@ -36,12 +36,12 @@ CREATE TABLE [Product]
 --
 CREATE TABLE [Event]
 	(
-		[Id] bigint NOT NULL IDENTITY(1,1) PRIMARY KEY,
+		[Id] bigint NOT NULL IDENTITY(1,1),
 		[ProductId] bigint NOT NULL,
-		[ShortSessionId] bigint NOT NULL
-				
+		[ShortSessionId] bigint NOT NULL,
+		
+		PRIMARY KEY ([ProductId], [Id])
 		-- TODO: product version?
-		-- TODO: session identifier?
 	)
 	;
 
