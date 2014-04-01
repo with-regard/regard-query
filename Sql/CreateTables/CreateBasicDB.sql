@@ -26,10 +26,12 @@ GO
 CREATE TABLE [Product]
 	(
 		[Id] bigint NOT NULL IDENTITY(1,1) PRIMARY KEY,
-		[Name] NVARCHAR(256) NOT NULL,
-		[Organization] NVARCHAR(256) NOT NULL
+		[Name] NVARCHAR(200) NOT NULL,
+		[Organization] NVARCHAR(200) NOT NULL
 	)
 	;
+
+CREATE UNIQUE NONCLUSTERED INDEX [IDX_ProductName] ON [Product] ([Organization], [Name]) ;
 
 --
 -- The Event table assigns IDs to events
