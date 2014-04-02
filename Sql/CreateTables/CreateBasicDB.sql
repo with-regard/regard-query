@@ -95,6 +95,7 @@ INSERT INTO OptInState (Name) VALUES ('ShareWithDeveloper');
 -- The users table identifies opted-in users
 --
 -- Events MUST NOT be recorded for users who are not in this table.
+-- TODO: a user's opt-in state should be per-product, not per-user
 --
 CREATE TABLE [OptInUser]
 	(
