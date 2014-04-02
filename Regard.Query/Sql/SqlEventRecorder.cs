@@ -19,6 +19,7 @@ namespace Regard.Query.Sql
         private const string c_GetShortUserId       = "SELECT [ShortUserId] FROM [OptInUser] WHERE FullUserId = @fullUserId";
         private const string c_InsertNewSession     = "INSERT INTO [Session] ([FullSessionId], [ShortUserId], [ProductId]) VALUES (@fullSessionId, @shortUserId, @productId)";
         private const string c_GetShortProductId    = "SELECT [Id] FROM [Product] WHERE [Name] = @product AND [Organization] = @organization";
+        private const string c_CreateEvent          = "INSERT INTO [Event] (ShortSessionId) SELECT ShortSessionId FROM [Session] WHERE [FullSessionId] = @fullSessionId; SELECT SCOPE_IDENTITY()";
 
         public SqlEventRecorder(SqlConnection connection)
         {
@@ -39,6 +40,56 @@ namespace Regard.Query.Sql
         }
 
         /// <summary>
+        /// Returns the short user ID given a user GUID, or null if the user is opted-out of collection (or has never opted-in)
+        /// </summary>
+        private async Task<long?> GetShortUserId(Guid userId, SqlTransaction transaction)
+        {
+            var getShortIdCommand = new SqlCommand(c_GetShortUserId, m_Connection, transaction);
+
+            getShortIdCommand.Parameters.AddWithValue("@fullUserId", userId);
+
+            // Fetch the short user ID
+            long shortUserId;
+            using (SqlDataReader shortIdReader = await getShortIdCommand.ExecuteReaderAsync())
+            {
+                if (!await shortIdReader.ReadAsync())
+                {
+                    // 0 records in result: user is not in the database
+                    return null;
+                }
+
+                shortUserId = (long)shortIdReader["ShortUserId"];
+            }
+
+            return shortUserId;
+        }
+
+        /// <summary>
+        /// Given the name of an organization and a product, returns the short product ID that refers to it, or null if the product is not in the database
+        /// </summary>
+        private async Task<long?> GetShortProductId(string organization, string product, SqlTransaction transaction)
+        {
+            var getShortProductIdCommand = new SqlCommand(c_GetShortProductId, m_Connection, transaction);
+
+            getShortProductIdCommand.Parameters.AddWithValue("@organization", organization);
+            getShortProductIdCommand.Parameters.AddWithValue("@product", product);
+
+            long shortProductId;
+            using (SqlDataReader shortProductIdReader = await getShortProductIdCommand.ExecuteReaderAsync())
+            {
+                if (!await shortProductIdReader.ReadAsync())
+                {
+                    // 0 records in results: product is not in the database
+                    return null;
+                }
+
+                shortProductId = (long)shortProductIdReader["Id"];
+            }
+
+            return shortProductId;
+        }
+
+        /// <summary>
         /// Indicates that a new session has begun
         /// </summary>
         /// <param name="organization">The name of the organization that the session is for</param>
@@ -52,49 +103,30 @@ namespace Regard.Query.Sql
 
             using (var sessionTransaction = m_Connection.BeginTransaction())
             { 
+                // TODO: might be better to do this with a stored procedure? Would still need to detect the error cases where the product or user doesn't exist
+
                 // Fetch the short ID for this user
-                var getShortIdCommand = new SqlCommand(c_GetShortUserId, m_Connection);
-
-                getShortIdCommand.Parameters.AddWithValue("@fullUserId", userId);
-
-                // Fetch the short user ID
-                long shortUserId;
-                using (SqlDataReader shortIdReader = await getShortIdCommand.ExecuteReaderAsync())
+                var shortUserId = await GetShortUserId(userId, sessionTransaction);
+                if (!shortUserId.HasValue)
                 {
-                    if (!await shortIdReader.ReadAsync())
-                    {
-                        // 0 records in result: user is not in the database
-                        return Guid.Empty;
-                    }
-
-                    shortUserId = (long) shortIdReader["ShortUserId"];
+                    // TODO: way to distinguish the error case 'user doesn't exist' from the case 'product doesn't exist'. Currently it's going to be a bit mysterious.
+                    return Guid.Empty;
                 }
 
                 // ... and the short product ID
                 // TODO: these commands could be combined into one
-                var getShortProductIdCommand = new SqlCommand(c_GetShortProductId, m_Connection);
-
-                getShortProductIdCommand.Parameters.AddWithValue("@organization", organization);
-                getShortProductIdCommand.Parameters.AddWithValue("@product", product);
-
-                long shortProductId;
-                using (SqlDataReader shortProductIdReader = await getShortProductIdCommand.ExecuteReaderAsync())
+                var shortProductId = await GetShortProductId(organization, product, sessionTransaction);
+                if (!shortProductId.HasValue)
                 {
-                    if (!await shortProductIdReader.ReadAsync())
-                    {
-                        // 0 records in results: product is not in the database
-                        return Guid.Empty;
-                    }
-
-                    shortProductId = (long) shortProductIdReader["Id"];
+                    return Guid.Empty;
                 }
 
                 // Create an insertion command
-                var insertionCommand = new SqlCommand(c_InsertNewSession, m_Connection);
+                var insertionCommand = new SqlCommand(c_InsertNewSession, m_Connection, sessionTransaction);
 
                 insertionCommand.Parameters.AddWithValue("@fullSessionId", newSessionId);
-                insertionCommand.Parameters.AddWithValue("@shortUserId", shortUserId);
-                insertionCommand.Parameters.AddWithValue("@productId", shortProductId);
+                insertionCommand.Parameters.AddWithValue("@shortUserId", shortUserId.Value);
+                insertionCommand.Parameters.AddWithValue("@productId", shortProductId.Value);
 
                 // Create the session
                 await insertionCommand.ExecuteNonQueryAsync();
@@ -109,13 +141,23 @@ namespace Regard.Query.Sql
         /// <summary>
         /// Schedules a single event to be recorded by this object
         /// </summary>
-        /// <param name="organization">The name of the organisation that generated the event</param>
-        /// <param name="product">The name of the product that generated the event</param>
         /// <param name="sessionId">The ID of the session (as returned by StartSession)</param>
         /// <param name="data">JSON data indicating the properties for this event</param>
-        public async Task RecordEvent(string organization, string product, Guid sessionId, JObject data)
+        public async Task RecordEvent(Guid sessionId, JObject data)
         {
-            throw new NotImplementedException();
+            using (var transaction = m_Connection.BeginTransaction())
+            {
+                // Create the event
+                // TODO: could cache the short session ID to improve performance?
+                // TODO: make something sensible happen if the session ID is invalid (likely scenario: user opts-out while a session is in progress)
+                var createEventCmd = new SqlCommand(c_CreateEvent, m_Connection, transaction);
+
+                createEventCmd.Parameters.AddWithValue("@fullSessionId", sessionId);
+
+                // TODO: Store the properties
+
+                transaction.Commit();
+            }
         }
     }
 }
