@@ -10,13 +10,13 @@ GO
 --
 -- Delete the existing tables (danger!)
 --
-DROP TABLE [Product];
 DROP TABLE [Event];
 DROP TABLE [EventProperty];
 DROP TABLE [EventPropertyValues];
-DROP TABLE [OptInUser]
-DROP TABLE [OptInState]
-DROP TABLE [Session]
+DROP TABLE [Session];
+DROP TABLE [OptInUser];
+DROP TABLE [OptInState];
+DROP TABLE [Product];
 
 GO
 
@@ -99,7 +99,7 @@ INSERT INTO OptInState (Name) VALUES ('ShareWithDeveloper');
 CREATE TABLE [OptInUser]
 	(
 		[FullUserId] uniqueidentifier PRIMARY KEY NONCLUSTERED,			-- How the user identifies to us
-		[ShortUserId] bigint NOT NULL IDENTITY(1,1),					-- How the user is identified within the database
+		[ShortUserId] bigint NOT NULL IDENTITY(1,1) UNIQUE,				-- How the user is identified within the database
 		[OptInStateId] int NOT NULL,
 
 		CONSTRAINT [FK_OptInState] FOREIGN KEY ([OptInStateId]) REFERENCES [OptInState] ([StateId])
@@ -117,11 +117,13 @@ CREATE CLUSTERED INDEX [IDX_OptInState] ON [OptInUser] ([OptInStateId], [FullUse
 CREATE TABLE [Session]
 	(
 		[FullSessionId] uniqueidentifier,								-- How the user's app identifies the session to use
-		[ShortSessionId] bigint NOT NULL IDENTITY(1,1),					-- How the session is identified within the database
+		[ShortSessionId] bigint NOT NULL IDENTITY(1,1) UNIQUE,			-- How the session is identified within the database
 		[ShortUserId] bigint NOT NULL,									-- Identifies the user that the session is for
 		[ProductId] bigint NOT NULL,									-- Identifies the product that this session is for
 
-		PRIMARY KEY NONCLUSTERED ([FullSessionId])
+		PRIMARY KEY NONCLUSTERED ([FullSessionId]),
+		CONSTRAINT [FK_SessionProduct] FOREIGN KEY ([ProductId]) REFERENCES [Product] ([Id]),
+		CONSTRAINT [FK_SessionUser] FOREIGN KEY ([ShortUserId]) REFERENCES [OptInUser] ([ShortUserId]),
 	)
 	;
 

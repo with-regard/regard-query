@@ -15,7 +15,7 @@ namespace Regard.Query.Api
         /// <param name="organization">The name of the organization that the session is for</param>
         /// <param name="product">The name of the product that the session is for</param>
         /// <param name="userId">A GUID that identifies the user that this session is for</param>
-        /// <returns>A GUID that identifies this session</returns>
+        /// <returns>A GUID that identifies this session, or Guid.Empty if the session can't be started (because the user is opted-out, for example)</returns>
         Task<Guid> StartSession(string organization, string product, Guid userId);
 
         /// <summary>
