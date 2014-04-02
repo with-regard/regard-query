@@ -102,13 +102,14 @@ namespace Regard.Query.Sql
 
             // Restrict to events from the specified product
             fromPart.Append("[Event] AS event INNER JOIN [EventPropertyValues] AS [ep1] ON [ep1].[EventId] = [event].[Id]");
-            wherePart.Append("event.ProductId = @productId");
+            fromPart.Append("\nINNER JOIN [Session] AS [session] ON [session].[ShortSessionId] = [event].[ShortSessionId]");
+            fromPart.Append("\nINNER JOIN [OptInUser] AS [user] ON [user].[ShortUserId] = [session].[ShortUserId]");
+
+            wherePart.Append("[session].[ProductId] = @productId");
 
             if (Builder.UserId.Equals(WellKnownUserIdentifier.ProductDeveloper))
             { 
                 // Restrict to users who are opted-in
-                fromPart.Append("\nINNER JOIN [Session] AS [session] ON [session].[ShortSessionId] = [event].[ShortSessionId]");
-                fromPart.Append("\nINNER JOIN [OptInUser] AS [user] ON [user].[ShortUserId] = [session].[ShortUserId]");
                 fromPart.Append("\nINNER JOIN [OptInState] AS [optin] ON [optin].[StateId] = [user].[OptInStateId]");
 
                 wherePart.Append("\nAND [optin].[Name] = 'ShareWithDeveloper'");
@@ -116,9 +117,6 @@ namespace Regard.Query.Sql
             else
             {
                 // Restrict to the specified user ID
-                fromPart.Append("\nINNER JOIN [Session] AS [session] ON [session].[ShortSessionId] = [event].[ShortSessionId]");
-                fromPart.Append("\nINNER JOIN [OptInUser] AS [user] ON [user].[ShortUserId] = [session].[ShortUserId]");
-
                 wherePart.Append("\nAND [user].[FullUserId] = @userId");
             }
 
