@@ -39,10 +39,9 @@ CREATE UNIQUE NONCLUSTERED INDEX [IDX_ProductName] ON [Product] ([Organization],
 CREATE TABLE [Event]
 	(
 		[Id] bigint NOT NULL IDENTITY(1,1),
-		[ProductId] bigint NOT NULL,
 		[ShortSessionId] bigint NOT NULL,
 		
-		PRIMARY KEY ([ProductId], [Id])
+		PRIMARY KEY ([Id])
 		-- TODO: product version?
 	)
 	;
@@ -120,12 +119,13 @@ CREATE TABLE [Session]
 		[FullSessionId] uniqueidentifier,								-- How the user's app identifies the session to use
 		[ShortSessionId] bigint NOT NULL IDENTITY(1,1),					-- How the session is identified within the database
 		[ShortUserId] bigint NOT NULL,									-- Identifies the user that the session is for
+		[ProductId] bigint NOT NULL,									-- Identifies the product that this session is for
 
 		PRIMARY KEY NONCLUSTERED ([FullSessionId])
 	)
 	;
 
 -- Typically we want to run queries like 'get all the sessions for an individual user'
-CREATE CLUSTERED INDEX [IDX_Session] ON [Session] ([ShortUserId], [FullSessionId]);
+CREATE CLUSTERED INDEX [IDX_Session] ON [Session] ([ProductId], [ShortUserId], [FullSessionId]);
 
 GO
