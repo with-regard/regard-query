@@ -19,11 +19,11 @@ DECLARE @optInStateId int;
 --
 -- Clear the database (danger!)
 --
-DELETE FROM [Product];
-DELETE FROM [Event]
 DELETE FROM [EventPropertyValues];
-DELETE FROM [OptInUser]
-DELETE FROM [Session]
+DELETE FROM [Event];
+DELETE FROM [Session];
+DELETE FROM [OptInUser];
+DELETE FROM [Product];
 
 --
 -- Product
@@ -33,6 +33,11 @@ SET @productId = SCOPE_IDENTITY();
 PRINT 'Product ID = ' + Convert(varchar(20), @productId);
 
 SET @optInStateId = (SELECT StateID FROM [OptInState] WHERE Name = 'ShareWithDeveloper');
+
+--
+-- The test user
+--
+INSERT INTO [OptInUser] ([FullUserId], [OptInStateID]) VALUES ('F16CB994-00FF-4326-B0DB-F316F7EC2942', @optInStateId);
 
 --
 -- Sample opted-in user
