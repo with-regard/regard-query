@@ -65,7 +65,7 @@ CREATE TABLE [EventPropertyValues]
 		-- [PropertyId] int NOT NULL,
 		[PropertyName] NVARCHAR(256) NOT NULL,		-- For simplicity, but at the cost of performance + DB size, avoid using the eventproperty table in the first iteration
 		[Value] NVARCHAR(256) NOT NULL,
-		[NumericValue] bigint
+		[NumericValue] float
 		
 		PRIMARY KEY ([EventId], [PropertyName])
 	)

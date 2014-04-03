@@ -19,7 +19,8 @@ namespace Regard.Query.Sql
         private const string c_GetShortUserId       = "SELECT [ShortUserId] FROM [OptInUser] WHERE FullUserId = @fullUserId";
         private const string c_InsertNewSession     = "INSERT INTO [Session] ([FullSessionId], [ShortUserId], [ProductId]) VALUES (@fullSessionId, @shortUserId, @productId)";
         private const string c_GetShortProductId    = "SELECT [Id] FROM [Product] WHERE [Name] = @product AND [Organization] = @organization";
-        private const string c_CreateEvent          = "INSERT INTO [Event] (ShortSessionId) SELECT ShortSessionId FROM [Session] WHERE [FullSessionId] = @fullSessionId; SELECT SCOPE_IDENTITY()";
+        private const string c_CreateEvent          = "INSERT INTO [Event] (ShortSessionId) SELECT ShortSessionId FROM [Session] WHERE [FullSessionId] = @fullSessionId; SELECT CAST(SCOPE_IDENTITY() AS bigint)";
+        private const string c_AddProperty          = "INSERT INTO [EventPropertyValues] ([EventId], [PropertyName], [Value], [NumericValue]) VALUES (@eventId, @propertyName, @propertyStringValue, @propertyNumericValue)";
 
         public SqlEventRecorder(SqlConnection connection)
         {
@@ -154,7 +155,66 @@ namespace Regard.Query.Sql
 
                 createEventCmd.Parameters.AddWithValue("@fullSessionId", sessionId);
 
-                // TODO: Store the properties
+                // The creation command should return the new event ID
+                long eventId = (long) await createEventCmd.ExecuteScalarAsync();
+
+                // Store the properties
+                foreach (var property in data.Properties())
+                {
+                    var addPropertyCmd = new SqlCommand(c_AddProperty, m_Connection, transaction);
+
+                    // Only store property types we understand
+                    var propertyType = property.Value.Type;
+
+                    addPropertyCmd.Parameters.AddWithValue("@eventId", eventId);
+                    addPropertyCmd.Parameters.AddWithValue("@propertyName", property.Name);
+
+                    switch (propertyType)
+                    {
+                        case JTokenType.Boolean:
+                        {
+                            bool val = property.Value.Value<bool>();
+                            addPropertyCmd.Parameters.AddWithValue("@propertyStringValue", val.ToString());
+                            addPropertyCmd.Parameters.AddWithValue("@propertyNumericValue", val ? 1.0 : 0.0);
+                            break;
+                        }
+
+                        case JTokenType.Float:
+                        {
+                            double val = property.Value.Value<double>();
+                            addPropertyCmd.Parameters.AddWithValue("@propertyStringValue", val.ToString());
+                            addPropertyCmd.Parameters.AddWithValue("@propertyNumericValue", val);
+                            break;
+                        }
+
+                        case JTokenType.Integer:
+                        {
+                            int val = property.Value.Value<int>();
+                            addPropertyCmd.Parameters.AddWithValue("@propertyStringValue", val.ToString());
+                            addPropertyCmd.Parameters.AddWithValue("@propertyNumericValue", (double) val);
+                            break;
+                        }
+
+                        case JTokenType.String:
+                        {
+                            string val = property.Value.Value<string>();
+                            addPropertyCmd.Parameters.AddWithValue("@propertyStringValue", val.ToString());
+                            addPropertyCmd.Parameters.AddWithValue("@propertyNumericValue", DBNull.Value);
+                            break;
+                        }
+
+                        
+                        case JTokenType.TimeSpan:
+                        case JTokenType.Date:
+
+                        default:
+                            // Do not store this property value
+                            continue;
+                    }
+
+                    // Add this property
+                    await addPropertyCmd.ExecuteNonQueryAsync();
+                }
 
                 transaction.Commit();
             }
