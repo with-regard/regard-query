@@ -41,10 +41,13 @@ CREATE TABLE [Event]
 		[Id] bigint NOT NULL IDENTITY(1,1),
 		[ShortSessionId] bigint NOT NULL,
 		
-		PRIMARY KEY ([Id])
+		PRIMARY KEY NONCLUSTERED ([Id])
 		-- TODO: product version?
 	)
 	;
+
+CREATE CLUSTERED INDEX IDX_SessionId
+ON [Event] ([ShortSessionId], [Id])
 
 --
 -- The EventProperty table gives IDs to property names
@@ -67,9 +70,12 @@ CREATE TABLE [EventPropertyValues]
 		[Value] NVARCHAR(256) NOT NULL,
 		[NumericValue] float
 		
-		PRIMARY KEY ([EventId], [PropertyName])
+		PRIMARY KEY NONCLUSTERED ([EventId], [PropertyName])
 	)
 	;
+
+CREATE CLUSTERED INDEX IDX_EventPropId
+ON [EventPropertyValues] ([PropertyName]) ;
 
 --
 -- Possible opt-in states
