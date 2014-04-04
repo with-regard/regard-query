@@ -70,12 +70,25 @@ CREATE TABLE [EventPropertyValues]
 		[Value] NVARCHAR(256) NOT NULL,
 		[NumericValue] float
 		
-		PRIMARY KEY NONCLUSTERED ([EventId], [PropertyName])
+		PRIMARY KEY ([PropertyName], [EventId])
 	)
 	;
 
-CREATE CLUSTERED INDEX IDX_EventPropId
-ON [EventPropertyValues] ([PropertyName]) ;
+
+CREATE NONCLUSTERED INDEX [IDX_ValueId] ON [EventPropertyValues]
+(
+	[Value] ASC,
+	[EventId] ASC
+)
+INCLUDE ( 	[PropertyName]) WITH (SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF) ON [PRIMARY];
+
+
+CREATE NONCLUSTERED INDEX [IDX_PropertyId] ON [EventPropertyValues]
+(
+	[PropertyName] ASC,
+	[EventId] ASC
+)
+INCLUDE ( 	[Value]) WITH (SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF) ON [PRIMARY];
 
 --
 -- Possible opt-in states
