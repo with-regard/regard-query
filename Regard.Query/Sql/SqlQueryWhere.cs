@@ -26,9 +26,18 @@
         /// <remarks>
         /// Note that all the fields must be assigned before this can be legitimately called
         /// </remarks>
-        public string ToQuery(string tableName)
+        public string ToQuery(string propertyTableName, string propertyValueTableName)
         {
-            return "[" + tableName + "].[" + FieldName + "] = " + ParameterName;
+            string tableName = propertyValueTableName;
+            string realFieldName = FieldName;
+
+            if (FieldName == "PropertyName")
+            {
+                tableName = propertyTableName;
+                realFieldName = "Name";
+            }
+
+            return "[" + tableName + "].[" + realFieldName + "] = " + ParameterName;
         }
     }
 }

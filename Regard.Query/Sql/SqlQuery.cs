@@ -98,10 +98,11 @@ namespace Regard.Query.Sql
             StringBuilder groupPart     = new StringBuilder();
 
             // We always count the number of events
-            selectPart.Append("COUNT(DISTINCT [ep1].EventId)");
+            selectPart.Append("COUNT(DISTINCT [epv1].EventId)");
 
             // Restrict to events from the specified product
-            fromPart.Append("[Event] AS event INNER JOIN [EventPropertyValues] AS [ep1] ON [ep1].[EventId] = [event].[Id]");
+            fromPart.Append("[Event] AS event INNER JOIN [EventPropertyValues] AS [epv1] ON [epv1].[EventId] = [event].[Id]");
+            fromPart.Append("\nINNER JOIN [EventProperty] AS [ep1] ON [ep1].[Id] = [epv1].[PropertyId]");
             fromPart.Append("\nINNER JOIN [Session] AS [session] ON [session].[ShortSessionId] = [event].[ShortSessionId]");
             fromPart.Append("\nINNER JOIN [OptInUser] AS [user] ON ([user].[ShortUserId] = [session].[ShortUserId] AND [user].[ProductId] = @productId)");
 
@@ -124,8 +125,9 @@ namespace Regard.Query.Sql
             for (int tableId = 0; tableId < m_Elements.Count; ++tableId)
             {
                 // Get the table name (here's why overloading '+' to mean different things is a bad language design descision)
-                var     element     = m_Elements[tableId];
-                string  tableName   = "ep" + (tableId + 1);
+                var     element                 = m_Elements[tableId];
+                string  propertyTableName       = "ep" + (tableId + 1);
+                string  propertyValueTableName  = "epv" + (tableId + 1);
 
                 // Add to the from part
                 if (tableId == 0)
@@ -134,7 +136,8 @@ namespace Regard.Query.Sql
                 }
                 else
                 {
-                    fromPart.Append("\nINNER JOIN [EventPropertyValues] AS [" + tableName + "] ON [ep1].[EventId] = [" + tableName + "].[EventId]");
+                    fromPart.Append("\nINNER JOIN [EventPropertyValues] AS [" + propertyValueTableName + "] ON [epv1].[EventId] = [" + propertyValueTableName + "].[EventId]");
+                    fromPart.Append("\nINNER JOIN [EventProperty] AS [" + propertyTableName + "] ON [" + propertyValueTableName + "].[PropertyId] = [" + propertyTableName + "].[Id]");
                 }
 
                 // Build up the select part as needed
@@ -146,7 +149,7 @@ namespace Regard.Query.Sql
                         {
                             selectPart.Append(", ");
                         }
-                        selectPart.Append(sum.ToQuery(tableName));
+                        selectPart.Append(sum.ToQuery(propertyTableName, propertyValueTableName));
                     }
                 }
 
@@ -163,7 +166,7 @@ namespace Regard.Query.Sql
                         {
                             wherePart.Append(" AND ");
                         }
-                        wherePart.Append(where.ToQuery(tableName));
+                        wherePart.Append(where.ToQuery(propertyTableName, propertyValueTableName));
                     }
                 }
 
@@ -176,7 +179,15 @@ namespace Regard.Query.Sql
                         {
                             groupPart.Append(", ");
                         }
-                        groupPart.Append("[" + tableName + "].[" + group + "]");
+
+                        if (group == "PropertyName")
+                        {
+                            groupPart.Append("[" + propertyTableName + "].[Name]");
+                        }
+                        else
+                        {
+                            groupPart.Append("[" + propertyValueTableName + "].[" + group + "]");
+                        }
                     }
                 }
             }

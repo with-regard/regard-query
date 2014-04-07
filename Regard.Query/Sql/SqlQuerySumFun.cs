@@ -1,4 +1,6 @@
-﻿namespace Regard.Query.Sql
+﻿using Regard.Query.Api;
+
+namespace Regard.Query.Sql
 {
     /// <summary>
     /// Data storage class representing a summarisation function
@@ -31,15 +33,24 @@
         /// <summary>
         /// Generates this clause as part of a query
         /// </summary>
-        public string ToQuery(string tableName)
+        public string ToQuery(string propertyTableName, string propertyValueTableName)
         {
+            string tableName = propertyValueTableName;
+            string realFieldName = FieldName;
+
+            if (FieldName == "PropertyName")
+            {
+                tableName       = propertyTableName;
+                realFieldName   = "Name";
+            }
+
             if (string.IsNullOrEmpty(Function))
             {
-                return "[" + tableName + "].[" + FieldName + "]";
+                return "[" + tableName + "].[" + realFieldName + "]";
             }
             else
             {
-                return Function + "(" + (Distinct ? "DISTINCT " : "") + "[" + tableName + "].[" + FieldName + "])";
+                return Function + "(" + (Distinct ? "DISTINCT " : "") + "[" + tableName + "].[" + realFieldName + "])";
             }
         }
     }
