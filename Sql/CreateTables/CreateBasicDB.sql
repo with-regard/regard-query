@@ -118,16 +118,18 @@ INSERT INTO OptInState (Name) VALUES ('ShareWithDeveloper');
 --
 CREATE TABLE [OptInUser]
 	(
-		[FullUserId] uniqueidentifier PRIMARY KEY NONCLUSTERED,			-- How the user identifies to us
+		[FullUserId] uniqueidentifier,			-- How the user identifies to us
+		[ProductId] bigint NOT NULL,
 		[ShortUserId] bigint NOT NULL IDENTITY(1,1) UNIQUE,				-- How the user is identified within the database
 		[OptInStateId] int NOT NULL,
 
+		PRIMARY KEY NONCLUSTERED ([FullUserId], [ProductId]),
 		CONSTRAINT [FK_OptInState] FOREIGN KEY ([OptInStateId]) REFERENCES [OptInState] ([StateId])
 	)
 	;
 
 -- For developer queries we want to quickly look up the users who are opted in
-CREATE CLUSTERED INDEX [IDX_OptInState] ON [OptInUser] ([OptInStateId], [FullUserId]) ;
+CREATE CLUSTERED INDEX [IDX_OptInState] ON [OptInUser] ([OptInStateId], [ProductId], [FullUserId]) ;
 
 --
 -- The session table indicate runs through the application

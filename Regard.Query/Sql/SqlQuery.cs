@@ -103,7 +103,7 @@ namespace Regard.Query.Sql
             // Restrict to events from the specified product
             fromPart.Append("[Event] AS event INNER JOIN [EventPropertyValues] AS [ep1] ON [ep1].[EventId] = [event].[Id]");
             fromPart.Append("\nINNER JOIN [Session] AS [session] ON [session].[ShortSessionId] = [event].[ShortSessionId]");
-            fromPart.Append("\nINNER JOIN [OptInUser] AS [user] ON [user].[ShortUserId] = [session].[ShortUserId]");
+            fromPart.Append("\nINNER JOIN [OptInUser] AS [user] ON ([user].[ShortUserId] = [session].[ShortUserId] AND [user].[ProductId] = @productId)");
 
             wherePart.Append("[session].[ProductId] = @productId");
 

@@ -37,12 +37,12 @@ SET @optInStateId = (SELECT StateID FROM [OptInState] WHERE Name = 'ShareWithDev
 --
 -- The test user
 --
-INSERT INTO [OptInUser] ([FullUserId], [OptInStateID]) VALUES ('F16CB994-00FF-4326-B0DB-F316F7EC2942', @optInStateId);
+INSERT INTO [OptInUser] ([FullUserId], [ProductId], [OptInStateID]) VALUES ('F16CB994-00FF-4326-B0DB-F316F7EC2942', @productId, @optInStateId);
 
 --
 -- Sample opted-in user
 --
-INSERT INTO [OptInUser] ([FullUserId], [OptInStateID]) VALUES (NEWID(), @optInStateId);
+INSERT INTO [OptInUser] ([FullUserId], [ProductId], [OptInStateID]) VALUES (NEWID(), @productId, @optInStateId);
 SET @userId = SCOPE_IDENTITY();
 PRINT 'User ID = ' + Convert(varchar(20), @userId);
 
