@@ -11,8 +11,8 @@ GO
 -- Delete the existing tables (danger!)
 --
 DROP TABLE [Event];
-DROP TABLE [EventProperty];
 DROP TABLE [EventPropertyValues];
+DROP TABLE [EventProperty];
 DROP TABLE [Session];
 DROP TABLE [OptInUser];
 DROP TABLE [OptInState];
@@ -54,8 +54,8 @@ ON [Event] ([ShortSessionId], [Id])
 --
 CREATE TABLE [EventProperty]
 	(
-		[Id] int NOT NULL IDENTITY(1,1),
-		[Name] NVARCHAR(256) NOT NULL PRIMARY KEY
+		[Id] int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+		[Name] NVARCHAR(256) NOT NULL UNIQUE
 	)
 	;
 	
@@ -65,12 +65,12 @@ CREATE TABLE [EventProperty]
 CREATE TABLE [EventPropertyValues]
 	(
 		[EventId] bigint NOT NULL,
-		-- [PropertyId] int NOT NULL,
-		[PropertyName] NVARCHAR(256) NOT NULL,		-- For simplicity, but at the cost of performance + DB size, avoid using the eventproperty table in the first iteration
+		[PropertyId] int NOT NULL,
 		[Value] NVARCHAR(256) NOT NULL,
 		[NumericValue] float
 		
-		PRIMARY KEY ([PropertyName], [EventId])
+		PRIMARY KEY ([PropertyId], [EventId]),
+		CONSTRAINT [FK_PropertyId] FOREIGN KEY ([PropertyId]) REFERENCES [EventProperty] ([Id])
 	)
 	;
 
@@ -80,12 +80,12 @@ CREATE NONCLUSTERED INDEX [IDX_ValueId] ON [EventPropertyValues]
 	[Value] ASC,
 	[EventId] ASC
 )
-INCLUDE ( 	[PropertyName]) WITH (SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF) ON [PRIMARY];
+INCLUDE ( 	[PropertyId]) WITH (SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF) ON [PRIMARY];
 
 
 CREATE NONCLUSTERED INDEX [IDX_PropertyId] ON [EventPropertyValues]
 (
-	[PropertyName] ASC,
+	[PropertyId] ASC,
 	[EventId] ASC
 )
 INCLUDE ( 	[Value]) WITH (SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF) ON [PRIMARY];

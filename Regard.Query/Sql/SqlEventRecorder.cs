@@ -20,7 +20,14 @@ namespace Regard.Query.Sql
         private const string c_InsertNewSession     = "INSERT INTO [Session] ([FullSessionId], [ShortUserId], [ProductId]) VALUES (@fullSessionId, @shortUserId, @productId)";
         private const string c_GetShortProductId    = "SELECT [Id] FROM [Product] WHERE [Name] = @product AND [Organization] = @organization";
         private const string c_CreateEvent          = "INSERT INTO [Event] (ShortSessionId) SELECT ShortSessionId FROM [Session] WHERE [FullSessionId] = @fullSessionId; SELECT CAST(SCOPE_IDENTITY() AS bigint)";
-        private const string c_AddProperty          = "INSERT INTO [EventPropertyValues] ([EventId], [PropertyName], [Value], [NumericValue]) VALUES (@eventId, @propertyName, @propertyStringValue, @propertyNumericValue)";
+
+        private const string c_AddProperty          = "IF NOT EXISTS (SELECT [Id] FROM [EventProperty] WHERE [Name] = @propertyName)\n"
+                                                    + "  INSERT INTO [EventProperty] ([Name]) VALUES (@propertyName);\n"
+
+                                                    + "INSERT INTO [EventPropertyValues] ([EventId], [PropertyId], [Value], [NumericValue]) "
+                                                    + "SELECT @eventId, [eventProp].[Id], @propertyStringValue, @propertyNumericValue "
+                                                    + "FROM [EventProperty] AS [eventProp] "
+                                                    + "WHERE [eventProp].[Name] = @propertyName;";
 
         public SqlEventRecorder(SqlConnection connection)
         {
