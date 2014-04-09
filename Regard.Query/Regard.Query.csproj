@@ -73,8 +73,11 @@
     <Compile Include="Api\QueryResultLine.cs" />
     <Compile Include="Api\IRegardQuery.cs" />
     <Compile Include="Api\IResultEnumerator.cs" />
+    <Compile Include="Flat\AzureFlatPipeline.cs" />
+    <Compile Include="Flat\CountFieldEntity.cs" />
     <Compile Include="Flat\IPipelineAction.cs" />
     <Compile Include="Sql\SqlEventRecorder.cs" />
+    <Compile Include="Util\StorageUtil.cs" />
     <Compile Include="WellKnownUserIdentifier.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Serializable\JsonQuery.cs" />
@@ -92,6 +95,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
