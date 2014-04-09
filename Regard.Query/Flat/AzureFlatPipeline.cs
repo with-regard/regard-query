@@ -167,24 +167,26 @@ namespace Regard.Query.Flat
                 // Convert to a string
                 var sanitisedRowKey = rowKeyBuilder.ToString();
 
-                // TODO: make this asynchronous
-                var existing = (from    field in m_Table.CreateQuery<CountFieldEntity>() 
-                                where   field.PartitionKey == sanitisedPartitionKey && field.RowKey == sanitisedRowKey
-                                select  field);
+                // Attempt to retrieve the row
+                var retrieveOperation   = TableOperation.Retrieve<CountFieldEntity>(sanitisedPartitionKey, sanitisedRowKey);
+                var retrieveRowResult   = await m_Table.ExecuteAsync(retrieveOperation);
+                var existing            = retrieveRowResult.Result as CountFieldEntity;
 
-                if (!existing.Any())
+                if (existing == null)
                 {
                     // Create a new row
                     var newRow = new CountFieldEntity();
 
-                    newRow.Count = 1;
+                    newRow.PartitionKey = sanitisedPartitionKey;
+                    newRow.RowKey       = sanitisedRowKey;
+                    newRow.Count        = 1;
 
                     await m_Table.ExecuteAsync(TableOperation.Insert(newRow));
                 }
                 else
                 {
                     // Update an existing row
-                    var toUpdate = existing.First();
+                    var toUpdate = existing;
 
                     ++toUpdate.Count;
 
