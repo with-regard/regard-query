@@ -33,6 +33,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BookSleeve">
+      <HintPath>..\packages\BookSleeve.1.3.41\lib\BookSleeve.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.ApplicationServer.Caching.AzureClientHelper, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.WindowsAzure.Caching.2.2.0.0\lib\net40-full\Microsoft.ApplicationServer.Caching.AzureClientHelper.dll</HintPath>
     </Reference>
@@ -52,6 +55,21 @@
     <Reference Include="Microsoft.Data.OData, Version=5.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.Data.OData.5.2.0\lib\net40\Microsoft.Data.OData.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Ted.Wacel">
+      <HintPath>..\packages\WACEL.1.1.1.0\lib\Microsoft.Ted.Wacel.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Ted.Wacel.Base">
+      <HintPath>..\packages\WACEL.1.1.1.0\lib\Microsoft.Ted.Wacel.Base.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Ted.Wacel.Cache">
+      <HintPath>..\packages\WACEL.1.1.1.0\lib\Microsoft.Ted.Wacel.Cache.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Ted.Wacel.Redis">
+      <HintPath>..\packages\WACEL.1.1.1.0\lib\Microsoft.Ted.Wacel.Redis.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Ted.Wacel.TableStorage">
+      <HintPath>..\packages\WACEL.1.1.1.0\lib\Microsoft.Ted.Wacel.TableStorage.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Web.DistributedCache, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.WindowsAzure.Caching.2.2.0.0\lib\net40-full\Microsoft.Web.DistributedCache.dll</HintPath>
@@ -100,12 +118,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="Microsoft.WindowsAzure.Caching\ClientPerfCountersInstaller.exe.config" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Microsoft.WindowsAzure.Caching\ClientPerfCountersInstaller.exe" />
-    <Content Include="Microsoft.WindowsAzure.Caching\PerformanceCounters.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
