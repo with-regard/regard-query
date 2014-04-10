@@ -113,6 +113,7 @@
     <Compile Include="Api\IResultEnumerator.cs" />
     <Compile Include="Serializable\SerialFilter.cs" />
     <Compile Include="Sql\SqlEventRecorder.cs" />
+    <Compile Include="Wacel\CubeDimensionHelper.cs" />
     <Compile Include="Wacel\WacelCubeRecorder.cs" />
     <Compile Include="WellKnownUserIdentifier.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

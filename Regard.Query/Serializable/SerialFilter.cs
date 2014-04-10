@@ -11,7 +11,7 @@ namespace Regard.Query.Serializable
         /// <summary>
         /// Creates a filter that returns true if an event (specified by JSON) will be used as part of a query.
         /// </summary>
-        public static Func<JObject, bool> CreateFilter(SerializableQuery query)
+        public static Func<JObject, bool> CreateFilter(this SerializableQuery query)
         {
             var filter = CreateFilterOrNull(query);
 
