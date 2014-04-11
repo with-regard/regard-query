@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -86,20 +88,51 @@ namespace Regard.Query.Couch
             var requestBytes = ToBytesUTF8(requestObject);
             
             // Start putting together a request
-            var request = WebRequest.Create(bulkUri);
+            const int maxRetryCount = 60;
 
-            request.Method          = "POST";
-            request.ContentType     = "application/json";
-            request.ContentLength   = requestBytes.Length;
-
-            using (var stream = await request.GetRequestStreamAsync())
+            for (int retry = 0; retry < maxRetryCount; ++retry)
             {
-                await stream.WriteAsync(requestBytes, 0, requestBytes.Length);
-                stream.Close();
+                try
+                {
+                    var request = WebRequest.Create(bulkUri);
+
+                    request.Method = "POST";
+                    request.ContentType = "application/json";
+                    request.ContentLength = requestBytes.Length;
+
+                    using (var stream = await request.GetRequestStreamAsync())
+                    {
+                        await stream.WriteAsync(requestBytes, 0, requestBytes.Length);
+                        stream.Close();
+                    }
+
+                    // Perform the update
+                    return await request.GetResponseAsync();
+                }
+                catch (WebException)
+                {
+                    // Also retry if we get a server exception
+                    if (retry + 1 == maxRetryCount)
+                    {
+                        // Re-throw if we hit the retry count
+                        throw;
+                    }
+                }
+                catch (IOException)
+                {
+                    // Haven't been able to find any docs on this; seems that we can get a 'stream closed' exception when writing events in bulk
+                    if (retry + 1 == maxRetryCount)
+                    {
+                        // Re-throw if we hit the retry count
+                        throw;
+                    }
+                }
+
+                // Sleep a while before retrying
+                await Task.Delay(100);
             }
 
-            // Perform the update
-            return await request.GetResponseAsync();
+            throw new InvalidOperationException("Failed to write data: ran out of retries");
         }
     }
 }
