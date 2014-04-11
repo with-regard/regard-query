@@ -51,6 +51,8 @@
     <Compile Include="Api\QueryResultLine.cs" />
     <Compile Include="Api\IRegardQuery.cs" />
     <Compile Include="Api\IResultEnumerator.cs" />
+    <Compile Include="Couch\CouchEventRecorder.cs" />
+    <Compile Include="Couch\CouchUtil.cs" />
     <Compile Include="Sql\SqlEventRecorder.cs" />
     <Compile Include="WellKnownUserIdentifier.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
