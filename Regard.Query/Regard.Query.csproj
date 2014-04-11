@@ -72,8 +72,11 @@
     <Compile Include="Api\QueryResultLine.cs" />
     <Compile Include="Api\IRegardQuery.cs" />
     <Compile Include="Api\IResultEnumerator.cs" />
+    <Compile Include="Flat\AzureTableBatch.cs" />
     <Compile Include="Flat\AzureFlatPipeline.cs" />
+    <Compile Include="Flat\AzureTableBatchOperation.cs" />
     <Compile Include="Flat\CountFieldEntity.cs" />
+    <Compile Include="Flat\EntityKey.cs" />
     <Compile Include="Flat\IPipelineAction.cs" />
     <Compile Include="Sql\SqlEventRecorder.cs" />
     <Compile Include="Util\StorageUtil.cs" />
