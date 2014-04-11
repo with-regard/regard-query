@@ -38,6 +38,9 @@ namespace Regard.Query.Couch
             // Create a GUID for this session
             var sessionGuid = Guid.NewGuid();
 
+            // TODO: check user opt-in status and don't record for users who are not opted in
+            // TODO: check product/organization registration status and don't record for products that don't exist
+
             // Create a new session document
             JObject sessionDocument = new JObject();
 

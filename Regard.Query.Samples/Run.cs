@@ -3,6 +3,7 @@ using System.Data.SqlClient;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Regard.Query.Api;
+using Regard.Query.Couch;
 using Regard.Query.Sql;
 
 namespace Regard.Query.Samples
@@ -73,6 +74,12 @@ namespace Regard.Query.Samples
             {
                 Console.WriteLine(@"builder.AllEvents().Only(""EventType"", ""DoSomething"").CountUniqueValues(""SessionId"").BrokenDownBy(""Day"");");
 
+                var couchUri = new Uri("http://localhost:5984");
+                var recorder = new CouchEventRecorder(couchUri);
+
+                await GenerateData(recorder, WellKnownUserIdentifier.TestUser, 10000, 100, 1);
+
+#if false
                 // Create the database connection
                 var connection = new SqlConnection("");
                 await connection.OpenAsync();
@@ -129,6 +136,7 @@ namespace Regard.Query.Samples
                 }
 
                 Console.ReadLine();
+#endif
             });
 
             runIt.Wait();

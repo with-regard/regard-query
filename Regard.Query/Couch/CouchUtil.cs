@@ -65,8 +65,8 @@ namespace Regard.Query.Couch
             }
 
             // Work out the location of the bulk docs URI for this database
-            var databaseUri = new Uri(couchDbUri, database);
-            var bulkUri     = new Uri(databaseUri, "_bulk_docs");
+            // TODO: new Uri(x, y) strips off any extra path information so this is wrong in general
+            var bulkUri     = new Uri(couchDbUri, database + "/_bulk_docs");
 
             // Generate the request object
             JObject requestObject   = new JObject();
@@ -88,7 +88,7 @@ namespace Regard.Query.Couch
             // Start putting together a request
             var request = WebRequest.Create(bulkUri);
 
-            request.Method          = "PUT";
+            request.Method          = "POST";
             request.ContentType     = "application/json";
             request.ContentLength   = requestBytes.Length;
 
