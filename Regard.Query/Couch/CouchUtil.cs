@@ -109,18 +109,9 @@ namespace Regard.Query.Couch
                     // Perform the update
                     return await request.GetResponseAsync();
                 }
-                catch (WebException)
-                {
-                    // Also retry if we get a server exception
-                    if (retry + 1 == maxRetryCount)
-                    {
-                        // Re-throw if we hit the retry count
-                        throw;
-                    }
-                }
                 catch (IOException)
                 {
-                    // Haven't been able to find any docs on this; seems that we can get a 'stream closed' exception when writing events in bulk
+                    // Might happen if couch is restarting, for example
                     if (retry + 1 == maxRetryCount)
                     {
                         // Re-throw if we hit the retry count

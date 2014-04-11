@@ -48,7 +48,9 @@ namespace Regard.Query.Couch
             sessionDocument["organization"] = organization;
             sessionDocument["product"]      = product;
 
-            await CouchUtil.PutDocuments(m_CouchDbUri, "sessions", new[] { new KeyValuePair<string, JObject>("session/" + sessionGuid, sessionDocument) });
+            using (var response = await CouchUtil.PutDocuments(m_CouchDbUri, "sessions", new[] { new KeyValuePair<string, JObject>("session/" + sessionGuid, sessionDocument) }))
+            { 
+            }
 
             return sessionGuid;
         }
@@ -70,7 +72,9 @@ namespace Regard.Query.Couch
             eventObject["session-id"]   = sessionId.ToString();
             eventObject["user-data"]    = data;
 
-            await CouchUtil.PutDocuments(m_CouchDbUri, database, new[] { new KeyValuePair<string, JObject>("events/" + sessionId + "/" + eventGuid, eventObject) });
+            using (var response = await CouchUtil.PutDocuments(m_CouchDbUri, database, new[] { new KeyValuePair<string, JObject>("events/" + sessionId + "/" + eventGuid, eventObject) }))
+            {
+            }
         }
     }
 }
