@@ -56,7 +56,7 @@ task nupackage -depends compile {
     "  Regard.Query.csproj"
 
     cd Regard.Query
-    exec { ..\.nuget\NuGet.exe pack -OutputDirectory bin }
+    exec { ..\.nuget\NuGet.exe pack -OutputDirectory bin -Prop Configuration=Release }
 }
 
 task package -depends compile {
