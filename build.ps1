@@ -35,12 +35,21 @@ framework('4.0')
 
 task default -depends nupackage
 
-task compile {
-    "Compiling"
+task compile-release {
+    "Compiling for release"
     "   Regard.Query.sln"
     
-    exec { msbuild $base_dir\Regard.Query.sln /p:Configuration=$config /verbosity:minimal /tv:4.0 /p:VisualStudioVersion=$visualStudioVersion }
+    exec { msbuild $base_dir\Regard.Query.sln /p:Configuration=release /verbosity:minimal /tv:4.0 /p:VisualStudioVersion=$visualStudioVersion }
 }
+
+task compile-debug {
+    "Compiling for debug"
+    "   Regard.Query.sln"
+    
+    exec { msbuild $base_dir\Regard.Query.sln /p:Configuration=debug /verbosity:minimal /tv:4.0 /p:VisualStudioVersion=$visualStudioVersion }
+}
+
+task compile -depends compile-debug,compile-release
 
 task nupackage -depends compile {
     "Packaging"
