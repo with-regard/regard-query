@@ -33,13 +33,21 @@ properties {
 
 framework('4.0')
 
-task default -depends package
+task default -depends nupackage
 
 task compile {
     "Compiling"
     "   Regard.Query.sln"
     
     exec { msbuild $base_dir\Regard.Query.sln /p:Configuration=$config /verbosity:minimal /tv:4.0 /p:VisualStudioVersion=$visualStudioVersion }
+}
+
+task nupackage -depends compile {
+    "Packaging"
+    "  Regard.Query.csproj"
+
+    cd Regard.Query
+    exec { ..\.nuget\NuGet.exe pack -OutputDirectory bin }
 }
 
 task package -depends compile {
