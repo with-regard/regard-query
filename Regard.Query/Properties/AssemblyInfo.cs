@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Regard.Query")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Querying and data storage for Regard")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("RedGate Software")]
 [assembly: AssemblyProduct("Regard.Query")]
