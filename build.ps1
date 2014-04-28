@@ -85,8 +85,10 @@ task nupackage -depends compile {
 
     $version = Get-Version
 
-    cd Regard.Query
+    Set-Location Regard.Query
+    Remove-Item .\bin\*.nupkg
     exec { ..\.nuget\NuGet.exe pack -OutputDirectory bin -Prop Configuration=Release -Version $version }
+    Set-Location ..
 }
 
 task package -depends compile {
