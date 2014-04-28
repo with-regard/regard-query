@@ -1,5 +1,4 @@
-function Get-ProgramFiles
-{
+function Get-ProgramFiles {
     #TODO: Someone please come up with a better way of detecting this - Tried http://msmvps.com/blogs/richardsiddaway/archive/2010/02/26/powershell-pack-mount-specialfolder.aspx and some enums missing
     #      This is needed because of this http://www.mattwrock.com/post/2012/02/29/What-you-should-know-about-running-ILMerge-on-Net-45-Beta-assemblies-targeting-Net-40.aspx (for machines that dont have .net 4.5 and only have 4.0)
     if (Test-Path "C:\Program Files (x86)") {
@@ -8,8 +7,7 @@ function Get-ProgramFiles
     return "C:\Program Files"
 }
 
-function Get-AzureSdkVisualStudioVersion
-{
+function Get-AzureSdkVisualStudioVersion {
     if (Test-Path (((Get-ProgramFiles) + "\MSBuild\Microsoft\VisualStudio\v11.0\Windows Azure Tools"))) {
         return '11.0'
     }
@@ -19,6 +17,15 @@ function Get-AzureSdkVisualStudioVersion
     }
 
     throw 'No known Azure SDK installed'
+}
+
+function Get-Version {
+    $thisVersion = $versionNumber;
+    if (!$thisVersion) {
+        $thisVersion = "0.0.1.0"
+    }
+
+    return $thisVersion
 }
 
 properties {
@@ -38,11 +45,7 @@ task default -depends nupackage
 
 task generate-build-files {
     $now = Get-Date
-
-    $thisVersion = $versionNumber;
-    if (!$thisVersion) {
-        $thisVersion = "0.0.1.0"
-    }
+    $thisVersion = Get-Version
 
     "Creating version files"
     "  We are version ""$thisVersion"""
@@ -80,8 +83,10 @@ task nupackage -depends compile {
     "Packaging"
     "  Regard.Query.csproj"
 
+    $version = Get-Version
+
     cd Regard.Query
-    exec { ..\.nuget\NuGet.exe pack -OutputDirectory bin -Prop Configuration=Release }
+    exec { ..\.nuget\NuGet.exe pack -OutputDirectory bin -Prop Configuration=Release -Version $version }
 }
 
 task package -depends compile {
