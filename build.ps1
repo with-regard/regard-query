@@ -28,6 +28,7 @@ properties {
     $package_dir = "$base_dir\packages"
     $framework_dir =  (Get-ProgramFiles) + "\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0"
     $config = "release"
+    $versionNumber = $Env:TargetAssemblyVersion
     $visualStudioVersion = Get-AzureSdkVisualStudioVersion
 }
 
@@ -35,14 +36,38 @@ framework('4.0')
 
 task default -depends nupackage
 
-task compile-release {
+task generate-build-files {
+    $now = Get-Date
+
+    $thisVersion = $versionNumber;
+    if (!$thisVersion) {
+        $thisVersion = "0.0.1.0"
+    }
+
+    "Creating version files"
+    "  We are version ""$thisVersion"""
+
+    $assemblyInfo = "// File generate during build (" + $now + ")
+
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+[assembly: AssemblyVersion(""$thisVersion"")]
+[assembly: AssemblyFileVersion(""$thisVersion"")]
+"
+
+    Write-Output $assemblyInfo > BuildGenerated\AssemblyInfo.cs
+}
+
+task compile-release -depends generate-build-files {
     "Compiling for release"
     "   Regard.Query.sln"
     
     exec { msbuild $base_dir\Regard.Query.sln /p:Configuration=release /verbosity:minimal /tv:4.0 /p:VisualStudioVersion=$visualStudioVersion }
 }
 
-task compile-debug {
+task compile-debug -depends generate-build-files {
     "Compiling for debug"
     "   Regard.Query.sln"
     
