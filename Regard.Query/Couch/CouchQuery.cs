@@ -46,7 +46,7 @@ namespace Regard.Query.Couch
         {
             return "function(doc) {\n"
                 + m_Exclusions
-                + "var docKey = \"\";\n"
+                + "var docKey = [];\n"
                 + m_KeyBuilder
                 + "\n}\n";
         }
@@ -76,7 +76,7 @@ namespace Regard.Query.Couch
         public void BrokenDownBy(string key, string name)
         {
             // This builds up the key for this document
-            m_KeyBuilder.Append("docKey += '-' + doc[" + key.ToJsString() + "];\n");
+            m_KeyBuilder.Append("docKey.push(doc[" + key.ToJsString() + "]);\n");
 
             // TODO: This also introduces a field in the emitted document indicating the value of this item
         }
