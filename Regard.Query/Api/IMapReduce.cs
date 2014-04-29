@@ -20,9 +20,9 @@ namespace Regard.Query.Api
         /// Reduces a set of documents with the same key into a single output document
         /// </summary>
         /// <param name="key">The name of the key assigned to these documents during the Map operation</param>
-        /// <param name="documents">The documents to reduce</param>
+        /// <param name="mappedDocuments">The documents to reduce (emitted from the Map function)</param>
         /// <returns>An object representing the result of reducing these documents to the final value for this key</returns>
-        JObject Reduce(string key, IEnumerable<JObject> documents);
+        JObject Reduce(string key, IEnumerable<JObject> mappedDocuments);
 
         /// <summary>
         /// Updates the result of a reduce operation (combines the result of several reductions)
@@ -31,6 +31,18 @@ namespace Regard.Query.Api
         /// <param name="reductions">The reductions to combine</param>
         /// <returns>An object representing the combined reduction</returns>
         JObject Rereduce(string key, IEnumerable<JObject> reductions);
+
+        /// <summary>
+        /// Removes a set of documents from a reduction
+        /// </summary>
+        /// <param name="key">The key where documents are being deleted</param>
+        /// <param name="reduced">The reduction with the documents included</param>
+        /// <param name="mappedDocuments">The set of mapped documents that are being removed from the result</param>
+        /// <returns>The reduction with the mapped documents removed</returns>
+        /// <remarks>
+        /// This is needed to delete documents from the source set
+        /// </remarks>
+        JObject Unreduce(string key, JObject reduced, IEnumerable<JObject> mappedDocuments);
 
         /// <summary>
         /// Retrieves the map/reduce function that is next in the chain (this is applied to the output of this function), or null
