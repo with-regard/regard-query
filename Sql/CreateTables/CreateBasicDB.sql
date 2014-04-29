@@ -16,9 +16,11 @@ DROP TABLE [EventProperty];
 DROP TABLE [Session];
 DROP TABLE [OptInUser];
 DROP TABLE [OptInState];
+DROP TABLE [RegisteredQuery];
 DROP TABLE [Product];
 
 GO
+
 
 --
 -- Represents an individual product that can generate events
@@ -32,6 +34,20 @@ CREATE TABLE [Product]
 	;
 
 CREATE UNIQUE NONCLUSTERED INDEX [IDX_ProductName] ON [Product] ([Organization], [Name]) ;
+
+
+--
+-- Represents a registered query for a product
+--
+CREATE TABLE [RegisteredQuery]
+	(
+		[ProductId] bigint NOT NULL,
+		[QueryName] NVARCHAR(200) NOT NULL,
+		[QueryDataJson] NVARCHAR(MAX) NOT NULL,
+
+		PRIMARY KEY (ProductId, QueryName),
+		CONSTRAINT [FK_QueryProduct] FOREIGN KEY ([ProductId]) REFERENCES [Product] ([Id])
+	);
 
 --
 -- The Event table assigns IDs to events
