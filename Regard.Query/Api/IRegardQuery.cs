@@ -11,10 +11,5 @@ namespace Regard.Query.Api
         /// The object that built this query (and which can be used to refine it)
         /// </summary>
         IQueryBuilder Builder { get; }
-
-        /// <summary>
-        /// Runs this query against the database
-        /// </summary>
-        Task<IResultEnumerator<QueryResultLine>> RunQuery();
     }
 }

@@ -116,6 +116,7 @@ namespace Regard.Query.Samples
                 Console.WriteLine("Press enter to run the query...");
                 Console.ReadLine();
 
+                /*
                 var queryResult = await result.RunQuery();
 
                 for (var nextLine = await queryResult.FetchNext(); nextLine != null; nextLine = await queryResult.FetchNext())
@@ -127,6 +128,7 @@ namespace Regard.Query.Samples
                         Console.WriteLine("  {0} = {1}", column.Name, column.Value);
                     }
                 }
+                 */
 
                 Console.ReadLine();
             });
