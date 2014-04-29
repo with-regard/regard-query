@@ -13,10 +13,16 @@ namespace Regard.Query.MapReduce
         public void Map(IMapTarget target, JObject document)
         {
             // All we do is emit an empty document per document (as each document represents an event)
-            target.Emit("-", new JObject());
+            target.Emit(new JArray(), new JObject());
         }
 
-        public JObject Rereduce(string key, IEnumerable<JObject> reductions)
+        public JObject Reduce(JArray key, IEnumerable<JObject> mappedDocuments)
+        {
+            // Initial result is just an object containing a count
+            return JObject.FromObject(new { Count = mappedDocuments.Count() });
+        }
+
+        public JObject Rereduce(JArray key, IEnumerable<JObject> reductions)
         {
             // Merge the counts
             long count = 0;
@@ -28,13 +34,9 @@ namespace Regard.Query.MapReduce
             return JObject.FromObject(new { Count = count });
         }
 
-        public JObject Reduce(string key, IEnumerable<JObject> mappedDocuments)
+        public JObject Unreduce(JArray key, JObject reduced, IEnumerable<JObject> mappedDocuments)
         {
-            return JObject.FromObject(new { Count = mappedDocuments.Count() });
-        }
-
-        public JObject Unreduce(string key, JObject reduced, IEnumerable<JObject> mappedDocuments)
-        {
+            // Subtract the count to remove these documents
             reduced["Count"] = reduced["Count"].Value<long>() - mappedDocuments.Count();
             return reduced;
         }

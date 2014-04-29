@@ -10,6 +10,6 @@ namespace Regard.Query.Api
         /// <summary>
         /// Emits a document to this target
         /// </summary>
-        void Emit(string key, JObject document);
+        void Emit(JArray key, JObject document);
     }
 }
