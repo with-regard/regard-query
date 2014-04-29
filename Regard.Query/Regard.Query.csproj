@@ -69,6 +69,8 @@
     </Compile>
     <Compile Include="Api\Fluent.cs" />
     <Compile Include="Api\IEventRecorder.cs" />
+    <Compile Include="Api\IMapReduce.cs" />
+    <Compile Include="Api\IMapTarget.cs" />
     <Compile Include="Api\IQueryableProduct.cs" />
     <Compile Include="Api\IQueryBuilder.cs" />
     <Compile Include="Api\QueryResultColumn.cs" />
