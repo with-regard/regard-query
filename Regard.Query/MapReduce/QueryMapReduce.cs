@@ -14,7 +14,7 @@ namespace Regard.Query.MapReduce
         /// <summary>
         /// Function called during a map operation; used to compose actions together to generate the mapping operation
         /// </summary>
-        public event Action<MapResult> OnMap;
+        public event Action<MapResult, JObject> OnMap;
 
         /// <summary>
         /// Maps a document onto a target
@@ -30,7 +30,7 @@ namespace Regard.Query.MapReduce
             var onMap = OnMap;
             if (onMap != null)
             {
-                onMap(result);
+                onMap(result, document);
             }
 
             // All we do is emit an empty document per document (as each document represents an event)

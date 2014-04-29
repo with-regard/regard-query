@@ -1,4 +1,5 @@
 ﻿using System;
+using Newtonsoft.Json.Linq;
 using Regard.Query.Api;
 using Regard.Query.Serializable;
 
@@ -14,7 +15,62 @@ namespace Regard.Query.MapReduce
         /// </summary>
         public static IMapReduce GenerateMapReduce(this SerializableQuery query)
         {
-            throw new NotImplementedException();
+            // The default action is all events
+            var result = new QueryMapReduce();
+
+            return result;
+        }
+
+        /// <summary>
+        /// Appends a query component to a query
+        /// </summary>
+        /// <param name="query">The query to append to</param>
+        /// <param name="component">The component to append</param>
+        private static void AppendComponent(QueryMapReduce query, SerializableQuery component)
+        {
+            switch (component.Verb)
+            {
+                case QueryVerbs.AllEvents:
+                    // Nothing to do for this verb (it's the default action for a map/reduce query)
+                    break;
+
+                case QueryVerbs.Only:
+                    // Reject queries that don't match the key
+                    query.OnMap += (mapResult, document) =>
+                    {
+                        JToken keyValue;
+
+                        // Reject if no value
+                        if (!document.TryGetValue(component.Key, out keyValue))
+                        {
+                            mapResult.Reject();
+                            return;
+                        }
+
+                        // Reject if wrong value
+                        if (keyValue.Type != JTokenType.String)
+                        {
+                            mapResult.Reject();
+                            return;
+                        }
+
+                        if (keyValue.Value<string>() != component.Value)
+                        {
+                            mapResult.Reject();
+                            return;
+                        }
+
+                        // Accept this document
+                    };
+                    break;
+
+                case QueryVerbs.BrokenDownBy:
+                case QueryVerbs.Sum:
+                case QueryVerbs.CountUniqueValues:
+                default:
+                    // Not implemented
+                    throw new NotImplementedException("Unknown query verb");
+            }
         }
     }
 }
