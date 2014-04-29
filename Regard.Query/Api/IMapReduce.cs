@@ -48,6 +48,10 @@ namespace Regard.Query.Api
         /// Retrieves the map/reduce function that is next in the chain (this is applied to the output of this function), or null
         /// if there's nothing next in the chain.
         /// </summary>
+        /// <remarks>
+        /// The documents passed to the chain will be the reduced result of this operation. Each document will have a '_key' field
+        /// indicating the key that was reduced.
+        /// </remarks>
         IMapReduce Chain { get; }
     }
 }
