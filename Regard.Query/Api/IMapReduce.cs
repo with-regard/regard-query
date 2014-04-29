@@ -36,11 +36,11 @@ namespace Regard.Query.Api
         /// Removes a set of documents from a reduction
         /// </summary>
         /// <param name="key">The key where documents are being deleted</param>
-        /// <param name="reduced">The reduction with the documents included</param>
+        /// <param name="reduced">The reduction with the documents included. The function is permitted to alter this object.</param>
         /// <param name="mappedDocuments">The set of mapped documents that are being removed from the result</param>
         /// <returns>The reduction with the mapped documents removed</returns>
         /// <remarks>
-        /// This is needed to delete documents from the source set
+        /// This is needed to delete documents from the source set.
         /// </remarks>
         JObject Unreduce(string key, JObject reduced, IEnumerable<JObject> mappedDocuments);
 
