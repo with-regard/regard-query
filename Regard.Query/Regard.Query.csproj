@@ -83,6 +83,7 @@
     <Compile Include="Flat\CountFieldEntity.cs" />
     <Compile Include="Flat\EntityKey.cs" />
     <Compile Include="Flat\IPipelineAction.cs" />
+    <Compile Include="MapReduce\MapReduceFactory.cs" />
     <Compile Include="Sql\SqlEventRecorder.cs" />
     <Compile Include="Util\StorageUtil.cs" />
     <Compile Include="WellKnownUserIdentifier.cs" />
@@ -102,6 +103,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

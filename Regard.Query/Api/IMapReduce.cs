@@ -31,5 +31,11 @@ namespace Regard.Query.Api
         /// <param name="reductions">The reductions to combine</param>
         /// <returns>An object representing the combined reduction</returns>
         JObject Rereduce(string key, IEnumerable<JObject> reductions);
+
+        /// <summary>
+        /// Retrieves the map/reduce function that is next in the chain (this is applied to the output of this function), or null
+        /// if there's nothing next in the chain.
+        /// </summary>
+        IMapReduce Chain { get; }
     }
 }
