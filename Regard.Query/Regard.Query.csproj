@@ -83,7 +83,7 @@
     <Compile Include="Flat\CountFieldEntity.cs" />
     <Compile Include="Flat\EntityKey.cs" />
     <Compile Include="Flat\IPipelineAction.cs" />
-    <Compile Include="MapReduce\AllEvents.cs" />
+    <Compile Include="MapReduce\QueryMapReduce.cs" />
     <Compile Include="MapReduce\MapReduceFactory.cs" />
     <Compile Include="MapReduce\MapResult.cs" />
     <Compile Include="Sql\SqlEventRecorder.cs" />
