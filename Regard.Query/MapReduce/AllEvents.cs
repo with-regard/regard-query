@@ -12,8 +12,11 @@ namespace Regard.Query.MapReduce
     {
         public void Map(IMapTarget target, JObject document)
         {
+            // Use a map result; we'll be using this to compose mapping operations later
+            MapResult result = new MapResult();
+
             // All we do is emit an empty document per document (as each document represents an event)
-            target.Emit(new JArray(), new JObject());
+            result.Emit(target);
         }
 
         public JObject Reduce(JArray key, IEnumerable<JObject> mappedDocuments)
