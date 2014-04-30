@@ -180,7 +180,20 @@ namespace Regard.Query.Sql
                 createEventCmd.Parameters.AddWithValue("@fullSessionId", sessionId);
 
                 // The creation command should return the new event ID
-                long eventId = (long) await createEventCmd.ExecuteScalarAsync();
+                object creationResult = await createEventCmd.ExecuteScalarAsync();
+
+                if (creationResult is DBNull)
+                {
+                    // The result is null if no insertion occured, which happens if the session has not been created by StartSession
+
+                    // TODO: think of a way to report this error
+                    // TODO: alternative behaviour: create the session if it doesn't exist (though we don't know some important things about it, like the product or organization or)
+                    // The reason we might want to create the session is that the consumer might receive the events from the bus out of order
+                    // However, we don't want to have to attach all the user/product data to every event...
+                    return;
+                }
+
+                long eventId = (long) creationResult;
 
                 // Store the properties
                 foreach (var property in data.Properties())

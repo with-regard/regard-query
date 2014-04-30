@@ -96,6 +96,14 @@ namespace Regard.Query.Samples
                     SessionId = 8
                 }));
 
+                // Try recording an event for a non-existent session
+                await recorder.RecordEvent(Guid.NewGuid(), JObject.FromObject(new
+                {
+                    Day = 3478,
+                    EventType = "BadEvent",
+                    SessionId = 8
+                }));
+
                 // 10000 sessions of 100 events each.
                 // 10000 sessions is likely from a medium-sized open-source project
                 // 100 events per session is on the high side but not necessarily unreasonable
