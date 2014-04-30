@@ -2,6 +2,7 @@
 using System.Data.SqlClient;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Regard.Query.Api;
 using Regard.Query.Serializable;
 
@@ -22,12 +23,15 @@ namespace Regard.Query.Sql
         /// </summary>
         private readonly long m_ProductId;
 
-        private const string c_InsertQuery = "DELETE FROM [RegisteredQuery] WHERE [ProductId] = @productId AND [QueryName] = @queryName ; \n"
-                                           + "INSERT INTO [RegisteredQuery] ([ProductId], [QueryName], [QueryDataJson]) VALUES (@productId, @queryName, @queryData) ; \n";
+        private const string c_InsertQuery  = "DELETE FROM [RegisteredQuery] WHERE [ProductId] = @productId AND [QueryName] = @queryName ; \n"
+                                            + "INSERT INTO [RegisteredQuery] ([ProductId], [QueryName], [QueryDataJson]) VALUES (@productId, @queryName, @queryData) ; \n";
 
-        public SqlQueryableProduct(SqlConnection connection, long productID)
+        private const string c_GetQuery     = "SELECT [QueryDataJson] FROM [RegisteredQuery] WHERE [ProductId] = @productId AND [QueryName] = @queryName";
+
+        public SqlQueryableProduct(SqlConnection connection, long productId)
         {
             m_Connection = connection;
+            m_ProductId = productId;
         }
 
         /// <summary>
@@ -78,9 +82,35 @@ namespace Regard.Query.Sql
         /// <summary>
         /// Runs the query with the specified name against the database
         /// </summary>
-        public Task<IResultEnumerator<QueryResultLine>> RunQuery(string queryName)
+        public async Task<IResultEnumerator<QueryResultLine>> RunQuery(string queryName)
         {
-            throw new NotImplementedException();
+            // Get the query
+            var getTheQuery = new SqlCommand(c_GetQuery, m_Connection);
+
+            getTheQuery.Parameters.AddWithValue("@productId", m_ProductId);
+            getTheQuery.Parameters.AddWithValue("@queryName", queryName);
+
+            SqlQuery decoded;
+            using (var reader = await getTheQuery.ExecuteReaderAsync())
+            {
+                // Should be a single row in the result
+                bool foundQuery = await reader.ReadAsync();
+
+                if (!foundQuery)
+                {
+                    // TODO: report this without an exception somehow? This isn't really exceptional behaviour
+                    throw new InvalidOperationException("Query '" + queryName + "' not found");
+                }
+
+                // Rebuild the query
+                SqlQueryBuilder queryBuilder    = new SqlQueryBuilder(m_Connection, m_ProductId, WellKnownUserIdentifier.ProductDeveloper);
+                string          queryJson       = reader.GetFieldValue<string>(0);
+                
+                decoded = (SqlQuery) queryBuilder.FromJson(new JObject(queryJson));
+            }
+
+            // Run the query we decoded
+            return await decoded.RunQuery();
         }
     }
 }
