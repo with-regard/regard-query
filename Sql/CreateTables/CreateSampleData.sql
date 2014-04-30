@@ -46,6 +46,8 @@ INSERT INTO [OptInUser] ([FullUserId], [ProductId], [OptInStateID]) VALUES (NEWI
 SET @userId = SCOPE_IDENTITY();
 PRINT 'User ID = ' + Convert(varchar(20), @userId);
 
+GO
+
 --
 -- Sample events
 --
