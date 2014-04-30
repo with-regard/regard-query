@@ -153,6 +153,12 @@ namespace Regard.Query.Sql
         /// <param name="data">JSON data indicating the properties for this event</param>
         public async Task RecordEvent(Guid sessionId, JObject data)
         {
+            // Do not record against the empty ID (it's used for 'dead'/nonexistent sessions)
+            if (sessionId == Guid.Empty)
+            {
+                return;
+            }
+
             using (var transaction = m_Connection.BeginTransaction())
             {
                 // Create the event
