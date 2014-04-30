@@ -52,6 +52,7 @@
     <Compile Include="Api\IQueryableProduct.cs" />
     <Compile Include="Api\IQueryBuilder.cs" />
     <Compile Include="Api\IRegardDataStore.cs" />
+    <Compile Include="Api\IUserAdmin.cs" />
     <Compile Include="Api\QueryResultColumn.cs" />
     <Compile Include="Api\QueryResultLine.cs" />
     <Compile Include="Api\IRegardQuery.cs" />

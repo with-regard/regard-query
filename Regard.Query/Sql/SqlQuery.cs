@@ -7,7 +7,6 @@ using Regard.Query.Api;
 
 namespace Regard.Query.Sql
 {
-
     /// <summary>
     /// Representation of a query run against a SQL database
     /// </summary>

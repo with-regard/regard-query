@@ -1,7 +1,8 @@
 ﻿namespace Regard.Query.Api
 {
     /// <summary>
-    /// Represents an instance of the query engine that runs against a single data store
+    /// Represents an instance of the query engine that runs against a single data store. Implementations of this class are usually the
+    /// entry-point into the query API.
     /// </summary>
     public interface IRegardDataStore
     {
