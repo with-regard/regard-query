@@ -56,7 +56,9 @@
     <Compile Include="Api\QueryResultLine.cs" />
     <Compile Include="Api\IRegardQuery.cs" />
     <Compile Include="Api\IResultEnumerator.cs" />
+    <Compile Include="Sql\SqlDataStore.cs" />
     <Compile Include="Sql\SqlEventRecorder.cs" />
+    <Compile Include="Sql\SqlProductAdmin.cs" />
     <Compile Include="Sql\SqlQueryableProduct.cs" />
     <Compile Include="WellKnownUserIdentifier.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
