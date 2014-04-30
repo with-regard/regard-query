@@ -105,8 +105,9 @@ namespace Regard.Query.Sql
                 // Rebuild the query
                 SqlQueryBuilder queryBuilder    = new SqlQueryBuilder(m_Connection, m_ProductId, WellKnownUserIdentifier.ProductDeveloper);
                 string          queryJson       = reader.GetFieldValue<string>(0);
-                
-                decoded = (SqlQuery) queryBuilder.FromJson(new JObject(queryJson));
+                JObject         queryDecoded    = JObject.Parse(queryJson);
+
+                decoded = (SqlQuery) queryBuilder.FromJson(queryDecoded);
             }
 
             // Run the query we decoded

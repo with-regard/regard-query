@@ -110,15 +110,6 @@ namespace Regard.Query.Samples
 
                 await testWithRegard.RegisterQuery("ClicksByDay", result);
 
-                Console.WriteLine("");
-                Console.WriteLine(((SqlQuery)result).GenerateQuery());
-                Console.WriteLine("");
-                Console.WriteLine("Substitutions:");
-                foreach (var sub in ((SqlQuery) result).GenerateSubstitutions())
-                {
-                    Console.WriteLine("  {0} = {1}", sub.Name, sub.Value);
-                }
-
                 Console.WriteLine("Press enter to run the query...");
                 Console.ReadLine();
 
