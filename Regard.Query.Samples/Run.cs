@@ -74,10 +74,7 @@ namespace Regard.Query.Samples
                 Console.WriteLine(@"builder.AllEvents().Only(""EventType"", ""DoSomething"").CountUniqueValues(""SessionId"").BrokenDownBy(""Day"");");
 
                 // Create the database connection
-                var connection = new SqlConnection("");
-                await connection.OpenAsync();
-
-                var dataStore = new SqlDataStore(connection);
+                var dataStore = await DataStoreFactory.CreateDefaultDataStore();
 
                 // Generate some data
                 var recorder = dataStore.EventRecorder;
