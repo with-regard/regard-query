@@ -25,7 +25,7 @@ namespace Regard.Query.Samples
 
             for (int session = 0; session < numSessions; ++session)
             {
-                var sessionId = await recorder.StartSession("WithRegard", "Test", userId);
+                var sessionId = await recorder.StartSession("WithRegard", "Test", userId, Guid.Empty);
 
                 var day = rng.Next(256);
 
@@ -81,7 +81,7 @@ namespace Regard.Query.Samples
 
                 // Generate some data
                 var recorder = dataStore.EventRecorder;
-                var sessionId = await recorder.StartSession("WithRegard", "Test", WellKnownUserIdentifier.TestUser);
+                var sessionId = await recorder.StartSession("WithRegard", "Test", WellKnownUserIdentifier.TestUser, Guid.Empty);
 
                 await recorder.RecordEvent(sessionId, JObject.FromObject(new
                     {
@@ -103,6 +103,9 @@ namespace Regard.Query.Samples
 
                 // Try querying the database
                 var testWithRegard = await dataStore.Products.GetProduct("WithRegard", "Test");
+
+                // Opt in a random user
+                await testWithRegard.Users.OptIn(Guid.NewGuid());
 
                 var builder = testWithRegard.CreateQueryBuilder();
                 IRegardQuery result = builder.AllEvents();

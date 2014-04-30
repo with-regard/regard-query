@@ -103,11 +103,22 @@ namespace Regard.Query.Sql
         /// <param name="organization">The name of the organization that the session is for</param>
         /// <param name="product">The name of the product that the session is for</param>
         /// <param name="userId">A GUID that identifies the user that this session is for</param>
-        /// <returns>A GUID that identifies this session, or Guid.Empty if the session can't be started (because the user is opted-out, for example)</returns>
-        public async Task<Guid> StartSession(string organization, string product, Guid userId)
+        /// <param name="sessionId">Should be Guid.Empty to indicate that the call should generate a session ID, otherwise it should be a session ID that has not been used before</param>
+        /// <returns>A GUID that identifies this session, or Guid.Empty if the session can't be started (because the user is opted-out, for example)
+        /// If sessionId is not Guid.Empty, then it will be the return value</returns>
+        public async Task<Guid> StartSession(string organization, string product, Guid userId, Guid sessionId)
         {
             // Generate a session ID
-            Guid newSessionId = GenerateSessionId();
+            Guid newSessionId;
+
+            if (sessionId == Guid.Empty)
+            {
+                newSessionId = GenerateSessionId();
+            }
+            else
+            {
+                newSessionId = sessionId;
+            }
 
             using (var sessionTransaction = m_Connection.BeginTransaction())
             { 
