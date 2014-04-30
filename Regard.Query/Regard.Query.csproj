@@ -46,7 +46,7 @@
     <Compile Include="..\BuildGenerated\AssemblyInfo.cs">
       <Link>AssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Api\Fluent.cs" />
+    <Compile Include="Api\FluentQuery.cs" />
     <Compile Include="Api\IEventRecorder.cs" />
     <Compile Include="Api\IProductAdmin.cs" />
     <Compile Include="Api\IQueryableProduct.cs" />
