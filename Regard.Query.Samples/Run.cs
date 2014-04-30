@@ -77,8 +77,10 @@ namespace Regard.Query.Samples
                 var connection = new SqlConnection("");
                 await connection.OpenAsync();
 
+                var dataStore = new SqlDataStore(connection);
+
                 // Generate some data
-                var recorder = new SqlEventRecorder(connection);
+                var recorder = dataStore.EventRecorder;
                 var sessionId = await recorder.StartSession("WithRegard", "Test", WellKnownUserIdentifier.TestUser);
 
                 await recorder.RecordEvent(sessionId, JObject.FromObject(new
@@ -100,9 +102,13 @@ namespace Regard.Query.Samples
                 await GenerateData(recorder, WellKnownUserIdentifier.TestUser, 10000, 100, 1);
 
                 // Try querying the database
-                var builder = new SqlQueryBuilder(connection, 1, WellKnownUserIdentifier.ProductDeveloper);
+                var testWithRegard = await dataStore.Products.GetProduct("WithRegard", "Test");
+
+                var builder = testWithRegard.CreateQueryBuilder();
                 IRegardQuery result = builder.AllEvents();
                 result = result.Only("EventType", "Click").CountUniqueValues("SessionId", "NumSessions").BrokenDownBy("Day", "Day");
+
+                await testWithRegard.RegisterQuery("ClicksByDay", result);
 
                 Console.WriteLine("");
                 Console.WriteLine(((SqlQuery)result).GenerateQuery());
@@ -116,8 +122,7 @@ namespace Regard.Query.Samples
                 Console.WriteLine("Press enter to run the query...");
                 Console.ReadLine();
 
-                /*
-                var queryResult = await result.RunQuery();
+                var queryResult = await testWithRegard.RunQuery("ClicksByDay");
 
                 for (var nextLine = await queryResult.FetchNext(); nextLine != null; nextLine = await queryResult.FetchNext())
                 {
@@ -128,7 +133,6 @@ namespace Regard.Query.Samples
                         Console.WriteLine("  {0} = {1}", column.Name, column.Value);
                     }
                 }
-                 */
 
                 Console.ReadLine();
             });
