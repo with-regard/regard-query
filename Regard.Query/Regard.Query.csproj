@@ -57,6 +57,7 @@
     <Compile Include="Api\QueryResultLine.cs" />
     <Compile Include="Api\IRegardQuery.cs" />
     <Compile Include="Api\IResultEnumerator.cs" />
+    <Compile Include="DataStoreFactory.cs" />
     <Compile Include="Sql\SqlDataStore.cs" />
     <Compile Include="Sql\SqlEventRecorder.cs" />
     <Compile Include="Sql\SqlProductAdmin.cs" />

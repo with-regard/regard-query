@@ -187,7 +187,7 @@ namespace Regard.Query.Sql
                     // The result is null if no insertion occured, which happens if the session has not been created by StartSession
 
                     // TODO: think of a way to report this error
-                    // TODO: alternative behaviour: create the session if it doesn't exist (though we don't know some important things about it, like the product or organization or)
+                    // TODO: alternative behaviour: create the session if it doesn't exist (though we don't know some important things about it, like the product or organization or the user ID)
                     // The reason we might want to create the session is that the consumer might receive the events from the bus out of order
                     // However, we don't want to have to attach all the user/product data to every event...
                     return;
