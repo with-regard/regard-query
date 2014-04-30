@@ -23,5 +23,10 @@ namespace Regard.Query.Api
         /// Runs the query with the specified name against the database
         /// </summary>
         Task<IResultEnumerator<QueryResultLine>> RunQuery(string queryName);
+
+        /// <summary>
+        /// Retrieves the object that can administer the users of this project
+        /// </summary>
+        IUserAdmin Users { get; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace Regard.Query.Api
 {
@@ -10,7 +11,7 @@ namespace Regard.Query.Api
         /// <summary>
         /// Marks a specific user ID as being opted in to data collection for a specific product
         /// </summary>
-        void OptIn(Guid userId, string organization, string product);
+        Task OptIn(Guid userId);
 
         /// <summary>
         /// Marks a specific user ID as being opted out from data collection for a specific product
@@ -18,6 +19,6 @@ namespace Regard.Query.Api
         /// <remarks>
         /// This only opts out for future data collection. Any existing data will be retained.
         /// </remarks>
-        void OptOut(Guid userId, string organization, string product);
+        Task OptOut(Guid userId);
     }
 }

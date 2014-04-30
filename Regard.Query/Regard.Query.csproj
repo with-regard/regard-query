@@ -61,6 +61,7 @@
     <Compile Include="Sql\SqlEventRecorder.cs" />
     <Compile Include="Sql\SqlProductAdmin.cs" />
     <Compile Include="Sql\SqlQueryableProduct.cs" />
+    <Compile Include="Sql\SqlUsers.cs" />
     <Compile Include="WellKnownUserIdentifier.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Serializable\JsonQuery.cs" />

@@ -30,8 +30,12 @@ namespace Regard.Query.Sql
 
         public SqlQueryableProduct(SqlConnection connection, long productId)
         {
+            if (connection == null) throw new ArgumentNullException("connection");
+
             m_Connection = connection;
             m_ProductId = productId;
+
+            Users = new SqlUsers(m_Connection, productId);
         }
 
         /// <summary>
@@ -113,5 +117,10 @@ namespace Regard.Query.Sql
             // Run the query we decoded
             return await decoded.RunQuery();
         }
+
+        /// <summary>
+        /// Retrieves the object that can administer the users of this project
+        /// </summary>
+        public IUserAdmin Users { get; private set; }
     }
 }
