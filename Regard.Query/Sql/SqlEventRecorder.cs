@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Regard.Query.Api;
@@ -148,7 +149,18 @@ namespace Regard.Query.Sql
                 insertionCommand.Parameters.AddWithValue("@productId", shortProductId.Value);
 
                 // Create the session
-                await insertionCommand.ExecuteNonQueryAsync();
+                try
+                {
+                    await insertionCommand.ExecuteNonQueryAsync();
+                }
+                catch (SqlException e)
+                {
+                    // Happens if the primary key constraint is violated: ie, tried to create the same new session twice
+                    // TODO: SqlException is fairly generic so we probably want some more logic here.
+                    // Log the exception so we can work out what happened.
+                    Trace.WriteLine("SqlEventRecorder: unable to start session: " + e);
+                    return Guid.Empty;
+                }
 
                 // Done
                 sessionTransaction.Commit();
