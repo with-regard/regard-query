@@ -192,7 +192,7 @@ namespace Regard.Query.MapReduce
         /// </summary>
         internal static void CountUniqueValues(this QueryMapReduce query, string name, string fieldName)
         {
-            // Mapping is just a matter of adding the field value to the key: this is what 'BrokenDownBy' does
+            // Mapping is just a matter of adding the field value to the key: this is what 'BrokenDownBy' does (except we need to remove the name)
             query.BrokenDownBy(name, fieldName);
 
             // If the key occurs, then it has a count of exactly one in the original
@@ -212,7 +212,39 @@ namespace Regard.Query.MapReduce
 
             // TODO: remove the field value from the key during the chained map
 
-            // TODO: reduction operation should be a re-reduction of the first stage, except we sum the original values
+            // Reduction operation should be a re-reduction of the first stage, except we sum the original values
+            Action<JObject, IEnumerable<JObject>> chainReduce = (result, documents) =>
+            {
+                // Re-reduce with a null key for now
+                // TODO: this won't work if any re-reduce operation ever actually uses the key
+                query.Rereduce(null, documents);
+
+                // Sum the values from the original query
+                // (Note that the previous stage will have written '1' in here, but this shouldn't matter)
+                int count = 0;
+
+                foreach (var doc in documents)
+                {
+                    JToken docCount;
+                    if (doc.TryGetValue(name, out docCount))
+                    {
+                        if (docCount.Type == JTokenType.Integer)
+                        {
+                            count += docCount.Value<int>();
+                        }
+                        else if (docCount.Type == JTokenType.Float)
+                        {
+                            count += (int)docCount.Value<double>();
+                        }
+                    }
+                }
+
+                // Store the result
+                result[name] = count;
+            };
+
+            chainQuery.OnReduce     += chainReduce;
+            chainQuery.OnRereduce   += chainReduce;
 
             // Apply the chain
             chainQuery.Chain = query.Chain;
