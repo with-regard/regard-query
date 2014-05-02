@@ -20,7 +20,7 @@ namespace Regard.Query.MapReduce
         /// <summary>
         /// The array representing the key for this result
         /// </summary>
-        private readonly JArray m_Key = new JArray();
+        private JArray m_Key = new JArray();
 
         /// <summary>
         /// An object representing the document that will be emitted
@@ -50,6 +50,19 @@ namespace Regard.Query.MapReduce
         {
             m_EmitDoc[field] = value;
         }
+
+        /// <summary>
+        /// Sets a new key value, replacing the old one
+        /// </summary>
+        public void SetKey(JArray newKey)
+        {
+            m_Key = (JArray) newKey.DeepClone();
+        }
+
+        /// <summary>
+        /// The document that this will emit (callers can update this)
+        /// </summary>
+        public JObject Document { get { return m_EmitDoc; } }
 
         /// <summary>
         /// Emits the result of this operation to a target

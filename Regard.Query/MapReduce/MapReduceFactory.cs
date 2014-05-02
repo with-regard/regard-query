@@ -49,6 +49,8 @@ namespace Regard.Query.MapReduce
                     break;
                    
                 case QueryVerbs.CountUniqueValues:
+                    break;
+
                 default:
                     // Not implemented
                     throw new NotImplementedException("Unknown query verb");
@@ -183,6 +185,75 @@ namespace Regard.Query.MapReduce
 
             query.OnReduce += reduce;
             query.OnRereduce += reduce;
+        }
+
+        /// <summary>
+        /// Composes a map/reduce query that counts the number of unique values of a particular field
+        /// </summary>
+        internal static void CountUniqueValues(this QueryMapReduce query, string name, string fieldName)
+        {
+            // Mapping is just a matter of adding the field value to the key: this is what 'BrokenDownBy' does
+            query.BrokenDownBy(name, fieldName);
+
+            // If the key occurs, then it has a count of exactly one in the original
+            Action<JObject, IEnumerable<JObject>> reduce = (result, documents) =>
+            {
+                result[name] = 1;
+            };
+
+            query.OnReduce      += reduce;
+            query.OnRereduce    += reduce;
+
+            // Chain another map/reduce operation to count the results
+            QueryMapReduce chainQuery = new QueryMapReduce();
+
+            // Pass through the values from the original document
+            chainQuery.PreserveMapDocs();
+
+            // TODO: remove the field value from the key during the chained map
+
+            // TODO: reduction operation should be a re-reduction of the first stage, except we sum the original values
+
+            // Apply the chain
+            chainQuery.Chain = query.Chain;
+            query.Chain = chainQuery;
+        }
+
+        /// <summary>
+        /// Adds map operations to a query that preserves the original input (using the _key field to generate the key for the result)
+        /// </summary>
+        /// <remarks>
+        /// This leaves the reduce operation as the default (so we end up with a count of the number of documents)
+        /// </remarks>
+        internal static void PreserveMapDocs(this QueryMapReduce query)
+        {
+            query.OnMap += (result, document) =>
+            {
+                // The _key field should contain the key we want to use (as an array)
+                JArray key = null;
+                JToken keyToken;
+                if (document.TryGetValue("_key", out keyToken))
+                {
+                    key = keyToken as JArray;
+                }
+
+                // Ignore documents with the wrong key
+                if (key == null)
+                {
+                    result.Reject();
+                    return;
+                }
+
+                // Update the key
+                result.SetKey(key);
+
+                // Copy the rest of the values from the document
+                foreach (var keyValue in document)
+                {
+                    if (keyValue.Key == "_key") continue;
+                    result.Document[keyValue.Key] = keyValue.Value.DeepClone();
+                }
+            };
         }
     }
 }

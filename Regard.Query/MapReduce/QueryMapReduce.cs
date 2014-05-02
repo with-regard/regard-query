@@ -6,6 +6,8 @@ using Regard.Query.Api;
 
 namespace Regard.Query.MapReduce
 {
+    // TODO: a way to add to both reduce/rereduce would be nice for the cases where the actions are actually identical
+
     /// <summary>
     /// A map/reduce operation that counts the number of events produced by the output
     /// </summary>
@@ -24,7 +26,7 @@ namespace Regard.Query.MapReduce
         /// <summary>
         /// Function called during a rereduce operation
         /// </summary>
-        public event Action<JObject, IEnumerable<JObject>> OnRereduce; 
+        public event Action<JObject, IEnumerable<JObject>> OnRereduce;
 
         /// <summary>
         /// Maps a document onto a target
@@ -121,6 +123,11 @@ namespace Regard.Query.MapReduce
         /// <summary>
         /// null, or the set of map/reduce operations that should be applied to the results of this operation
         /// </summary>
-        public IMapReduce Chain { get; set; }
+        public QueryMapReduce Chain { get; set; }
+
+        /// <summary>
+        /// null, or the set of map/reduce operations that should be applied to the results of this operation
+        /// </summary>
+        IMapReduce IMapReduce.Chain { get { return Chain; } }
     }
 }
