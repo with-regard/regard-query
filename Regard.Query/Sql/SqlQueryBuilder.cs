@@ -19,7 +19,7 @@ namespace Regard.Query.Sql
         /// <remarks>
         /// Note that query results for a specific user should only be displayed to that user. This library has no way to enforce this restriction.
         /// </remarks>
-        public SqlQueryBuilder(SqlConnection connection, int productId, Guid userId)
+        public SqlQueryBuilder(SqlConnection connection, long productId, Guid userId)
         {
             Connection  = connection;
             ProductId   = productId;
@@ -34,7 +34,7 @@ namespace Regard.Query.Sql
         /// <summary>
         /// The identifier for the product that is being queried
         /// </summary>
-        public int ProductId { get; private set; }
+        public long ProductId { get; private set; }
 
         /// <summary>
         /// The identifier for the user whose data is to be queried

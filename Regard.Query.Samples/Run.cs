@@ -28,7 +28,7 @@ namespace Regard.Query.Samples
 
             for (int session = 0; session < numSessions; ++session)
             {
-                var sessionId = await recorder.StartSession("WithRegard", "Test", userId);
+                var sessionId = await recorder.StartSession("WithRegard", "Test", userId, Guid.Empty);
 
                 var day = rng.Next(256);
 
@@ -144,12 +144,11 @@ namespace Regard.Query.Samples
                 Console.WriteLine(@"builder.AllEvents().Only(""EventType"", ""DoSomething"").CountUniqueValues(""SessionId"").BrokenDownBy(""Day"");");
 
                 // Create the database connection
-                var connection = new SqlConnection("");
-                await connection.OpenAsync();
+                var dataStore = await DataStoreFactory.CreateDefaultDataStore();
 
                 // Generate some data
-                var recorder = new SqlEventRecorder(connection);
-                var sessionId = await recorder.StartSession("WithRegard", "Test", WellKnownUserIdentifier.TestUser);
+                var recorder = dataStore.EventRecorder;
+                var sessionId = await recorder.StartSession("WithRegard", "Test", WellKnownUserIdentifier.TestUser, Guid.Empty);
 
                 await recorder.RecordEvent(sessionId, JObject.FromObject(new
                     {
@@ -164,29 +163,35 @@ namespace Regard.Query.Samples
                         SessionId = 8
                     }));
 
+                // Try recording an event for a non-existent session
+                await recorder.RecordEvent(Guid.NewGuid(), JObject.FromObject(new
+                {
+                    Day = 3478,
+                    EventType = "BadEvent",
+                    SessionId = 8
+                }));
+
                 // 10000 sessions of 100 events each.
                 // 10000 sessions is likely from a medium-sized open-source project
                 // 100 events per session is on the high side but not necessarily unreasonable
                 await GenerateData(recorder, WellKnownUserIdentifier.TestUser, 10000, 100, 1);
 
                 // Try querying the database
-                var builder = new SqlQueryBuilder(connection, 1, WellKnownUserIdentifier.ProductDeveloper);
+                var testWithRegard = await dataStore.Products.GetProduct("WithRegard", "Test");
+
+                // Opt in a random user
+                await testWithRegard.Users.OptIn(Guid.NewGuid());
+
+                var builder = testWithRegard.CreateQueryBuilder();
                 IRegardQuery result = builder.AllEvents();
                 result = result.Only("EventType", "Click").CountUniqueValues("SessionId", "NumSessions").BrokenDownBy("Day", "Day");
 
-                Console.WriteLine("");
-                Console.WriteLine(((SqlQuery)result).GenerateQuery());
-                Console.WriteLine("");
-                Console.WriteLine("Substitutions:");
-                foreach (var sub in ((SqlQuery) result).GenerateSubstitutions())
-                {
-                    Console.WriteLine("  {0} = {1}", sub.Name, sub.Value);
-                }
+                await testWithRegard.RegisterQuery("ClicksByDay", result);
 
                 Console.WriteLine("Press enter to run the query...");
                 Console.ReadLine();
 
-                var queryResult = await result.RunQuery();
+                var queryResult = await testWithRegard.RunQuery("ClicksByDay");
 
                 for (var nextLine = await queryResult.FetchNext(); nextLine != null; nextLine = await queryResult.FetchNext())
                 {

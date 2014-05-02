@@ -16,9 +16,11 @@ DROP TABLE [EventProperty];
 DROP TABLE [Session];
 DROP TABLE [OptInUser];
 DROP TABLE [OptInState];
+DROP TABLE [RegisteredQuery];
 DROP TABLE [Product];
 
 GO
+
 
 --
 -- Represents an individual product that can generate events
@@ -32,6 +34,20 @@ CREATE TABLE [Product]
 	;
 
 CREATE UNIQUE NONCLUSTERED INDEX [IDX_ProductName] ON [Product] ([Organization], [Name]) ;
+
+
+--
+-- Represents a registered query for a product
+--
+CREATE TABLE [RegisteredQuery]
+	(
+		[ProductId] bigint NOT NULL,
+		[QueryName] NVARCHAR(200) NOT NULL,
+		[QueryDataJson] NVARCHAR(MAX) NOT NULL,
+
+		PRIMARY KEY (ProductId, QueryName),
+		CONSTRAINT [FK_QueryProduct] FOREIGN KEY ([ProductId]) REFERENCES [Product] ([Id])
+	);
 
 --
 -- The Event table assigns IDs to events
@@ -153,3 +169,32 @@ CREATE TABLE [Session]
 CREATE CLUSTERED INDEX [IDX_Session] ON [Session] ([ProductId], [ShortUserId], [FullSessionId]);
 
 GO
+
+--
+-- Create the 'WithRegard' product and the well-known test user
+--
+
+DECLARE @productId bigint;
+DECLARE @optInStateId int;
+DECLARE @userId bigint;
+
+--
+-- Product
+--
+INSERT INTO Product (Name, Organization) VALUES ('Test', 'WithRegard');
+SET @productId = SCOPE_IDENTITY();
+PRINT 'Product ID = ' + Convert(varchar(20), @productId);
+
+SET @optInStateId = (SELECT StateID FROM [OptInState] WHERE Name = 'ShareWithDeveloper');
+
+--
+-- The test user
+--
+INSERT INTO [OptInUser] ([FullUserId], [ProductId], [OptInStateID]) VALUES ('F16CB994-00FF-4326-B0DB-F316F7EC2942', @productId, @optInStateId);
+
+--
+-- Sample opted-in user
+--
+INSERT INTO [OptInUser] ([FullUserId], [ProductId], [OptInStateID]) VALUES (NEWID(), @productId, @optInStateId);
+SET @userId = SCOPE_IDENTITY();
+PRINT 'User ID = ' + Convert(varchar(20), @userId);

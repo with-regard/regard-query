@@ -3,7 +3,7 @@
 namespace Regard.Query.Api
 {
     /// <summary>
-    /// Class representing a query for Regard data
+    /// Class representing a query for Regard data. Queries are built using the IQueryBuilder interface.
     /// </summary>
     public interface IRegardQuery
     {
@@ -11,10 +11,5 @@ namespace Regard.Query.Api
         /// The object that built this query (and which can be used to refine it)
         /// </summary>
         IQueryBuilder Builder { get; }
-
-        /// <summary>
-        /// Runs this query against the database
-        /// </summary>
-        Task<IResultEnumerator<QueryResultLine>> RunQuery();
     }
 }

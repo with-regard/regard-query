@@ -31,22 +31,6 @@ namespace Regard.Query.Serializable
             get { return Builder; }
         }
 
-        /// <summary>
-        /// Runs this query against the database
-        /// </summary>
-        public async Task<IResultEnumerator<QueryResultLine>> RunQuery()
-        {
-            // Get the 'real' query builder
-            if (Builder == null) return null;
-            var realBuilder = Builder.TargetQueryBuilder;
-
-            // Replay this query to the real builder
-            var realQuery = Rebuild(realBuilder);
-
-            // Run the real query
-            return await realQuery.RunQuery();
-        }
-
         #endregion
 
         #region Query building

@@ -51,6 +51,7 @@
       <HintPath>..\packages\Newtonsoft.Json.6.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Services.Client" />
     <Reference Include="System.Spatial, Version=5.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -67,12 +68,15 @@
     <Compile Include="..\BuildGenerated\AssemblyInfo.cs">
       <Link>AssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Api\Fluent.cs" />
+    <Compile Include="Api\FluentQuery.cs" />
     <Compile Include="Api\IEventRecorder.cs" />
     <Compile Include="Api\IMapReduce.cs" />
     <Compile Include="Api\IMapTarget.cs" />
+    <Compile Include="Api\IProductAdmin.cs" />
     <Compile Include="Api\IQueryableProduct.cs" />
     <Compile Include="Api\IQueryBuilder.cs" />
+    <Compile Include="Api\IRegardDataStore.cs" />
+    <Compile Include="Api\IUserAdmin.cs" />
     <Compile Include="Api\QueryResultColumn.cs" />
     <Compile Include="Api\QueryResultLine.cs" />
     <Compile Include="Api\IRegardQuery.cs" />
@@ -86,8 +90,13 @@
     <Compile Include="MapReduce\QueryMapReduce.cs" />
     <Compile Include="MapReduce\MapReduceFactory.cs" />
     <Compile Include="MapReduce\MapResult.cs" />
-    <Compile Include="Sql\SqlEventRecorder.cs" />
     <Compile Include="Util\StorageUtil.cs" />
+    <Compile Include="DataStoreFactory.cs" />
+    <Compile Include="Sql\SqlDataStore.cs" />
+    <Compile Include="Sql\SqlEventRecorder.cs" />
+    <Compile Include="Sql\SqlProductAdmin.cs" />
+    <Compile Include="Sql\SqlQueryableProduct.cs" />
+    <Compile Include="Sql\SqlUsers.cs" />
     <Compile Include="WellKnownUserIdentifier.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Serializable\JsonQuery.cs" />

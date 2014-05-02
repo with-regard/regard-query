@@ -3,7 +3,7 @@
     /// <summary>
     /// Class that creates a fluent query build API with extension methods
     /// </summary>
-    public static class Fluent
+    public static class FluentQuery
     {
         public static IRegardQuery Only(this IRegardQuery query, string key, string value)
         {

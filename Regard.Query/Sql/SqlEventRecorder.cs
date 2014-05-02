@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Regard.Query.Api;
@@ -103,11 +104,22 @@ namespace Regard.Query.Sql
         /// <param name="organization">The name of the organization that the session is for</param>
         /// <param name="product">The name of the product that the session is for</param>
         /// <param name="userId">A GUID that identifies the user that this session is for</param>
-        /// <returns>A GUID that identifies this session, or Guid.Empty if the session can't be started (because the user is opted-out, for example)</returns>
-        public async Task<Guid> StartSession(string organization, string product, Guid userId)
+        /// <param name="sessionId">Should be Guid.Empty to indicate that the call should generate a session ID, otherwise it should be a session ID that has not been used before</param>
+        /// <returns>A GUID that identifies this session, or Guid.Empty if the session can't be started (because the user is opted-out, for example)
+        /// If sessionId is not Guid.Empty, then it will be the return value</returns>
+        public async Task<Guid> StartSession(string organization, string product, Guid userId, Guid sessionId)
         {
             // Generate a session ID
-            Guid newSessionId = GenerateSessionId();
+            Guid newSessionId;
+
+            if (sessionId == Guid.Empty)
+            {
+                newSessionId = GenerateSessionId();
+            }
+            else
+            {
+                newSessionId = sessionId;
+            }
 
             using (var sessionTransaction = m_Connection.BeginTransaction())
             { 
@@ -137,7 +149,18 @@ namespace Regard.Query.Sql
                 insertionCommand.Parameters.AddWithValue("@productId", shortProductId.Value);
 
                 // Create the session
-                await insertionCommand.ExecuteNonQueryAsync();
+                try
+                {
+                    await insertionCommand.ExecuteNonQueryAsync();
+                }
+                catch (SqlException e)
+                {
+                    // Happens if the primary key constraint is violated: ie, tried to create the same new session twice
+                    // TODO: SqlException is fairly generic so we probably want some more logic here.
+                    // Log the exception so we can work out what happened.
+                    Trace.WriteLine("SqlEventRecorder: unable to start session: " + e);
+                    return Guid.Empty;
+                }
 
                 // Done
                 sessionTransaction.Commit();
@@ -153,6 +176,12 @@ namespace Regard.Query.Sql
         /// <param name="data">JSON data indicating the properties for this event</param>
         public async Task RecordEvent(Guid sessionId, JObject data)
         {
+            // Do not record against the empty ID (it's used for 'dead'/nonexistent sessions)
+            if (sessionId == Guid.Empty)
+            {
+                return;
+            }
+
             using (var transaction = m_Connection.BeginTransaction())
             {
                 // Create the event
@@ -163,7 +192,20 @@ namespace Regard.Query.Sql
                 createEventCmd.Parameters.AddWithValue("@fullSessionId", sessionId);
 
                 // The creation command should return the new event ID
-                long eventId = (long) await createEventCmd.ExecuteScalarAsync();
+                object creationResult = await createEventCmd.ExecuteScalarAsync();
+
+                if (creationResult is DBNull)
+                {
+                    // The result is null if no insertion occured, which happens if the session has not been created by StartSession
+
+                    // TODO: think of a way to report this error
+                    // TODO: alternative behaviour: create the session if it doesn't exist (though we don't know some important things about it, like the product or organization or the user ID)
+                    // The reason we might want to create the session is that the consumer might receive the events from the bus out of order
+                    // However, we don't want to have to attach all the user/product data to every event...
+                    return;
+                }
+
+                long eventId = (long) creationResult;
 
                 // Store the properties
                 foreach (var property in data.Properties())
