@@ -65,6 +65,31 @@ namespace Regard.Query.MapReduce
                     break;
 
                 case QueryVerbs.BrokenDownBy:
+                    query.OnMap += (mapResult, document) =>
+                    {
+                        JToken keyToken;
+
+                        // Reject if no value
+                        if (!document.TryGetValue(component.Key, out keyToken))
+                        {
+                            mapResult.Reject();
+                            return;
+                        }
+
+                        // Must be a value
+                        JValue keyValue = keyToken as JValue;
+                        if (keyValue == null)
+                        {
+                            mapResult.Reject();
+                            return;
+                        }
+
+                        // The field value becomes part of the key and the value
+                        mapResult.AddKey(keyValue);
+                        mapResult.SetValue(component.Key, keyValue);
+                    };
+                    break;
+
                 case QueryVerbs.Sum:
                 case QueryVerbs.CountUniqueValues:
                 default:
