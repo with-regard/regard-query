@@ -17,6 +17,16 @@ namespace Regard.Query.MapReduce
         public event Action<MapResult, JObject> OnMap;
 
         /// <summary>
+        /// Function called during a reduce operation
+        /// </summary>
+        public event Action<JObject, IEnumerable<JObject>> OnReduce;
+
+        /// <summary>
+        /// Function called during a rereduce operation
+        /// </summary>
+        public event Action<JObject, IEnumerable<JObject>> OnRereduce; 
+
+        /// <summary>
         /// Maps a document onto a target
         /// </summary>
         /// <param name="target">The target where the mapped documents should be emitted</param>
@@ -45,8 +55,20 @@ namespace Regard.Query.MapReduce
         /// <returns>An object representing the result of reducing these documents to the final value for this key</returns>
         public JObject Reduce(JArray key, IEnumerable<JObject> mappedDocuments)
         {
+            // Actualise the list of documents in case they don't support multiple enumerations
+            var mapList = mappedDocuments as IList<JObject> ?? mappedDocuments.ToList();
+
             // Initial result is just an object containing a count
-            return JObject.FromObject(new { Count = mappedDocuments.Count() });
+            var result = JObject.FromObject(new { Count = mapList.Count() });
+
+            // Perform any extra reductions that are required
+            var onReduce = OnReduce;
+            if (onReduce != null)
+            {
+                onReduce(result, mapList);
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -57,14 +79,26 @@ namespace Regard.Query.MapReduce
         /// <returns>An object representing the combined reduction</returns>
         public JObject Rereduce(JArray key, IEnumerable<JObject> reductions)
         {
+            // Actualise the reductions as a list
+            var reductionList = reductions as IList<JObject> ?? reductions.ToList();
+
             // Merge the counts
             long count = 0;
-            foreach (var doc in reductions)
+            foreach (var doc in reductionList)
             {
                 count += doc["Count"].Value<long>();
             }
 
-            return JObject.FromObject(new { Count = count });
+            JObject result = JObject.FromObject(new { Count = count });
+
+            // Perform any extra re-reduction operations necessary
+            var onRereduce = OnRereduce;
+            if (onRereduce != null)
+            {
+                onRereduce(result, reductionList);
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -84,6 +118,9 @@ namespace Regard.Query.MapReduce
             return reduced;
         }
 
-        public IMapReduce Chain { get { return null; } }
+        /// <summary>
+        /// null, or the set of map/reduce operations that should be applied to the results of this operation
+        /// </summary>
+        public IMapReduce Chain { get; set; }
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using Regard.Query.Api;
 using Regard.Query.Serializable;
@@ -35,67 +37,152 @@ namespace Regard.Query.MapReduce
                     break;
 
                 case QueryVerbs.Only:
-                    // Reject queries that don't match the key
-                    query.OnMap += (mapResult, document) =>
-                    {
-                        JToken keyValue;
-
-                        // Reject if no value
-                        if (!document.TryGetValue(component.Key, out keyValue))
-                        {
-                            mapResult.Reject();
-                            return;
-                        }
-
-                        // Reject if wrong value
-                        if (keyValue.Type != JTokenType.String)
-                        {
-                            mapResult.Reject();
-                            return;
-                        }
-
-                        if (keyValue.Value<string>() != component.Value)
-                        {
-                            mapResult.Reject();
-                            return;
-                        }
-
-                        // Accept this document
-                    };
+                    query.Only(component.Key, component.Value);
                     break;
 
                 case QueryVerbs.BrokenDownBy:
-                    query.OnMap += (mapResult, document) =>
-                    {
-                        JToken keyToken;
-
-                        // Reject if no value
-                        if (!document.TryGetValue(component.Key, out keyToken))
-                        {
-                            mapResult.Reject();
-                            return;
-                        }
-
-                        // Must be a value
-                        JValue keyValue = keyToken as JValue;
-                        if (keyValue == null)
-                        {
-                            mapResult.Reject();
-                            return;
-                        }
-
-                        // The field value becomes part of the key and the value
-                        mapResult.AddKey(keyValue);
-                        mapResult.SetValue(component.Key, keyValue);
-                    };
+                    query.BrokenDownBy(component.Name, component.Key);
                     break;
 
                 case QueryVerbs.Sum:
+                    query.Sum(component.Name, component.Key);
+                    break;
+                   
                 case QueryVerbs.CountUniqueValues:
                 default:
                     // Not implemented
                     throw new NotImplementedException("Unknown query verb");
             }
+        }
+
+        /// <summary>
+        /// Composes an 'Only' operation to a QueryMapReduce object
+        /// </summary>
+        internal static void Only(this QueryMapReduce query, string key, string value)
+        {
+            // Reject queries that don't match the key
+            query.OnMap += (mapResult, document) =>
+            {
+                JToken keyValue;
+
+                // Reject if no value
+                if (!document.TryGetValue(key, out keyValue))
+                {
+                    mapResult.Reject();
+                    return;
+                }
+
+                // Reject if wrong value
+                if (keyValue.Type != JTokenType.String)
+                {
+                    mapResult.Reject();
+                    return;
+                }
+
+                if (keyValue.Value<string>() != value)
+                {
+                    mapResult.Reject();
+                    return;
+                }
+
+                // Accept this document
+            };
+        }
+
+        /// <summary>
+        /// Composes a 'BrokenDownBy' query with an existing map/reduce query
+        /// </summary>
+        internal static void BrokenDownBy(this QueryMapReduce query, string name, string fieldName)
+        {
+            // The value of the field is added to the key, and also to the result
+            query.OnMap += (mapResult, document) =>
+            {
+                JToken keyToken;
+
+                // Reject if no value
+                if (!document.TryGetValue(fieldName, out keyToken))
+                {
+                    mapResult.Reject();
+                    return;
+                }
+
+                // Must be a value
+                JValue keyValue = keyToken as JValue;
+                if (keyValue == null)
+                {
+                    mapResult.Reject();
+                    return;
+                }
+
+                // The field value becomes part of the key and the value
+                mapResult.AddKey(keyValue);
+                mapResult.SetValue(name, keyValue);
+            };
+        }
+
+        /// <summary>
+        /// Composes a 'Sum' query with an existing map/reduce query
+        /// </summary>
+        internal static void Sum(this QueryMapReduce query, string name, string fieldName)
+        {
+            // Store the numeric value of the field in the result
+            // Reject items that don't contain this item
+            query.OnMap += (mapResult, document) =>
+            {
+                JToken keyToken;
+
+                // Reject if no value
+                if (!document.TryGetValue(fieldName, out keyToken))
+                {
+                    mapResult.Reject();
+                    return;
+                }
+
+                // Value must evaluate to double or int (we always treat it as double in the result)
+                double val = 0;
+
+                if (keyToken.Type == JTokenType.Integer)
+                {
+                    val = keyToken.Value<int>();
+                }
+                else if (keyToken.Type == JTokenType.Float)
+                {
+                    val = keyToken.Value<double>();
+                }
+                else
+                {
+                    mapResult.Reject();
+                }
+
+                // Store in the result
+                mapResult.SetValue(name, new JValue(val));
+            };
+
+            // Sum values on reduce and re-reduce
+            Action<JObject, IEnumerable<JObject>> reduce = (result, documents) =>
+            {
+                double sum = 0.0;
+
+                // Add up the values in the documents
+                foreach (var doc in documents)
+                {
+                    JToken docValue;
+                    if (doc.TryGetValue(name, out docValue))
+                    {
+                        if (docValue.Type == JTokenType.Integer)
+                        {
+                            sum += docValue.Value<int>();
+                        }
+                        else if (docValue.Type == JTokenType.Float)
+                        {
+                            sum += docValue.Value<double>();
+                        }
+                    }
+                }
+            };
+
+            query.OnReduce += reduce;
+            query.OnRereduce += reduce;
         }
     }
 }
