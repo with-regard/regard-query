@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using Regard.Query.Api;
 using Regard.Query.Serializable;
@@ -192,8 +193,34 @@ namespace Regard.Query.MapReduce
         /// </summary>
         internal static void CountUniqueValues(this QueryMapReduce query, string name, string fieldName)
         {
-            // Mapping is just a matter of adding the field value to the key: this is what 'BrokenDownBy' does (except we need to remove the name)
-            query.BrokenDownBy(name, fieldName);
+            // Mapping is just a matter of adding the field value to the key: this is what 'BrokenDownBy' does (except we need to remove the name and remember where in the key we are)
+            // The value of the field is added to the key, and also to the result
+            query.OnMap += (mapResult, document) =>
+            {
+                JToken keyToken;
+
+                // Reject if no value
+                if (!document.TryGetValue(fieldName, out keyToken))
+                {
+                    mapResult.Reject();
+                    return;
+                }
+
+                // Must be a value
+                JValue keyValue = keyToken as JValue;
+                if (keyValue == null)
+                {
+                    mapResult.Reject();
+                    return;
+                }
+
+                // The field value becomes part of the key and the value
+                int keyIndex = mapResult.AddKey(keyValue);
+                mapResult.SetValue(name, keyValue);
+
+                // Store the key index so we can remove from the key later on
+                mapResult.SetValue("_keyIndex_" + name, new JValue(keyIndex));
+            };
 
             // If the key occurs, then it has a count of exactly one in the original
             Action<JObject, IEnumerable<JObject>> reduce = (result, documents) =>
@@ -210,20 +237,51 @@ namespace Regard.Query.MapReduce
             // Pass through the values from the original document
             chainQuery.PreserveMapDocs();
 
-            // TODO: remove the field value from the key during the chained map
+            // Remove the field value from the key during the chained map
+            chainQuery.OnMap += (result, document) =>
+            {
+                // We need the index of the key to remove
+                JToken keyIndexToken;
+                int realKeyIndex = -1;
+
+                if (!document.TryGetValue("_keyIndex_" + name, out keyIndexToken))
+                {
+                    keyIndexToken = null;
+                }
+
+                if (keyIndexToken != null)
+                {
+                    if (keyIndexToken.Type == JTokenType.Integer)
+                    {
+                        realKeyIndex = keyIndexToken.Value<int>();
+                    }
+                    else if (keyIndexToken.Type == JTokenType.Float)
+                    {
+                        realKeyIndex = (int) keyIndexToken.Value<double>();
+                    }
+                }
+
+                // Set the key to null if it exists
+                if (realKeyIndex >= 0)
+                {
+                    result.RemoveKeyAtIndex(realKeyIndex);
+                }
+            };
 
             // Reduction operation should be a re-reduction of the first stage, except we sum the original values
             Action<JObject, IEnumerable<JObject>> chainReduce = (result, documents) =>
             {
+                var reductions = documents as IList<JObject> ?? documents.ToList();
+
                 // Re-reduce with a null key for now
                 // TODO: this won't work if any re-reduce operation ever actually uses the key
-                query.Rereduce(null, documents);
+                query.Rereduce(null, reductions);
 
                 // Sum the values from the original query
                 // (Note that the previous stage will have written '1' in here, but this shouldn't matter)
                 int count = 0;
 
-                foreach (var doc in documents)
+                foreach (var doc in reductions)
                 {
                     JToken docCount;
                     if (doc.TryGetValue(name, out docCount))

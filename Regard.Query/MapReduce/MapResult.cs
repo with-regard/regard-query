@@ -38,9 +38,25 @@ namespace Regard.Query.MapReduce
         /// <summary>
         /// Adds a value to the key for this item
         /// </summary>
-        public void AddKey(JValue value)
+        /// <returns>
+        /// The index in the key array of the added value
+        /// </returns>
+        public int AddKey(JValue value)
         {
+            int index = m_Key.Count;
             m_Key.Add(value);
+            return index;
+        }
+
+        /// <summary>
+        /// Sets the key at the specified index to null (so it won't be used in the result). The key length is not changed (this is so indexes can be reliably stored without needing to be updated)
+        /// </summary>
+        public void RemoveKeyAtIndex(int index)
+        {
+            // Invalid index is a no-op
+            if (index < 0)              return;
+            if (index >= m_Key.Count)   return;
+            m_Key[index] = null;
         }
 
         /// <summary>
@@ -49,6 +65,14 @@ namespace Regard.Query.MapReduce
         public void SetValue(string field, JValue value)
         {
             m_EmitDoc[field] = value;
+        }
+
+        /// <summary>
+        /// Removes a field from the result
+        /// </summary>
+        public void RemoveValue(string field)
+        {
+            m_EmitDoc.Remove(field);
         }
 
         /// <summary>
