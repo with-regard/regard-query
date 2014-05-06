@@ -6,6 +6,9 @@ namespace Regard.Query.MapReduce
     /// <summary>
     /// Interface implemented by objects that represent a key/value store that can be used by Regard's map/reduce system
     /// </summary>
+    /// <remarks>
+    /// Keys are compound items stored in a JArray (stores should be able to expect an array of strings to simplify things).
+    /// </remarks>
     public interface IKeyValueStore
     {
         /// <summary>
@@ -26,5 +29,10 @@ namespace Regard.Query.MapReduce
         /// Retrieves null or the value associated with a particular key
         /// </summary>
         Task<JObject> GetValue(JArray key);
+
+        /// <summary>
+        /// Enumerates all of the values in this data store
+        /// </summary>
+        IKvStoreEnumerator EnumerateAllValues();
     }
 }

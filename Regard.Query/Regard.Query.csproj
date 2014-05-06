@@ -88,6 +88,8 @@
     <Compile Include="Flat\EntityKey.cs" />
     <Compile Include="Flat\IPipelineAction.cs" />
     <Compile Include="MapReduce\IKeyValueStore.cs" />
+    <Compile Include="MapReduce\IKvStoreEnumerator.cs" />
+    <Compile Include="MapReduce\MemoryKeyValueStore.cs" />
     <Compile Include="MapReduce\QueryMapReduce.cs" />
     <Compile Include="MapReduce\MapReduceFactory.cs" />
     <Compile Include="MapReduce\MapResult.cs" />
