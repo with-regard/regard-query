@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
-namespace Regard.Query.MapReduce
+namespace Regard.Query.Api
 {
     /// <summary>
     /// Interface implemented by objects that enumerate the results from a key-value store

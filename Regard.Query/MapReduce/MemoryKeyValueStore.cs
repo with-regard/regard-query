@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Regard.Query.Api;
 
 namespace Regard.Query.MapReduce
 {
@@ -27,7 +28,7 @@ namespace Regard.Query.MapReduce
         /// When mapping/reducing data, we need a place to store the result; rather than sharing a 'single' data store (from the point of view of the caller), we allow
         /// for multiple stores.
         /// </remarks>
-        public async Task<IKeyValueStore> ChildStore(JArray key)
+        public IKeyValueStore ChildStore(JArray key)
         {
             lock (m_Sync)
             {

@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
-namespace Regard.Query.MapReduce
+namespace Regard.Query.Api
 {
     /// <summary>
     /// Interface implemented by objects that represent a key/value store that can be used by Regard's map/reduce system
@@ -18,7 +18,7 @@ namespace Regard.Query.MapReduce
         /// When mapping/reducing data, we need a place to store the result; rather than sharing a 'single' data store (from the point of view of the caller), we allow
         /// for multiple stores.
         /// </remarks>
-        Task<IKeyValueStore> ChildStore(JArray key);
+        IKeyValueStore ChildStore(JArray key);
 
         /// <summary>
         /// Stores a value in the database, indexed by a particular key
