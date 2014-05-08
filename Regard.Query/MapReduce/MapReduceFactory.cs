@@ -246,7 +246,13 @@ namespace Regard.Query.MapReduce
             };
 
             query.OnReduce      += reduce;
-            query.OnRereduce    += reduce;
+            query.OnRereduce    += (result, documents) =>
+            {
+                result[keyIndexKey] = documents.First()[keyIndexKey];
+
+                // Doc has already been counted, so the effect on the chain is 0
+                result[name] = 0;
+            };
 
             // Chain another map/reduce operation to count the results
             QueryMapReduce chainQuery = new QueryMapReduce();
