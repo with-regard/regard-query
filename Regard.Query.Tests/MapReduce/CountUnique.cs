@@ -161,8 +161,8 @@ namespace Regard.Query.Tests.MapReduce
                     // There are 2 unique sessions with a click
                     Assert.AreEqual(2, nextRecord.Item2["NumSessions"].Value<int>());
 
-                    // There are 12 total events
-                    Assert.AreEqual(12, nextRecord.Item2["Count"].Value<int>());
+                    // There are 5 total click events
+                    Assert.AreEqual(5, nextRecord.Item2["Count"].Value<int>());
                     recordCount++;
                 }
 
