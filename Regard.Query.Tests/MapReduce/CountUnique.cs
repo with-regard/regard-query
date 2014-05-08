@@ -158,8 +158,8 @@ namespace Regard.Query.Tests.MapReduce
                 Tuple<JArray, JObject> nextRecord;
                 while ((nextRecord = await reader.FetchNext()) != null)
                 {
-                    // There are 3 unique sessions
-                    Assert.AreEqual(3, nextRecord.Item2["NumSessions"].Value<int>());
+                    // There are 2 unique sessions with a click
+                    Assert.AreEqual(2, nextRecord.Item2["NumSessions"].Value<int>());
 
                     // There are 12 total events
                     Assert.AreEqual(12, nextRecord.Item2["Count"].Value<int>());

@@ -35,8 +35,8 @@ namespace Regard.Query.Tests.MapReduce
                 Tuple<JArray, JObject> nextRecord;
                 while ((nextRecord = await reader.FetchNext()) != null)
                 {
-                    // There are 6 click events
-                    Assert.AreEqual(6, nextRecord.Item2["Count"].Value<int>());
+                    // There are 5 click events
+                    Assert.AreEqual(5, nextRecord.Item2["Count"].Value<int>());
                     recordCount++;
                 }
 
