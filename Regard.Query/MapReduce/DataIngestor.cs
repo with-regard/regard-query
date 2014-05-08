@@ -143,7 +143,10 @@ namespace Regard.Query.MapReduce
                     await currentCommit;
                 }
 
-                // Reduce the items in the queue
+                // Map the objects in the queue
+                var waitingToReduce = new Dictionary<string, List<JObject>>();
+                var keyForKey       = new Dictionary<string, JArray>();
+
                 for (;;)                                    // .. because a while with a lock in the condition clause isn't possible
                 {
                     Tuple<JArray, JObject> mapped;
@@ -158,7 +161,55 @@ namespace Regard.Query.MapReduce
                         // Get the next object in the queue
                         mapped = m_MappedObjects.Dequeue();
                     }
+
+                    // Convert the string to something we can use in a dictionary
+                    string keyString = KeySerializer.KeyToString(mapped.Item1);
+
+                    // Cluster the items with the same key together
+                    List<JObject> itemsForKey;
+                    if (!waitingToReduce.TryGetValue(keyString, out itemsForKey))
+                    {
+                        itemsForKey = waitingToReduce[keyString] = new List<JObject>();
+                        keyForKey[keyString] = mapped.Item1;
+                    }
+
+                    itemsForKey.Add(mapped.Item2);
                 }
+
+                // Perform a reduction on these objects
+                var reducedObjects = new Dictionary<string, JObject>();
+
+                foreach (var reducePair in waitingToReduce)
+                {
+                    // Reduce these items
+                    var reduced = m_MapReduce.Reduce(keyForKey[reducePair.Key], reducePair.Value);
+                    reducedObjects[reducePair.Key] = reduced;
+                }
+                waitingToReduce.Clear();
+
+                // Finally, re-reduce against the items already in the key/value store
+                foreach (var reducePair in reducedObjects)
+                {
+                    // Fetch the existing object from the data store
+                    var key         = keyForKey[reducePair.Key];
+                    var existing    = await m_Store.GetValue(key);
+
+                    // Nothing to do if it doesn't already exist
+                    if (existing == null)
+                    {
+                        await m_Store.SetValue(key, reducePair.Value);
+                    }
+                    else
+                    {
+                        // Re-reduce if it does already exist
+                        var rereduced = m_MapReduce.Rereduce(key, new[] {existing, reducePair.Value});
+
+                        await m_Store.SetValue(key, rereduced);
+                    }
+                }
+
+                // Ensure that all the data is committed to the data store
+                await m_Store.Commit();
             }
             finally
             {

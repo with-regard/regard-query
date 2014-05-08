@@ -91,6 +91,7 @@
     <Compile Include="Api\IKeyValueStore.cs" />
     <Compile Include="Api\IKvStoreEnumerator.cs" />
     <Compile Include="MapReduce\IngestorMapTarget.cs" />
+    <Compile Include="MapReduce\KeySerializer.cs" />
     <Compile Include="MapReduce\MemoryKeyValueStore.cs" />
     <Compile Include="MapReduce\QueryMapReduce.cs" />
     <Compile Include="MapReduce\MapReduceFactory.cs" />

@@ -34,5 +34,10 @@ namespace Regard.Query.Api
         /// Enumerates all of the values in this data store
         /// </summary>
         IKvStoreEnumerator EnumerateAllValues();
+
+        /// <summary>
+        /// Waits for all of the pending SetValue requests to complete (if they are cached or otherwise write-through)
+        /// </summary>
+        Task Commit();
     }
 }
