@@ -60,8 +60,25 @@ namespace Regard.Query.MapReduce
             // Actualise the list of documents in case they don't support multiple enumerations
             var mapList = mappedDocuments as IList<JObject> ?? mappedDocuments.ToList();
 
+            // Merge the counts
+            long count = 0;
+            foreach (var doc in mappedDocuments)
+            {
+                JToken countVal;
+                if (doc.TryGetValue("Count", out countVal))
+                {
+                    // A mapped document can manually specify the count if it wants
+                    count += countVal.Value<long>();
+                }
+                else
+                {
+                    // If no count is specified, it counts for 1
+                    count += 1;
+                }
+            }
+
             // Initial result is just an object containing a count
-            var result = JObject.FromObject(new { Count = mapList.Count() });
+            var result = JObject.FromObject(new { Count = count });
 
             // Perform any extra reductions that are required
             var onReduce = OnReduce;

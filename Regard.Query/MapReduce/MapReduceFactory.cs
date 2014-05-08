@@ -283,6 +283,8 @@ namespace Regard.Query.MapReduce
                 {
                     result.RemoveKeyAtIndex(realKeyIndex);
                 }
+
+                result.SetValue("Count", (JValue) document["Count"]);
             };
 
             // Reduction operation should be a re-reduction of the first stage, except we sum the original values
