@@ -111,7 +111,7 @@ namespace Regard.Query.MapReduce
             }
 
             // Create an enumerator
-            int currentIndex = 0;
+            int currentIndex = -1;
 
             return new AllValuesEnumerator(() =>
             {
