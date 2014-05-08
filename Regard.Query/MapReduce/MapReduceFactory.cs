@@ -21,6 +21,9 @@ namespace Regard.Query.MapReduce
             // The default action is all events
             var result = new QueryMapReduce();
 
+            // Build the final query
+            AppendComponent(result, query);
+
             return result;
         }
 
