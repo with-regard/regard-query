@@ -53,6 +53,7 @@ namespace Regard.Query.MapReduce
                     break;
                    
                 case QueryVerbs.CountUniqueValues:
+                    query.CountUniqueValues(component.Name, component.Key);
                     break;
 
                 default:
