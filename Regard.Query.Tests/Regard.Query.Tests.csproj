@@ -48,6 +48,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MapReduce\AllEvents.cs" />
+    <Compile Include="MapReduce\BrokenDownBy.cs" />
+    <Compile Include="MapReduce\CountUnique.cs" />
+    <Compile Include="MapReduce\Only.cs" />
     <Compile Include="MapReduce\Util.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Serialization\Construct.cs" />

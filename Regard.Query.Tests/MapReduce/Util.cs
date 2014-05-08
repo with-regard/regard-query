@@ -14,6 +14,7 @@ namespace Regard.Query.Tests.MapReduce
         {
             // Ingest some documents
             // 3 sessions, 6 clicks, 12 events total
+            // Spread across 2 days
             ingestor.Ingest(JObject.FromObject(new { SessionId = "1", Day = "1", EventType="Start" }));
             ingestor.Ingest(JObject.FromObject(new { SessionId = "1", Day = "1", EventType = "Click" }));
             ingestor.Ingest(JObject.FromObject(new { SessionId = "1", Day = "1", EventType = "Stop" }));
@@ -23,11 +24,11 @@ namespace Regard.Query.Tests.MapReduce
             ingestor.Ingest(JObject.FromObject(new { SessionId = "2", Day = "1", EventType = "Click" }));
             ingestor.Ingest(JObject.FromObject(new { SessionId = "2", Day = "1", EventType = "Stop" }));
 
-            ingestor.Ingest(JObject.FromObject(new { SessionId = "3", Day = "1", EventType = "Start" }));
-            ingestor.Ingest(JObject.FromObject(new { SessionId = "3", Day = "1", EventType = "Click" }));
-            ingestor.Ingest(JObject.FromObject(new { SessionId = "3", Day = "1", EventType = "Click" }));
-            ingestor.Ingest(JObject.FromObject(new { SessionId = "3", Day = "1", EventType = "Click" }));
-            ingestor.Ingest(JObject.FromObject(new { SessionId = "3", Day = "1", EventType = "Stop" }));
+            ingestor.Ingest(JObject.FromObject(new { SessionId = "3", Day = "2", EventType = "Start" }));
+            ingestor.Ingest(JObject.FromObject(new { SessionId = "3", Day = "2", EventType = "Click" }));
+            ingestor.Ingest(JObject.FromObject(new { SessionId = "3", Day = "2", EventType = "Click" }));
+            ingestor.Ingest(JObject.FromObject(new { SessionId = "3", Day = "2", EventType = "Click" }));
+            ingestor.Ingest(JObject.FromObject(new { SessionId = "3", Day = "2", EventType = "Stop" }));
 
             // Finish the commit
             await ingestor.Commit();
