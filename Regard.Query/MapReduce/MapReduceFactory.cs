@@ -248,10 +248,17 @@ namespace Regard.Query.MapReduce
             query.OnReduce      += reduce;
             query.OnRereduce    += (result, documents) =>
             {
-                result[keyIndexKey] = documents.First()[keyIndexKey];
+                var docList = documents as IList<JObject> ?? documents.ToList();
+                result[keyIndexKey] = docList.First()[keyIndexKey];
 
                 // Doc has already been counted, so the effect on the chain is 0
+                // TODO: unreducing the previous document will be more reliable
                 result[name] = 0;
+
+                // Only the new results should be included in the Count
+                // This is a hack; it uses some knowledge of how the map/reduce algorithm is implemented internally
+                // This workaround won't work for things like 'Sum' which will just fail. I think these are broken if combined with CountUnique anyway.
+                result["Count"] = docList.Last()["Count"];
             };
 
             // Chain another map/reduce operation to count the results
