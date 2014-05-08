@@ -198,6 +198,12 @@ namespace Regard.Query.MapReduce
                     if (existing == null)
                     {
                         await m_Store.SetValue(key, reducePair.Value);
+
+                        if (m_ChainIngestor != null)
+                        {
+                            // Send to the chain ingestor
+                            m_ChainIngestor.Ingest(KeySerializer.CopyAndAddKey(reducePair.Value, key));
+                        }
                     }
                     else
                     {
@@ -205,11 +211,27 @@ namespace Regard.Query.MapReduce
                         var rereduced = m_MapReduce.Rereduce(key, new[] {existing, reducePair.Value});
 
                         await m_Store.SetValue(key, rereduced);
+
+                        if (m_ChainIngestor != null)
+                        {
+                            // Send to the chain ingestor
+                            m_ChainIngestor.Ingest(KeySerializer.CopyAndAddKey(rereduced, key));
+                        }
                     }
                 }
 
                 // Ensure that all the data is committed to the data store
-                await m_Store.Commit();
+                var waitingTasks = new List<Task>();
+                waitingTasks.Add(m_Store.Commit());
+
+                // Also wait for any chain to complete
+                if (m_ChainIngestor != null)
+                {
+                    waitingTasks.Add(m_ChainIngestor.Commit());
+                }
+
+                // Wait for everything to finish
+                await Task.WhenAll(waitingTasks);
             }
             finally
             {

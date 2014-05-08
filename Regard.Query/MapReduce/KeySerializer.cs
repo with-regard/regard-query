@@ -62,5 +62,15 @@ namespace Regard.Query.MapReduce
             // Return the result
             return result.ToString();
         }
+
+        /// <summary>
+        /// Creates and adds a key to an existing JObject
+        /// </summary>
+        public static JObject CopyAndAddKey(JObject origin, JArray key)
+        {
+            var copy = (JObject) origin.DeepClone();
+            copy["_key"] = key;
+            return copy;
+        }
     }
 }
