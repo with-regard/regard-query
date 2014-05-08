@@ -124,6 +124,16 @@ namespace Regard.Query.MapReduce
                 mapResult.AddKey(keyValue);
                 mapResult.SetValue(name, keyValue);
             };
+
+            // Add the value of the field during the reduction
+            Action<JObject, IEnumerable<JObject>> reduce = (result, documents) =>
+            {
+                result[name] = documents.First()[name];
+            };
+
+            query.OnReduce += reduce;
+
+            // Don't need to do this for re-reduce as the value will already be present
         }
 
         /// <summary>
