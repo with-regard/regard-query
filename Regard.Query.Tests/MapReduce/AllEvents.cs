@@ -13,34 +13,39 @@ namespace Regard.Query.Tests.MapReduce
     class AllEvents
     {
         [Test]
-        public async Task BasicDocuments()
+        public void BasicDocuments()
         {
-            // Create the 'all events query'
-            var queryBuilder = new SerializableQueryBuilder(null);
-            var allEvents = queryBuilder.AllEvents();
-            var query = allEvents.GenerateMapReduce();
-
-            // Generate a data store and an ingestor
-            var resultStore = new MemoryKeyValueStore();
-            var ingestor = new DataIngestor(query, resultStore);
-
-            // Run the standard set of docs through
-            await Util.TestBasicDocuments(ingestor);
-
-            // This should create a data store with one record indicating that there are 12 records 
-            var reader = resultStore.EnumerateAllValues();
-            int recordCount = 0;
-
-            Tuple<JArray, JObject> nextRecord;
-            while ((nextRecord = await reader.FetchNext()) != null)
+            var task = Task.Run(async () =>
             {
-                Console.WriteLine(nextRecord.Item1.ToString(Formatting.Indented));
-                Console.WriteLine(nextRecord.Item2.ToString(Formatting.Indented));
-                recordCount++;
-            }
+                // Create the 'all events query'
+                var queryBuilder = new SerializableQueryBuilder(null);
+                var allEvents = queryBuilder.AllEvents();
+                var query = allEvents.GenerateMapReduce();
 
-            // Should be only one record
-            Assert.AreEqual(1, recordCount);
+                // Generate a data store and an ingestor
+                var resultStore = new MemoryKeyValueStore();
+                var ingestor = new DataIngestor(query, resultStore);
+
+                // Run the standard set of docs through
+                await Util.TestBasicDocuments(ingestor);
+
+                // This should create a data store with one record indicating that there are 12 records 
+                var reader = resultStore.EnumerateAllValues();
+                int recordCount = 0;
+
+                Tuple<JArray, JObject> nextRecord;
+                while ((nextRecord = await reader.FetchNext()) != null)
+                {
+                    // Should contain a count of 12
+                    Assert.AreEqual(12, nextRecord.Item2["Count"].Value<int>());
+                    recordCount++;
+                }
+
+                // Should be only one record
+                Assert.AreEqual(1, recordCount);
+            });
+
+            task.Wait();
         }
     }
 }
