@@ -207,6 +207,8 @@ namespace Regard.Query.MapReduce
         /// </summary>
         internal static void CountUniqueValues(this QueryMapReduce query, string name, string fieldName)
         {
+            string keyIndexKey = "_keyIndex_" + name;
+
             // Mapping is just a matter of adding the field value to the key: this is what 'BrokenDownBy' does (except we need to remove the name and remember where in the key we are)
             // The value of the field is added to the key, and also to the result
             query.OnMap += (mapResult, document) =>
@@ -233,12 +235,13 @@ namespace Regard.Query.MapReduce
                 mapResult.SetValue(name, keyValue);
 
                 // Store the key index so we can remove from the key later on
-                mapResult.SetValue("_keyIndex_" + name, new JValue(keyIndex));
+                mapResult.SetValue(keyIndexKey, new JValue(keyIndex));
             };
 
             // If the key occurs, then it has a count of exactly one in the original
             Action<JObject, IEnumerable<JObject>> reduce = (result, documents) =>
             {
+                result[keyIndexKey] = documents.First()[keyIndexKey];
                 result[name] = 1;
             };
 
@@ -258,7 +261,7 @@ namespace Regard.Query.MapReduce
                 JToken keyIndexToken;
                 int realKeyIndex = -1;
 
-                if (!document.TryGetValue("_keyIndex_" + name, out keyIndexToken))
+                if (!document.TryGetValue(keyIndexKey, out keyIndexToken))
                 {
                     keyIndexToken = null;
                 }
