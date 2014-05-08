@@ -34,6 +34,12 @@ namespace Regard.Query.MapReduce
         /// <param name="component">The component to append</param>
         private static void AppendComponent(QueryMapReduce query, SerializableQuery component)
         {
+            // Build up the components that this query applies to
+            if (component.AppliesTo != null)
+            {
+                AppendComponent(query, component.AppliesTo);
+            }
+
             switch (component.Verb)
             {
                 case QueryVerbs.AllEvents:
