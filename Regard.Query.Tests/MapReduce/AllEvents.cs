@@ -1,0 +1,46 @@
+﻿using System;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using NUnit.Framework;
+using Regard.Query.Api;
+using Regard.Query.MapReduce;
+using Regard.Query.Serializable;
+
+namespace Regard.Query.Tests.MapReduce
+{
+    [TestFixture]
+    class AllEvents
+    {
+        [Test]
+        public async Task BasicDocuments()
+        {
+            // Create the 'all events query'
+            var queryBuilder = new SerializableQueryBuilder(null);
+            var allEvents = queryBuilder.AllEvents();
+            var query = allEvents.GenerateMapReduce();
+
+            // Generate a data store and an ingestor
+            var resultStore = new MemoryKeyValueStore();
+            var ingestor = new DataIngestor(query, resultStore);
+
+            // Run the standard set of docs through
+            await Util.TestBasicDocuments(ingestor);
+
+            // This should create a data store with one record indicating that there are 12 records 
+            var reader = resultStore.EnumerateAllValues();
+            int recordCount = 0;
+
+            Tuple<JArray, JObject> nextRecord;
+            while ((nextRecord = await reader.FetchNext()) != null)
+            {
+                Console.WriteLine(nextRecord.Item1.ToString(Formatting.Indented));
+                Console.WriteLine(nextRecord.Item2.ToString(Formatting.Indented));
+                recordCount++;
+            }
+
+            // Should be only one record
+            Assert.AreEqual(1, recordCount);
+        }
+    }
+}

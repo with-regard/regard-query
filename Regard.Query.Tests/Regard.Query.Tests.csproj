@@ -47,6 +47,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MapReduce\AllEvents.cs" />
+    <Compile Include="MapReduce\Util.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Serialization\Construct.cs" />
     <Compile Include="Serialization\Json.cs" />
