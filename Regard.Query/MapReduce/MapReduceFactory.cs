@@ -337,7 +337,8 @@ namespace Regard.Query.MapReduce
 
                 // Re-reduce with a null key for now
                 // TODO: this won't work if any re-reduce operation ever actually uses the key
-                query.Rereduce(null, reductions);
+                // TODO: this also won't work because it doesn't update the result
+                // query.Rereduce(null, reductions);
 
                 // Sum the values from the original query
                 // (Note that the previous stage will have written '1' in here, but this shouldn't matter)
@@ -368,8 +369,9 @@ namespace Regard.Query.MapReduce
                 var reductions = documents as IList<JObject> ?? documents.ToList();
 
                 // Re-reduce with a null key for now
+                // We need to un-reduce the rest of the query
                 // TODO: this won't work if any un-reduce operation ever actually uses the key
-                query.Unreduce(null, result, reductions);
+                // query.Unreduce(null, result, reductions); -- won't work as it'll unreduce Count twice...
 
                 // Subtract the values from the original query
                 // (Note that the previous stage will have written '1' in here, but this shouldn't matter)
