@@ -209,10 +209,10 @@ namespace Regard.Query.MapReduce
                 var newValue = (JObject) previousValue.DeepClone();
 
                 // Perform the unreduction
-                m_MapReduce.Unreduce(key, newValue, keyPair.Value);
+                var unreduced = m_MapReduce.Unreduce(key, newValue, keyPair.Value);
 
                 // Store the resulting value
-                storeValues.Add(m_Store.SetValue(key, newValue));
+                storeValues.Add(m_Store.SetValue(key, unreduced));
             }
 
             await Task.WhenAll(storeValues);

@@ -150,10 +150,27 @@ namespace Regard.Query.MapReduce
         {
             var toUnreduce = mappedDocuments as IList<JObject> ?? mappedDocuments.ToList();
 
-            // Subtract the count to remove these documents
-            JObject result = reduced;
+            // Create the result
+            JObject result = (JObject) reduced.DeepClone();
 
-            result["Count"] = result["Count"].Value<long>() - toUnreduce.Count();
+            // Subtract the count to remove these documents
+            long count = reduced["Count"].Value<long>();
+            foreach (var doc in mappedDocuments)
+            {
+                JToken countVal;
+                if (doc.TryGetValue("Count", out countVal))
+                {
+                    // A mapped document can manually specify the count if it wants
+                    count -= countVal.Value<long>();
+                }
+                else
+                {
+                    // If no count is specified, it counts for 1
+                    count -= 1;
+                }
+            }
+
+            result["Count"] = count;
 
             // Pass on to the event handlers
             var onUnreduce = OnUnreduce;
@@ -162,7 +179,7 @@ namespace Regard.Query.MapReduce
                 onUnreduce(result, toUnreduce);
             }
 
-            return reduced;
+            return result;
         }
 
         /// <summary>
