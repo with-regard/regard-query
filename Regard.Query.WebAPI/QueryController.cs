@@ -35,9 +35,9 @@ namespace Regard.Query.WebAPI
         /// Request to create a new product
         /// </summary>
         /// <remarks>
-        /// POST to product/v1/create a JSON message with the fields 'product' and 'organization' indicating the product and organization to create
+        /// POST to admin/v1/product/create a JSON message with the fields 'product' and 'organization' indicating the product and organization to create
         /// </remarks>
-        [HttpPost, Route("product/v1/create")]
+        [HttpPost, Route("admin/v1/product/create")]
         public async Task<HttpResponseMessage> CreateProduct()
         {
             // The default response is 'bad request'
@@ -92,6 +92,46 @@ namespace Regard.Query.WebAPI
             // Actually create the product
             await m_DataStore.Products.CreateProduct(organization, product);
             return Request.CreateResponse(HttpStatusCode.Created, new {});
+        }
+
+        /// <summary>
+        /// Registers a query for a particular product
+        /// </summary>
+        [HttpPost, Route("product/v1/{product}/{organization}/register-query")]
+        public async Task<HttpResponseMessage> RegisterQuery()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Runs a query previously created by register-query
+        /// </summary>
+        [HttpGet, Route("product/v1/{product}/{organization}/run-query/{queryname}")]
+        public async Task<HttpResponseMessage> RunQuery()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Opts in a particular user
+        /// </summary>
+        [HttpGet, Route("product/v1/{product}/{organization}/users/{uid}/opt-in")]
+        public async Task<HttpResponseMessage> OptIn()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Opts out a particular user
+        /// </summary>
+        /// <remarks>
+        /// That is, moves the user to the state 'data is retained but not used in a query'. A future revision will have 'data is also deleted'.
+        /// It's expected that the application will not send data for an opted out user. If it does, new data will be stored but won't be used in a query.
+        /// </remarks>
+        [HttpGet, Route("product/v1/{product}/{organization}/users/{uid}/opt-out")]
+        public async Task<HttpResponseMessage> OptOut()
+        {
+            throw new NotImplementedException();
         }
     }
 }
