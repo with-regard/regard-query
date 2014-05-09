@@ -133,14 +133,13 @@ namespace Regard.Query.MapReduce
             };
 
             // Add the value of the field during the reduction
-            Action<JObject, IEnumerable<JObject>> reduce = (result, documents) =>
+            query.OnReduce += (result, documents) =>
             {
                 result[name] = documents.First()[name];
             };
 
-            query.OnReduce += reduce;
-
             // Don't need to do this for re-reduce as the value will already be present
+            // For unreduce: we don't need to remove the name unless the count reaches 0: for the moment we'll just do nothing
         }
 
         /// <summary>
@@ -182,7 +181,7 @@ namespace Regard.Query.MapReduce
             };
 
             // Sum values on reduce and re-reduce
-            Action<JObject, IEnumerable<JObject>> reduce = (result, documents) =>
+            query.ReduceAndRereduce((result, documents) =>
             {
                 double sum = 0.0;
 
@@ -202,10 +201,31 @@ namespace Regard.Query.MapReduce
                         }
                     }
                 }
-            };
+            });
 
-            query.OnReduce += reduce;
-            query.OnRereduce += reduce;
+            query.OnUnreduce += (result, documents) =>
+            {
+                double sum = result[name].Value<double>();
+
+                // Subtract the values in the documents from the result
+                foreach (var doc in documents)
+                {
+                    JToken docValue;
+                    if (doc.TryGetValue(name, out docValue))
+                    {
+                        if (docValue.Type == JTokenType.Integer)
+                        {
+                            sum -= docValue.Value<int>();
+                        }
+                        else if (docValue.Type == JTokenType.Float)
+                        {
+                            sum -= docValue.Value<double>();
+                        }
+                    }
+                }
+
+                result[name] = sum;
+            };
         }
 
         /// <summary>
@@ -245,26 +265,30 @@ namespace Regard.Query.MapReduce
             };
 
             // If the key occurs, then it has a count of exactly one in the original
-            Action<JObject, IEnumerable<JObject>> reduce = (result, documents) =>
+            query.OnReduce += (result, documents) =>
             {
                 result[keyIndexKey] = documents.First()[keyIndexKey];
                 result[name] = 1;
             };
 
-            query.OnReduce      += reduce;
             query.OnRereduce    += (result, documents) =>
             {
-                var docList = documents as IList<JObject> ?? documents.ToList();
-                result[keyIndexKey] = docList.First()[keyIndexKey];
+                // Key index key should already be set by the initial reduce
+                //var docList = documents as IList<JObject> ?? documents.ToList();
+                //result[keyIndexKey] = docList.First()[keyIndexKey];
+            };
 
-                // Doc has already been counted, so the effect on the chain is 0
-                // TODO: unreducing the previous document will be more reliable
-                result[name] = 0;
-
-                // Only the new results should be included in the Count
-                // This is a hack; it uses some knowledge of how the map/reduce algorithm is implemented internally
-                // This workaround won't work for things like 'Sum' which will just fail. I think these are broken if combined with CountUnique anyway.
-                result["Count"] = docList.Last()["Count"];
+            query.OnUnreduce += (result, documents) =>
+            {
+                // The count for this item falls to 0 if the count also falls to 0
+                if (result["Count"].Value<long>() <= 0)
+                {
+                    result[name] = 0;
+                }
+                else
+                {
+                    result[name] = 1;
+                }
             };
 
             // Chain another map/reduce operation to count the results
@@ -307,7 +331,7 @@ namespace Regard.Query.MapReduce
             };
 
             // Reduction operation should be a re-reduction of the first stage, except we sum the original values
-            Action<JObject, IEnumerable<JObject>> chainReduce = (result, documents) =>
+            chainQuery.ReduceAndRereduce((result, documents) =>
             {
                 var reductions = documents as IList<JObject> ?? documents.ToList();
 
@@ -337,10 +361,39 @@ namespace Regard.Query.MapReduce
 
                 // Store the result
                 result[name] = count;
-            };
+            });
 
-            chainQuery.OnReduce     += chainReduce;
-            chainQuery.OnRereduce   += chainReduce;
+            chainQuery.OnUnreduce += (result, documents) =>
+            {
+                var reductions = documents as IList<JObject> ?? documents.ToList();
+
+                // Re-reduce with a null key for now
+                // TODO: this won't work if any un-reduce operation ever actually uses the key
+                query.Unreduce(null, result, reductions);
+
+                // Subtract the values from the original query
+                // (Note that the previous stage will have written '1' in here, but this shouldn't matter)
+                int count = result[name].Value<int>();
+
+                foreach (var doc in reductions)
+                {
+                    JToken docCount;
+                    if (doc.TryGetValue(name, out docCount))
+                    {
+                        if (docCount.Type == JTokenType.Integer)
+                        {
+                            count -= docCount.Value<int>();
+                        }
+                        else if (docCount.Type == JTokenType.Float)
+                        {
+                            count -= (int)docCount.Value<double>();
+                        }
+                    }
+                }
+
+                // Store the result
+                result[name] = count;
+            };
 
             // Apply the chain
             chainQuery.Chain = query.Chain;

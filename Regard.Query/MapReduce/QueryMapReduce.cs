@@ -34,6 +34,17 @@ namespace Regard.Query.MapReduce
         public event Action<JObject, IEnumerable<JObject>> OnUnreduce;
 
         /// <summary>
+        /// Register an action for both reduce and rereduce: useful for cases where these operations are the same
+        /// </summary>
+        /// <param name="action"></param>
+        public void ReduceAndRereduce(Action<JObject, IEnumerable<JObject>> action)
+        {
+            if (action == null) return;
+            OnReduce    += action;
+            OnRereduce  += action;
+        }
+
+        /// <summary>
         /// Maps a document onto a target
         /// </summary>
         /// <param name="target">The target where the mapped documents should be emitted</param>
