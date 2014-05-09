@@ -133,12 +133,11 @@ namespace Regard.Query.MapReduce
             };
 
             // Add the value of the field during the reduction
-            query.OnReduce += (result, documents) =>
+            query.ReduceAndRereduce((result, documents) =>
             {
                 result[name] = documents.First()[name];
-            };
+            });
 
-            // Don't need to do this for re-reduce as the value will already be present
             // For unreduce: we don't need to remove the name unless the count reaches 0: for the moment we'll just do nothing
         }
 
@@ -265,18 +264,11 @@ namespace Regard.Query.MapReduce
             };
 
             // If the key occurs, then it has a count of exactly one in the original
-            query.OnReduce += (result, documents) =>
+            query.ReduceAndRereduce((result, documents) =>
             {
                 result[keyIndexKey] = documents.First()[keyIndexKey];
                 result[name] = 1;
-            };
-
-            query.OnRereduce    += (result, documents) =>
-            {
-                // Key index key should already be set by the initial reduce
-                //var docList = documents as IList<JObject> ?? documents.ToList();
-                //result[keyIndexKey] = docList.First()[keyIndexKey];
-            };
+            });
 
             query.OnUnreduce += (result, documents) =>
             {
