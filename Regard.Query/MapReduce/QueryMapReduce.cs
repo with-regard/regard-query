@@ -29,6 +29,11 @@ namespace Regard.Query.MapReduce
         public event Action<JObject, IEnumerable<JObject>> OnRereduce;
 
         /// <summary>
+        /// Function called during an unreduce operation
+        /// </summary>
+        public event Action<JObject, IEnumerable<JObject>> OnUnreduce;
+
+        /// <summary>
         /// Maps a document onto a target
         /// </summary>
         /// <param name="target">The target where the mapped documents should be emitted</param>
@@ -132,8 +137,20 @@ namespace Regard.Query.MapReduce
         /// </remarks>
         public JObject Unreduce(JArray key, JObject reduced, IEnumerable<JObject> mappedDocuments)
         {
+            var toUnreduce = mappedDocuments as IList<JObject> ?? mappedDocuments.ToList();
+
             // Subtract the count to remove these documents
-            reduced["Count"] = reduced["Count"].Value<long>() - mappedDocuments.Count();
+            JObject result = reduced;
+
+            result["Count"] = result["Count"].Value<long>() - toUnreduce.Count();
+
+            // Pass on to the event handlers
+            var onUnreduce = OnUnreduce;
+            if (onUnreduce != null)
+            {
+                onUnreduce(result, toUnreduce);
+            }
+
             return reduced;
         }
 
