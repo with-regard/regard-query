@@ -28,9 +28,14 @@ namespace Regard.Query.MapReduce
         private readonly IKeyValueStore m_Store;
 
         /// <summary>
-        /// List of recently mapped objects
+        /// List of recently mapped objects that are waiting to be reduced
         /// </summary>
-        private readonly Queue<Tuple<JArray, JObject>> m_MappedObjects = new Queue<Tuple<JArray, JObject>>();
+        private readonly Queue<Tuple<JArray, JObject>> m_WaitingToReduce = new Queue<Tuple<JArray, JObject>>();
+
+        /// <summary>
+        /// List of recently mapped objects that are waiting to be unreduced (ie, deleted)
+        /// </summary>
+        private readonly Queue<Tuple<JArray, JObject>> m_WaitingToUnreduce = new Queue<Tuple<JArray, JObject>>();
 
         /// <summary>
         /// Maximum number of objects to keep in the queue
@@ -53,7 +58,7 @@ namespace Regard.Query.MapReduce
         /// <summary>
         /// The data ingestor that handles any chained queries
         /// </summary>
-        private DataIngestor m_ChainIngestor;
+        private readonly DataIngestor m_ChainIngestor;
 
         public DataIngestor(IMapReduce mapReduce, IKeyValueStore store)
         {
@@ -75,9 +80,9 @@ namespace Regard.Query.MapReduce
         }
 
         /// <summary>
-        /// Causes a record to be ingested by this class
+        /// Causes a record to be mapped and placed on a queue to await latter processing
         /// </summary>
-        public void Ingest(JObject record)
+        private void MapToQueue(JObject record, Queue<Tuple<JArray, JObject>> targetQueue)
         {
             // Fetch the target for the current thread (we re-use it to reduce stress on the garbage collector)
             var target = s_MapTarget;
@@ -90,16 +95,29 @@ namespace Regard.Query.MapReduce
             target.Reset();
             m_MapReduce.Map(target, record);
 
-            int queueSize;
             lock (m_Sync)
             {
                 // Store the emitted objects
                 foreach (var obj in target.Emitted)
                 {
-                    m_MappedObjects.Enqueue(obj);
+                    targetQueue.Enqueue(obj);
                 }
+            }
+        }
 
-                queueSize = m_MappedObjects.Count;
+        /// <summary>
+        /// Ingests a record (adding it to the results from this object)
+        /// </summary>
+        public void Ingest(JObject record)
+        {
+            // Send to the mapped objects queue
+            MapToQueue(record, m_WaitingToReduce);
+
+            // Check if we have enough objects to perform a commit
+            int queueSize;
+            lock (m_Sync)
+            {
+                queueSize = m_WaitingToReduce.Count + m_WaitingToUnreduce.Count;
             }
 
             // Commit the objects if the queue gets too large
@@ -110,6 +128,94 @@ namespace Regard.Query.MapReduce
                 Commit();
 #pragma warning restore 4014
             }
+        }
+
+        /// <summary>
+        /// Uningests a record (removing it from the results for this object)
+        /// </summary>
+        public void Uningest(JObject record)
+        {
+            // Send to the mapped objects queue
+            MapToQueue(record, m_WaitingToUnreduce);
+
+            // Check if we have enough objects to perform a commit
+            int queueSize;
+            lock (m_Sync)
+            {
+                queueSize = m_WaitingToReduce.Count + m_WaitingToUnreduce.Count;
+            }
+
+            // Commit the objects if the queue gets too large
+            if (queueSize >= c_MaxQueueSize)
+            {
+                // OK to ignore the task (we can await m_Committing if we care)
+#pragma warning disable 4014
+                Commit();
+#pragma warning restore 4014
+            }
+        }
+
+        /// <summary>
+        /// Commits any unreductions that are waiting
+        /// </summary>
+        private async Task CommitUnreduce()
+        {
+            // Perform any unreductions that are necessary
+            var waitingToUnreduce   = new Dictionary<string, List<JObject>>();
+            var keyForKey           = new Dictionary<string, JArray>();
+
+            for (;;)
+            {
+                // Get the result of the map operation on the data to unreduce
+                Tuple<JArray, JObject> unreduce;
+                lock (m_Sync)
+                {
+                    if (m_WaitingToUnreduce.Count <= 0)
+                    {
+                        break;
+                    }
+                    unreduce = m_WaitingToUnreduce.Dequeue();
+                }
+
+                // Store in the waitingToUnReduce dictionary
+                string keyString = KeySerializer.KeyToString(unreduce.Item1);
+
+                List<JObject> itemsForKey;
+                if (!waitingToUnreduce.TryGetValue(keyString, out itemsForKey))
+                {
+                    waitingToUnreduce[keyString] = itemsForKey = new List<JObject>();
+                    keyForKey[keyString] = unreduce.Item1;
+                }
+
+                itemsForKey.Add(unreduce.Item2);
+            }
+
+            // Perform the unreductions
+            List<Task> storeValues = new List<Task>();
+            foreach (var keyPair in waitingToUnreduce)
+            {
+                // Fetch the existing object from the data store
+                var key             = keyForKey[keyPair.Key];
+                var previousValue   = await m_Store.GetValue(key);
+
+                if (previousValue == null)
+                {
+                    // We can't really unreduce a value with no previous value (it effectively means that we're trying to delete a record that never existed)
+                    // Alternative possible behaviour: use an empty object here
+                    continue;
+                }
+
+                // Copying the value is slower but safer
+                var newValue = (JObject) previousValue.DeepClone();
+
+                // Perform the unreduction
+                m_MapReduce.Unreduce(key, newValue, keyPair.Value);
+
+                // Store the resulting value
+                storeValues.Add(m_Store.SetValue(key, newValue));
+            }
+
+            await Task.WhenAll(storeValues);
         }
 
         /// <summary>
@@ -143,6 +249,9 @@ namespace Regard.Query.MapReduce
                     await currentCommit;
                 }
 
+                // Perform any unreductions that are necessary
+                await CommitUnreduce();
+
                 // Map the objects in the queue
                 var waitingToReduce = new Dictionary<string, List<JObject>>();
                 var keyForKey       = new Dictionary<string, JArray>();
@@ -153,13 +262,13 @@ namespace Regard.Query.MapReduce
                     lock (m_Sync)
                     {
                         // Stop if there are no more objects to process
-                        if (m_MappedObjects.Count <= 0)
+                        if (m_WaitingToReduce.Count <= 0)
                         {
                             break;
                         }
 
                         // Get the next object in the queue
-                        mapped = m_MappedObjects.Dequeue();
+                        mapped = m_WaitingToReduce.Dequeue();
                     }
 
                     // Convert the string to something we can use in a dictionary
@@ -188,16 +297,17 @@ namespace Regard.Query.MapReduce
                 waitingToReduce.Clear();
 
                 // Finally, re-reduce against the items already in the key/value store
+                List<Task> storeValues = new List<Task>();
                 foreach (var reducePair in reducedObjects)
                 {
                     // Fetch the existing object from the data store
-                    var key         = keyForKey[reducePair.Key];
-                    var existing    = await m_Store.GetValue(key);
+                    var key             = keyForKey[reducePair.Key];
+                    var previousValue   = await m_Store.GetValue(key);
 
                     // Nothing to do if it doesn't already exist
-                    if (existing == null)
+                    if (previousValue == null)
                     {
-                        await m_Store.SetValue(key, reducePair.Value);
+                        storeValues.Add(m_Store.SetValue(key, reducePair.Value));
 
                         if (m_ChainIngestor != null)
                         {
@@ -208,19 +318,21 @@ namespace Regard.Query.MapReduce
                     else
                     {
                         // Re-reduce if it does already exist
-                        var rereduced = m_MapReduce.Rereduce(key, new[] {existing, reducePair.Value});
+                        var rereduced = m_MapReduce.Rereduce(key, new[] {previousValue, reducePair.Value});
 
-                        await m_Store.SetValue(key, rereduced);
+                        storeValues.Add(m_Store.SetValue(key, rereduced));
 
                         if (m_ChainIngestor != null)
                         {
-                            // Send to the chain ingestor
+                            // Send to the chain ingestor. We're effectively replacing the old value, so uningest that.
+                            m_ChainIngestor.Uningest(KeySerializer.CopyAndAddKey(previousValue, key));
                             m_ChainIngestor.Ingest(KeySerializer.CopyAndAddKey(rereduced, key));
                         }
                     }
                 }
 
                 // Ensure that all the data is committed to the data store
+                await Task.WhenAll(storeValues);
                 var waitingTasks = new List<Task>();
                 waitingTasks.Add(m_Store.Commit());
 
