@@ -98,7 +98,8 @@ namespace Regard.Query.WebAPI
         /// Queries must be registered before they can be used; this supports map/reduce style databases where ad-hoc queries are
         /// very slow, as well as allowing for a future update to support real-time updating.
         /// <para/>
-        /// Accepts a 
+        /// Post to product/v1/fooCorp/llamatron/register query a request with a query-name and query-definition field. The query-definition should use the same
+        /// serialization format that we use internally (see <see cref="Regard.Query.Serializable.JsonQuery"/> for details)
         /// </remarks>
         [HttpPost, Route("product/v1/{organization}/{product}/register-query")]
         public async Task<HttpResponseMessage> RegisterQuery(string organization, string product)

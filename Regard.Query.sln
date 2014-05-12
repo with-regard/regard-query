@@ -16,6 +16,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{0DDFEE
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Regard.Query.WebAPI", "Regard.Query.WebAPI\Regard.Query.WebAPI.csproj", "{7A183869-6595-4AF2-A2CD-E72C67ACF236}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Regard.Query.BasicEndpoint", "Regard.Query.BasicEndpoint\Regard.Query.BasicEndpoint.csproj", "{0526AD6B-4EE3-49E6-A095-0D8EA175B244}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,6 +40,10 @@ Global
 		{7A183869-6595-4AF2-A2CD-E72C67ACF236}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7A183869-6595-4AF2-A2CD-E72C67ACF236}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7A183869-6595-4AF2-A2CD-E72C67ACF236}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0526AD6B-4EE3-49E6-A095-0D8EA175B244}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0526AD6B-4EE3-49E6-A095-0D8EA175B244}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0526AD6B-4EE3-49E6-A095-0D8EA175B244}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0526AD6B-4EE3-49E6-A095-0D8EA175B244}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
