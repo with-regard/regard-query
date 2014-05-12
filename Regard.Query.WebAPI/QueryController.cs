@@ -12,6 +12,8 @@ using Regard.Query.Serializable;
 
 namespace Regard.Query.WebAPI
 {
+    // TODO: this class should be better factored
+
     /// <summary>
     /// ApiController that can be used to host the Regard query API - without any authentication or authorization
     /// </summary>
