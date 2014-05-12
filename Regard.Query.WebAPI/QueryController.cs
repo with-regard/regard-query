@@ -103,6 +103,16 @@ namespace Regard.Query.WebAPI
         [HttpPost, Route("product/v1/{organization}/{product}/register-query")]
         public async Task<HttpResponseMessage> RegisterQuery(string organization, string product)
         {
+            // Validate the URL
+            if (string.IsNullOrEmpty(product) || string.IsNullOrEmpty(organization))
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Fields cannot be empty");
+            }
+            if (product.Length > c_MaxLength || organization.Length > c_MaxLength)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Fields cannot contain too many characters");
+            }
+
             // Check that the org/product exsits
             var queryableProduct = await m_DataStore.Products.GetProduct(organization, product);
             if (queryableProduct == null)
@@ -197,6 +207,16 @@ namespace Regard.Query.WebAPI
         [HttpGet, Route("product/v1/{organization}/{product}/run-query/{queryname}")]
         public async Task<HttpResponseMessage> RunQuery(string organization, string product)
         {
+            // Validate the URL
+            if (string.IsNullOrEmpty(product) || string.IsNullOrEmpty(organization))
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Fields cannot be empty");
+            }
+            if (product.Length > c_MaxLength || organization.Length > c_MaxLength)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Fields cannot contain too many characters");
+            }
+
             // TODO: return the first 'n' query results instead
             // Check that the org/product exsits
             var queryableProduct = await m_DataStore.Products.GetProduct(organization, product);
@@ -280,6 +300,16 @@ namespace Regard.Query.WebAPI
         [HttpGet, Route("product/v1/{organization}/{product}/users/{uid}/opt-in")]
         public async Task<HttpResponseMessage> OptIn(string organization, string product, string uid)
         {
+            // Validate the URL
+            if (string.IsNullOrEmpty(product) || string.IsNullOrEmpty(organization) || string.IsNullOrEmpty(uid))
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Fields cannot be empty");
+            }
+            if (product.Length > c_MaxLength || organization.Length > c_MaxLength || uid.Length > c_MaxLength)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Fields cannot contain too many characters");
+            }
+
             // Check that the org/product exsits
             var queryableProduct = await m_DataStore.Products.GetProduct(organization, product);
             if (queryableProduct == null)
@@ -311,6 +341,16 @@ namespace Regard.Query.WebAPI
         [HttpGet, Route("product/v1/{organization}/{product}/users/{uid}/opt-out")]
         public async Task<HttpResponseMessage> OptOut(string organization, string product, string uid)
         {
+            // Validate the URL
+            if (string.IsNullOrEmpty(product) || string.IsNullOrEmpty(organization) || string.IsNullOrEmpty(uid))
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Fields cannot be empty");
+            }
+            if (product.Length > c_MaxLength || organization.Length > c_MaxLength || uid.Length > c_MaxLength)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Fields cannot contain too many characters");
+            }
+
             // Check that the org/product exsits
             var queryableProduct = await m_DataStore.Products.GetProduct(organization, product);
             if (queryableProduct == null)
