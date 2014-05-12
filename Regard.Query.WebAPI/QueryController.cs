@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Newtonsoft.Json;
@@ -197,7 +196,6 @@ namespace Regard.Query.WebAPI
         public async Task<HttpResponseMessage> RunQuery(string organization, string product)
         {
             // TODO: return the first 'n' query results instead
-
             // Check that the org/product exsits
             var queryableProduct = await m_DataStore.Products.GetProduct(organization, product);
             if (queryableProduct == null)
@@ -219,6 +217,7 @@ namespace Regard.Query.WebAPI
                 // This is a bad request
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Could not understand payload");
             }
+
 
             // Should be a name and a query
             JToken nameToken;
@@ -279,7 +278,25 @@ namespace Regard.Query.WebAPI
         [HttpGet, Route("product/v1/{organization}/{product}/users/{uid}/opt-in")]
         public async Task<HttpResponseMessage> OptIn(string organization, string product, string uid)
         {
-            throw new NotImplementedException();
+            // Check that the org/product exsits
+            var queryableProduct = await m_DataStore.Products.GetProduct(organization, product);
+            if (queryableProduct == null)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Could not find product");
+            }
+
+            // UID should be a GUID
+            Guid uidGuid;
+
+            if (!Guid.TryParse(uid, out uidGuid))
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "UID must be a GUID");
+            }
+
+            // Opt in
+            await queryableProduct.Users.OptIn(uidGuid);
+
+            return Request.CreateResponse(HttpStatusCode.OK);
         }
 
         /// <summary>
@@ -292,7 +309,25 @@ namespace Regard.Query.WebAPI
         [HttpGet, Route("product/v1/{organization}/{product}/users/{uid}/opt-out")]
         public async Task<HttpResponseMessage> OptOut(string organization, string product, string uid)
         {
-            throw new NotImplementedException();
+            // Check that the org/product exsits
+            var queryableProduct = await m_DataStore.Products.GetProduct(organization, product);
+            if (queryableProduct == null)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Could not find product");
+            }
+
+            // UID should be a GUID
+            Guid uidGuid;
+
+            if (!Guid.TryParse(uid, out uidGuid))
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "UID must be a GUID");
+            }
+
+            // Opt out
+            await queryableProduct.Users.OptOut(uidGuid);
+
+            return Request.CreateResponse(HttpStatusCode.OK);
         }
     }
 }
