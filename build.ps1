@@ -89,6 +89,13 @@ task nupackage -depends compile {
     Remove-Item .\bin\*.nupkg
     exec { ..\.nuget\NuGet.exe pack -OutputDirectory bin -Prop Configuration=Release -Version $version }
     Set-Location ..
+
+    "  Regard.Query.WebAPI.csproj"
+
+    Set-Location Regard.Query.WebAPI
+    Remove-Item .\bin\*.nupkg
+    exec { ..\.nuget\NuGet.exe pack -OutputDirectory bin -Prop Configuration=Release -Version $version }
+    Set-Location ..
 }
 
 task package -depends compile {
