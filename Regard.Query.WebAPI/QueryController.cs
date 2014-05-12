@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
@@ -195,15 +196,88 @@ namespace Regard.Query.WebAPI
         [HttpGet, Route("product/v1/{organization}/{product}/run-query/{queryname}")]
         public async Task<HttpResponseMessage> RunQuery(string organization, string product)
         {
-            // TODO: if a query produces a very large number of results, this will be inefficient
-            throw new NotImplementedException();
+            // TODO: return the first 'n' query results instead
+
+            // Check that the org/product exsits
+            var queryableProduct = await m_DataStore.Products.GetProduct(organization, product);
+            if (queryableProduct == null)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Could not find product");
+            }
+
+            // Read the payload from the message
+            var payloadString = await Request.Content.ReadAsStringAsync();
+
+            // Convert to JSON
+            JObject payload;
+            try
+            {
+                payload = JObject.Parse(payloadString);
+            }
+            catch (JsonException)
+            {
+                // This is a bad request
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Could not understand payload");
+            }
+
+            // Should be a name and a query
+            JToken nameToken;
+
+            if (!payload.TryGetValue("query-name", out nameToken))
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Missing query name");
+            }
+
+            // Validate the name
+            string name;
+            if (nameToken.Type != JTokenType.String)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Name must be a string");
+            }
+
+            name = nameToken.Value<string>();
+            if (string.IsNullOrEmpty(name) || name.Length > 200)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Name has a bad length");
+            }
+
+            // Attempt to run the query
+            IResultEnumerator<QueryResultLine> queryResult;
+
+            try
+            {
+                queryResult = await queryableProduct.RunQuery(name);
+            }
+            catch (InvalidOperationException e)
+            {
+                Trace.WriteLine("Could not run query: " + e);
+
+                // This could happen for other reasons - however, the most common will be that the query was not found, so say that was what happened to the user
+                // Check the trace for the real reason if it's different
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Query is not registered");
+            }
+
+            // Read the response lines
+            // TODO: make it possible to read partial results in case there are a lot of queries
+            var lines = new List<QueryResultLine>();
+            for (var result = await queryResult.FetchNext(); result != null; result = await queryResult.FetchNext())
+            {
+                // TODO: maybe exclude result lines with a count of 1 to prevent identification of individual users
+                lines.Add(result);
+            }
+
+            // Build the final model
+            var model = new QueryResponseModel {Results = lines};
+
+            // Generate the result object
+            return Request.CreateResponse(HttpStatusCode.OK, model);
         }
 
         /// <summary>
         /// Opts in a particular user
         /// </summary>
         [HttpGet, Route("product/v1/{organization}/{product}/users/{uid}/opt-in")]
-        public async Task<HttpResponseMessage> OptIn(string organization, string product)
+        public async Task<HttpResponseMessage> OptIn(string organization, string product, string uid)
         {
             throw new NotImplementedException();
         }
@@ -216,7 +290,7 @@ namespace Regard.Query.WebAPI
         /// It's expected that the application will not send data for an opted out user. If it does, new data will be stored but won't be used in a query.
         /// </remarks>
         [HttpGet, Route("product/v1/{organization}/{product}/users/{uid}/opt-out")]
-        public async Task<HttpResponseMessage> OptOut(string organization, string product)
+        public async Task<HttpResponseMessage> OptOut(string organization, string product, string uid)
         {
             throw new NotImplementedException();
         }
