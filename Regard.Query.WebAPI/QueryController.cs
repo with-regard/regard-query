@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Newtonsoft.Json;
@@ -33,6 +34,15 @@ namespace Regard.Query.WebAPI
         {
             if (dataStore == null) throw new ArgumentNullException("dataStore");
             m_DataStore = dataStore;
+        }
+
+        /// <summary>
+        /// Just indicates the version of this assembly
+        /// </summary>
+        [HttpGet, Route("version")]
+        public async Task<HttpResponseMessage> Version()
+        {
+            return Request.CreateResponse(HttpStatusCode.OK, new { version = Assembly.GetExecutingAssembly().GetName().Version.ToString() });
         }
 
         /// <summary>
