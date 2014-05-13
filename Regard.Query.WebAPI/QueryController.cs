@@ -21,6 +21,11 @@ namespace Regard.Query.WebAPI
     public class QueryController : ApiController
     {
         /// <summary>
+        /// Synchronisation object (protects m_CreatingDataStore in particular)
+        /// </summary>
+        private readonly object m_Sync = new object();
+
+        /// <summary>
         /// The data store that this will make available
         /// </summary>
         private IRegardDataStore m_DataStore;
@@ -35,15 +40,76 @@ namespace Regard.Query.WebAPI
         /// </summary>
         private Task m_CreatingDataStore;
 
+        /// <summary>
+        /// Creates a new query controller with the default data store
+        /// </summary>
         public QueryController()
         {
-            
+            // TODO: we could also support DI here
         }
 
+        /// <summary>
+        /// Creates a new query controller with a specific data store
+        /// </summary>
+        /// <param name="dataStore">The data store to use, or null if the controller should create the default data store using <see cref="DataStoreFactory.CreateDefaultDataStore"></see></param>
         public QueryController(IRegardDataStore dataStore)
         {
-            //if (dataStore == null) throw new ArgumentNullException("dataStore");
             m_DataStore = dataStore;
+        }
+
+        /// <summary>
+        /// Task that actually creates a data store
+        /// </summary>
+        private async Task ActuallyCreateDataStore()
+        {
+            // Generate a data store
+            var newDataStore = await DataStoreFactory.CreateDefaultDataStore();
+
+            // Store it in the data store variable
+            lock (m_Sync)
+            {
+                m_DataStore = newDataStore;
+            }
+        }
+
+        /// <summary>
+        /// Ensures that the m_DataStore parameter is populated
+        /// </summary>
+        private async Task EnsureDataStore()
+        {
+            Task alreadyRunning = null;
+
+            lock (m_Sync)
+            {
+                // Nothing to do if the data store is already created
+                if (m_DataStore != null)
+                {
+                    return;
+                }
+
+                // Check if something else is already retrieving the data store
+                alreadyRunning = m_CreatingDataStore;
+
+                // If nothing is running, then this is the first thing to try to create a data store, so create a new one
+                if (alreadyRunning == null)
+                {
+                    m_CreatingDataStore = alreadyRunning = ActuallyCreateDataStore();
+                }
+            }
+
+            // Wait for the data store to finish creating
+            try
+            {
+                await alreadyRunning;
+            }
+            finally
+            {
+                // The data store should exist and 
+                lock (m_Sync)
+                {
+                    m_CreatingDataStore = null;
+                }
+            }
         }
 
         /// <summary>
@@ -52,6 +118,8 @@ namespace Regard.Query.WebAPI
         [HttpGet, Route("version")]
         public async Task<HttpResponseMessage> Version()
         {
+            await EnsureDataStore();
+
             return Request.CreateResponse(HttpStatusCode.OK, new { version = Assembly.GetExecutingAssembly().GetName().Version.ToString() });
         }
 
@@ -64,6 +132,8 @@ namespace Regard.Query.WebAPI
         [HttpPost, Route("admin/v1/product/create")]
         public async Task<HttpResponseMessage> CreateProduct()
         {
+            await EnsureDataStore();
+
             // Read the payload from the message
             var payloadString = await Request.Content.ReadAsStringAsync();
 
@@ -124,6 +194,8 @@ namespace Regard.Query.WebAPI
         [HttpPost, Route("product/v1/{organization}/{product}/register-query")]
         public async Task<HttpResponseMessage> RegisterQuery(string organization, string product)
         {
+            await EnsureDataStore();
+
             // Validate the URL
             if (string.IsNullOrEmpty(product) || string.IsNullOrEmpty(organization))
             {
@@ -228,6 +300,8 @@ namespace Regard.Query.WebAPI
         [HttpGet, Route("product/v1/{organization}/{product}/run-query/{queryname}")]
         public async Task<HttpResponseMessage> RunQuery(string organization, string product)
         {
+            await EnsureDataStore();
+
             // Validate the URL
             if (string.IsNullOrEmpty(product) || string.IsNullOrEmpty(organization))
             {
@@ -321,6 +395,8 @@ namespace Regard.Query.WebAPI
         [HttpGet, Route("product/v1/{organization}/{product}/users/{uid}/opt-in")]
         public async Task<HttpResponseMessage> OptIn(string organization, string product, string uid)
         {
+            await EnsureDataStore();
+
             // Validate the URL
             if (string.IsNullOrEmpty(product) || string.IsNullOrEmpty(organization) || string.IsNullOrEmpty(uid))
             {
@@ -362,6 +438,8 @@ namespace Regard.Query.WebAPI
         [HttpGet, Route("product/v1/{organization}/{product}/users/{uid}/opt-out")]
         public async Task<HttpResponseMessage> OptOut(string organization, string product, string uid)
         {
+            await EnsureDataStore();
+
             // Validate the URL
             if (string.IsNullOrEmpty(product) || string.IsNullOrEmpty(organization) || string.IsNullOrEmpty(uid))
             {

@@ -1,7 +1,5 @@
 ﻿using System.Web.Http;
-using Microsoft.Owin;
 using Owin;
-using Regard.Query.WebAPI;
 
 namespace Regard.Query.BasicEndpoint
 {
