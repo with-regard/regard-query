@@ -299,7 +299,7 @@ namespace Regard.Query.WebAPI
         /// Runs a query previously created by register-query and returns all of the results
         /// </summary>
         [HttpGet, Route("product/v1/{organization}/{product}/run-query/{queryname}")]
-        public async Task<HttpResponseMessage> RunQuery(string organization, string product, string name)
+        public async Task<HttpResponseMessage> RunQuery(string organization, string product, string queryname)
         {
             await EnsureDataStore();
 
@@ -322,7 +322,7 @@ namespace Regard.Query.WebAPI
             }
 
             // Validate the name
-            if (string.IsNullOrEmpty(name) || name.Length > c_MaxQueryNameLength)
+            if (string.IsNullOrEmpty(queryname) || queryname.Length > c_MaxQueryNameLength)
             {
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Name has a bad length");
             }
@@ -332,7 +332,7 @@ namespace Regard.Query.WebAPI
 
             try
             {
-                queryResult = await queryableProduct.RunQuery(name);
+                queryResult = await queryableProduct.RunQuery(queryname);
             }
             catch (InvalidOperationException e)
             {
