@@ -41,7 +41,7 @@ properties {
 
 framework('4.0')
 
-task default -depends nupackage
+task default -depends nupackage,package
 
 task generate-build-files {
     $now = Get-Date
@@ -100,5 +100,7 @@ task nupackage -depends compile {
 
 task package -depends compile {
     "Packaging"
-    "   Regard.Query.sln"
+    "   Regard.Query.Internal.Service.ccproj"
+
+    exec { msbuild $base_dir\Regard.Query.Internal.Service\Regard.Query.Internal.Service.ccproj /t:Publish /p:Configuration=$config /verbosity:minimal /tv:4.0 /p:VisualStudioVersion=$visualStudioVersion }
 }
