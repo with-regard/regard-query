@@ -15,15 +15,16 @@
         IRegardQuery AllEvents();
 
         /// <summary>
-        /// Creates a query that takes the result of an existing query and removes any field that doesn't have the specified value
+        /// Creates a query that takes the result of an existing query and removes any record that either does not contain the field, or that contains the field but
+        /// it is not the specified value.
         /// </summary>
         /// <param name="query">The query that needs to be restricted</param>
-        /// <param name="key">The key to test against</param>
-        /// <param name="value">The value that the key must have in all the returned events</param>
+        /// <param name="key">The name of the field to test against</param>
+        /// <param name="value">The value that the field must have in all the returned events</param>
         IRegardQuery Only(IRegardQuery query, string key, string value);                // TODO: I think a final version of this will need to do ranges and other comparisons rather than straight-up matches
 
         /// <summary>
-        /// Creates a query that splits the results into partitions by the value of a key
+        /// Creates a query that splits the results into partitions by the value of a key. Records that do not contain that field will not be included in the results.
         /// </summary>
         /// <param name="query">The query that should be split</param>
         /// <param name="key">The key that this should break the results down using</param>
