@@ -8,8 +8,8 @@
     <ProjectGuid>5852ed31-f0dd-4f97-b344-7a3f1adb6c05</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Regard.Query.Web.Api</RootNamespace>
-    <AssemblyName>Regard.Query.Web.Api</AssemblyName>
+    <RootNamespace>Regard.Query.Internal.Service</RootNamespace>
+    <AssemblyName>Regard.Query.Internal.Service</AssemblyName>
     <StartDevelopmentStorage>True</StartDevelopmentStorage>
     <Name>Regard.Query.Internal.Service</Name>
   </PropertyGroup>

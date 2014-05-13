@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ServiceDefinition name="Regard.Query.Web.Api" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2013-10.2.2">
+<ServiceDefinition name="Regard.Query.Internal.Service" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2013-10.2.2">
   <WebRole name="Regard.Query.BasicEndpoint" vmsize="Small">
     <Sites>
       <Site name="Web">
         <Bindings>
-          <Binding name="Regard.Query.Web.Api" endpointName="Regard.Query.Web.Api" />
+          <Binding name="Regard.Query.Internal.Service" endpointName="Regard.Query.Internal.Service" />
         </Bindings>
       </Site>
     </Sites>
@@ -12,7 +12,7 @@
       <Import moduleName="Diagnostics" />
     </Imports>
     <Endpoints>
-      <InternalEndpoint name="Regard.Query.Web.Api" protocol="http" port="8080" />
+      <InternalEndpoint name="Regard.Query.Internal.Service" protocol="http" port="8080" />
     </Endpoints>
   </WebRole>
 </ServiceDefinition>
