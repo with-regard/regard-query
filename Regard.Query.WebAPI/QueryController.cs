@@ -34,6 +34,7 @@ namespace Regard.Query.WebAPI
         /// The maximum length of a product or organization name
         /// </summary>
         private const int c_MaxLength = 256;
+        private const int c_MaxQueryNameLength = 200;
 
         /// <summary>
         /// Task that executes if we're trying to create the default data store
@@ -257,7 +258,7 @@ namespace Regard.Query.WebAPI
             }
 
             name = nameToken.Value<string>();
-            if (string.IsNullOrEmpty(name) || name.Length > 200)
+            if (string.IsNullOrEmpty(name) || name.Length > c_MaxQueryNameLength)
             {
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Name has a bad length");
             }
@@ -298,7 +299,7 @@ namespace Regard.Query.WebAPI
         /// Runs a query previously created by register-query and returns all of the results
         /// </summary>
         [HttpGet, Route("product/v1/{organization}/{product}/run-query/{queryname}")]
-        public async Task<HttpResponseMessage> RunQuery(string organization, string product)
+        public async Task<HttpResponseMessage> RunQuery(string organization, string product, string name)
         {
             await EnsureDataStore();
 
@@ -320,39 +321,8 @@ namespace Regard.Query.WebAPI
                 return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Could not find product");
             }
 
-            // Read the payload from the message
-            var payloadString = await Request.Content.ReadAsStringAsync();
-
-            // Convert to JSON
-            JObject payload;
-            try
-            {
-                payload = JObject.Parse(payloadString);
-            }
-            catch (JsonException)
-            {
-                // This is a bad request
-                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Could not understand payload");
-            }
-
-
-            // Should be a name and a query
-            JToken nameToken;
-
-            if (!payload.TryGetValue("query-name", out nameToken))
-            {
-                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Missing query name");
-            }
-
             // Validate the name
-            string name;
-            if (nameToken.Type != JTokenType.String)
-            {
-                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Name must be a string");
-            }
-
-            name = nameToken.Value<string>();
-            if (string.IsNullOrEmpty(name) || name.Length > 200)
+            if (string.IsNullOrEmpty(name) || name.Length > c_MaxQueryNameLength)
             {
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Name has a bad length");
             }
