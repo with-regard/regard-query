@@ -18,7 +18,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Regard.Query.WebAPI", "Rega
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Regard.Query.BasicEndpoint", "Regard.Query.BasicEndpoint\Regard.Query.BasicEndpoint.csproj", "{0526AD6B-4EE3-49E6-A095-0D8EA175B244}"
 EndProject
-Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "Regard.Query.Internal.Service", "Regard.Query.Internal.Service\Regard.Query.Internal.Service.ccproj", "{5852ED31-F0DD-4F97-B344-7A3F1ADB6C05}"
+Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "Regard.Query.Internal.Service", "Regard.Query.Internal.Service\Regard.Query.Internal.Service.ccproj", "{83129631-B9A6-499B-BE05-49498C5DD6F9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -46,10 +46,10 @@ Global
 		{0526AD6B-4EE3-49E6-A095-0D8EA175B244}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0526AD6B-4EE3-49E6-A095-0D8EA175B244}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0526AD6B-4EE3-49E6-A095-0D8EA175B244}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5852ED31-F0DD-4F97-B344-7A3F1ADB6C05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5852ED31-F0DD-4F97-B344-7A3F1ADB6C05}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5852ED31-F0DD-4F97-B344-7A3F1ADB6C05}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5852ED31-F0DD-4F97-B344-7A3F1ADB6C05}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83129631-B9A6-499B-BE05-49498C5DD6F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83129631-B9A6-499B-BE05-49498C5DD6F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83129631-B9A6-499B-BE05-49498C5DD6F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83129631-B9A6-499B-BE05-49498C5DD6F9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

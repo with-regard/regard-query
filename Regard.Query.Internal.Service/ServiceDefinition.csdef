@@ -4,7 +4,7 @@
     <Sites>
       <Site name="Web">
         <Bindings>
-          <Binding name="Regard.Query.Internal.Service" endpointName="Regard.Query.Internal.Service" />
+          <Binding name="Endpoint1" endpointName="Regard.Query.WebAPI" />
         </Bindings>
       </Site>
     </Sites>
@@ -12,7 +12,7 @@
       <Import moduleName="Diagnostics" />
     </Imports>
     <Endpoints>
-      <InternalEndpoint name="Regard.Query.Internal.Service" protocol="http" port="8080" />
+      <InternalEndpoint name="Regard.Query.WebAPI" protocol="http" port="8080" />
     </Endpoints>
   </WebRole>
 </ServiceDefinition>

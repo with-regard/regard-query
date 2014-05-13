@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>2.2</ProductVersion>
-    <ProjectGuid>5852ed31-f0dd-4f97-b344-7a3f1adb6c05</ProjectGuid>
+    <ProjectGuid>83129631-b9a6-499b-be05-49498c5dd6f9</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Regard.Query.Internal.Service</RootNamespace>
@@ -37,14 +37,6 @@
     <ServiceConfiguration Include="ServiceConfiguration.Cloud.cscfg" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Regard.Query.BasicEndpointContent\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Regard.Query.BasicEndpointContent\diagnostics.wadcfg">
-      <SubType>Content</SubType>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Regard.Query.BasicEndpoint\Regard.Query.BasicEndpoint.csproj">
       <Name>Regard.Query.BasicEndpoint</Name>
       <Project>{0526ad6b-4ee3-49e6-a095-0d8ea175b244}</Project>
@@ -53,6 +45,14 @@
       <RoleName>Regard.Query.BasicEndpoint</RoleName>
       <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Regard.Query.BasicEndpointContent\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Regard.Query.BasicEndpointContent\diagnostics.wadcfg">
+      <SubType>Content</SubType>
+    </Content>
   </ItemGroup>
   <!-- Import the target files for this project template -->
   <PropertyGroup>
