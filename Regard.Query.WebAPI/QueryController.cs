@@ -18,21 +18,31 @@ namespace Regard.Query.WebAPI
     /// <summary>
     /// ApiController that can be used to host the Regard query API - without any authentication or authorization
     /// </summary>
-    class QueryController : ApiController
+    public class QueryController : ApiController
     {
         /// <summary>
         /// The data store that this will make available
         /// </summary>
-        private readonly IRegardDataStore m_DataStore;
+        private IRegardDataStore m_DataStore;
 
         /// <summary>
         /// The maximum length of a product or organization name
         /// </summary>
         private const int c_MaxLength = 256;
 
+        /// <summary>
+        /// Task that executes if we're trying to create the default data store
+        /// </summary>
+        private Task m_CreatingDataStore;
+
+        public QueryController()
+        {
+            
+        }
+
         public QueryController(IRegardDataStore dataStore)
         {
-            if (dataStore == null) throw new ArgumentNullException("dataStore");
+            //if (dataStore == null) throw new ArgumentNullException("dataStore");
             m_DataStore = dataStore;
         }
 
