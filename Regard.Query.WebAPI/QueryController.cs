@@ -362,7 +362,7 @@ namespace Regard.Query.WebAPI
         /// <summary>
         /// Opts in a particular user
         /// </summary>
-        [HttpGet, Route("product/v1/{organization}/{product}/users/{uid}/opt-in")]
+        [HttpPost, Route("product/v1/{organization}/{product}/users/{uid}/opt-in")]
         public async Task<HttpResponseMessage> OptIn(string organization, string product, string uid)
         {
             await EnsureDataStore();
@@ -405,7 +405,7 @@ namespace Regard.Query.WebAPI
         /// That is, moves the user to the state 'data is retained but not used in a query'. A future revision will have 'data is also deleted'.
         /// It's expected that the application will not send data for an opted out user. If it does, new data will be stored but won't be used in a query.
         /// </remarks>
-        [HttpGet, Route("product/v1/{organization}/{product}/users/{uid}/opt-out")]
+        [HttpPost, Route("product/v1/{organization}/{product}/users/{uid}/opt-out")]
         public async Task<HttpResponseMessage> OptOut(string organization, string product, string uid)
         {
             await EnsureDataStore();
