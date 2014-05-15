@@ -238,7 +238,7 @@ namespace Regard.Query.Sql
 
                         case JTokenType.Integer:
                         {
-                            int val = property.Value.Value<int>();
+                            long val = property.Value.Value<long>();
                             addPropertyCmd.Parameters.AddWithValue("@propertyStringValue", val.ToString());
                             addPropertyCmd.Parameters.AddWithValue("@propertyNumericValue", (double) val);
                             break;
