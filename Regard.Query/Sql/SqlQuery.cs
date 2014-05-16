@@ -359,13 +359,17 @@ namespace Regard.Query.Sql
                                 {
                                     stringValue = await queryReader.GetFieldValueAsync<string>(fieldId);
                                 }
+                                else if (fieldType == typeof(double))
+                                {
+                                    var doubleValue = await queryReader.GetFieldValueAsync<double>(fieldId);
+                                    stringValue = doubleValue.ToString();
+                                }
 
                                 // Store this column
                                 columns.Add(new QueryResultColumn
                                     {
                                         Name = summarisation.ResultName,
-                                        Value = stringValue,
-                                        Count = intValue
+                                        Value = stringValue
                                     });
                             }
 

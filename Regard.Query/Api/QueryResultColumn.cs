@@ -14,10 +14,5 @@
         /// The raw string value for this column
         /// </summary>
         public string Value { get; set; }
-
-        /// <summary>
-        /// If this column represents a count of values, this is that count
-        /// </summary>
-        public long Count { get; set; }
     }
 }
