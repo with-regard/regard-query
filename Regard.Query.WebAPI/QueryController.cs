@@ -345,15 +345,21 @@ namespace Regard.Query.WebAPI
 
             // Read the response lines
             // TODO: make it possible to read partial results in case there are a lot of queries
-            var lines = new List<QueryResultLine>();
+            var lines = new JArray();
             for (var result = await queryResult.FetchNext(); result != null; result = await queryResult.FetchNext())
             {
-                // TODO: maybe exclude result lines with a count of 1 to prevent identification of individual users
-                lines.Add(result);
+                JObject line = new JObject {{"EventCount", result.EventCount}};
+                foreach (var column in result.Columns)
+                {
+                    line[column.Name] = column.Value;
+                }
+
+                // TODO: maybe exclude result lines with an event count of 1 to prevent identification of individual users
+                lines.Add(line);
             }
 
             // Build the final model
-            var model = new QueryResponseModel {Results = lines};
+            var model = new JObject { { "Results", lines } };
 
             // Generate the result object
             return Request.CreateResponse(HttpStatusCode.OK, model);
