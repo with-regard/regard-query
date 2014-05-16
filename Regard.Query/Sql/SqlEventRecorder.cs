@@ -125,19 +125,25 @@ namespace Regard.Query.Sql
             { 
                 // TODO: might be better to do this with a stored procedure? Would still need to detect the error cases where the product or user doesn't exist
 
+                // Get the product ID
+                // TODO: these commands could be combined into one
+                var shortProductId = await GetShortProductId(organization, product, sessionTransaction);
+                if (!shortProductId.HasValue)
+                {
+                    return Guid.Empty;
+                }
+
+                // === CHEAT ===
+                // For development purposes we want all users to be opted in by default
+                // This means that users can never opt-out, so it is bad that this code exists
+                var cheatyUsers = new SqlUsers(m_Connection, shortProductId.Value);
+                await cheatyUsers.OptIn(userId);
+
                 // Fetch the short ID for this user
                 var shortUserId = await GetShortUserId(userId, sessionTransaction);
                 if (!shortUserId.HasValue)
                 {
                     // TODO: way to distinguish the error case 'user doesn't exist' from the case 'product doesn't exist'. Currently it's going to be a bit mysterious.
-                    return Guid.Empty;
-                }
-
-                // ... and the short product ID
-                // TODO: these commands could be combined into one
-                var shortProductId = await GetShortProductId(organization, product, sessionTransaction);
-                if (!shortProductId.HasValue)
-                {
                     return Guid.Empty;
                 }
 
