@@ -65,13 +65,13 @@ namespace Regard.Query.Sql
             if (queryName.Length > 200)             throw new ArgumentException("Query name cannot be longer than 200 characters", "queryName");
 
             // Store in the database
-            using (var transaction = m_Connection.BeginTransaction())
+            //using (var transaction = m_Connection.BeginTransaction())
             {
                 // Format the query as JSON
                 string asJson = serialQuery.ToJson().ToString(Formatting.None);
 
                 // Prepare the query
-                var insertQueryCommand = new SqlCommand(c_InsertQuery, m_Connection, transaction);
+                var insertQueryCommand = new SqlCommand(c_InsertQuery, m_Connection, null);
                 insertQueryCommand.Parameters.AddWithValue("@productId", m_ProductId);
                 insertQueryCommand.Parameters.AddWithValue("@queryName", queryName);
                 insertQueryCommand.Parameters.AddWithValue("@queryData", asJson);
@@ -79,7 +79,7 @@ namespace Regard.Query.Sql
                 await insertQueryCommand.ExecuteNonQueryAsync();
 
                 // Done
-                transaction.Commit();
+                // transaction.Commit();
             }
         }
 

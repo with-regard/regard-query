@@ -121,13 +121,13 @@ namespace Regard.Query.Sql
                 newSessionId = sessionId;
             }
 
-            using (var sessionTransaction = m_Connection.BeginTransaction())
+            // using (var sessionTransaction = m_Connection.BeginTransaction())
             { 
                 // TODO: might be better to do this with a stored procedure? Would still need to detect the error cases where the product or user doesn't exist
 
                 // Get the product ID
                 // TODO: these commands could be combined into one
-                var shortProductId = await GetShortProductId(organization, product, sessionTransaction);
+                var shortProductId = await GetShortProductId(organization, product, null);
                 if (!shortProductId.HasValue)
                 {
                     return Guid.Empty;
@@ -140,7 +140,7 @@ namespace Regard.Query.Sql
                 await cheatyUsers.OptIn(userId);
 
                 // Fetch the short ID for this user
-                var shortUserId = await GetShortUserId(userId, sessionTransaction);
+                var shortUserId = await GetShortUserId(userId, null);
                 if (!shortUserId.HasValue)
                 {
                     // TODO: way to distinguish the error case 'user doesn't exist' from the case 'product doesn't exist'. Currently it's going to be a bit mysterious.
@@ -148,7 +148,7 @@ namespace Regard.Query.Sql
                 }
 
                 // Create an insertion command
-                var insertionCommand = new SqlCommand(c_InsertNewSession, m_Connection, sessionTransaction);
+                var insertionCommand = new SqlCommand(c_InsertNewSession, m_Connection, null);
 
                 insertionCommand.Parameters.AddWithValue("@fullSessionId", newSessionId);
                 insertionCommand.Parameters.AddWithValue("@shortUserId", shortUserId.Value);
@@ -169,7 +169,7 @@ namespace Regard.Query.Sql
                 }
 
                 // Done
-                sessionTransaction.Commit();
+                //sessionTransaction.Commit();
 
                 return newSessionId;
             }
@@ -188,12 +188,12 @@ namespace Regard.Query.Sql
                 return;
             }
 
-            using (var transaction = m_Connection.BeginTransaction())
+            // using (var transaction = m_Connection.BeginTransaction())
             {
                 // Create the event
                 // TODO: could cache the short session ID to improve performance?
                 // TODO: make something sensible happen if the session ID is invalid (likely scenario: user opts-out while a session is in progress)
-                var createEventCmd = new SqlCommand(c_CreateEvent, m_Connection, transaction);
+                var createEventCmd = new SqlCommand(c_CreateEvent, m_Connection, null);
 
                 createEventCmd.Parameters.AddWithValue("@fullSessionId", sessionId);
 
@@ -216,7 +216,7 @@ namespace Regard.Query.Sql
                 // Store the properties
                 foreach (var property in data.Properties())
                 {
-                    var addPropertyCmd = new SqlCommand(c_AddProperty, m_Connection, transaction);
+                    var addPropertyCmd = new SqlCommand(c_AddProperty, m_Connection, null);
 
                     // Only store property types we understand
                     var propertyType = property.Value.Type;
@@ -271,7 +271,7 @@ namespace Regard.Query.Sql
                     await addPropertyCmd.ExecuteNonQueryAsync();
                 }
 
-                transaction.Commit();
+                //transaction.Commit();
             }
         }
     }
