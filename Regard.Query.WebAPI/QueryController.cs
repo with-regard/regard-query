@@ -18,7 +18,7 @@ namespace Regard.Query.WebAPI
     /// <summary>
     /// ApiController that can be used to host the Regard query API - without any authentication or authorization
     /// </summary>
-    public class QueryController : ApiController
+    public class QueryController : ApiController, IQueryController
     {
         /// <summary>
         /// Synchronisation object (protects m_CreatingDataStore in particular)
