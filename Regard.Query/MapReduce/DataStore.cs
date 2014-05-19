@@ -21,7 +21,7 @@ namespace Regard.Query.MapReduce
         /// <summary>
         /// The event recorder for this data store
         /// </summary>
-        private readonly MapReduceEventRecorder m_EventRecorder;
+        private readonly EventRecorder m_EventRecorder;
 
         /// <summary>
         /// The product admin interface
@@ -44,7 +44,7 @@ namespace Regard.Query.MapReduce
             m_Store     = store;
             m_NodeName  = nodeName;
 
-            m_EventRecorder = new MapReduceEventRecorder();
+            m_EventRecorder = new EventRecorder();
             m_ProductAdmin  = new ProductAdmin(m_Store);
         }
 

@@ -8,7 +8,7 @@ namespace Regard.Query.MapReduce
     /// <summary>
     /// Event recorder for the map/reduce query store
     /// </summary>
-    internal class MapReduceEventRecorder : IEventRecorder
+    internal class EventRecorder : IEventRecorder
     {
         /// <summary>
         /// Indicates that a new session has begun
