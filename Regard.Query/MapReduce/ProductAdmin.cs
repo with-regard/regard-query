@@ -17,6 +17,7 @@ namespace Regard.Query.MapReduce
             if (dataStore == null) throw new ArgumentNullException("dataStore");
             
             // We store the products in a separate child store, in case there's a clash somewhere along the lines
+            // Product data stores aren't isolated per node, so if two nodes perform operations on the same product, the results are subject to a race condition
             m_DataStore = dataStore.ChildStore(JArray.FromObject(new[] { "products" }));
         }
 
@@ -50,7 +51,7 @@ namespace Regard.Query.MapReduce
             var existingProduct = await ObjectForProduct(organization, product);
 
             // Nothing to do if this product is already created
-            if (existingProduct == null)
+            if (existingProduct != null)
             {
                 return;
             }
@@ -74,7 +75,8 @@ namespace Regard.Query.MapReduce
                 return null;
             }
 
-            throw new System.NotImplementedException();
+            // Create a new queryable store using a child store represented by the organization/product
+            return new QueryableProduct(m_DataStore.ChildStore(KeyForProduct(organization, product)));
         }
     }
 }
