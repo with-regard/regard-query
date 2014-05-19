@@ -26,7 +26,7 @@ namespace Regard.Query.MapReduce
         /// <summary>
         /// The product admin interface
         /// </summary>
-        private readonly MapReduceProductAdmin m_ProductAdmin;
+        private readonly ProductAdmin m_ProductAdmin;
 
         /// <summary>
         /// Creates a new map/reduce data store
@@ -45,7 +45,7 @@ namespace Regard.Query.MapReduce
             m_NodeName  = nodeName;
 
             m_EventRecorder = new MapReduceEventRecorder();
-            m_ProductAdmin  = new MapReduceProductAdmin();
+            m_ProductAdmin  = new ProductAdmin(m_Store);
         }
 
         /// <summary>

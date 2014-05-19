@@ -96,7 +96,7 @@
     <Compile Include="MapReduce\DataStore.cs" />
     <Compile Include="MapReduce\MapReduceDataStoreFactory.cs" />
     <Compile Include="MapReduce\MapReduceEventRecorder.cs" />
-    <Compile Include="MapReduce\MapReduceProductAdmin.cs" />
+    <Compile Include="MapReduce\ProductAdmin.cs" />
     <Compile Include="MapReduce\MemoryKeyValueStore.cs" />
     <Compile Include="MapReduce\QueryMapReduce.cs" />
     <Compile Include="MapReduce\MapReduceQueryFactory.cs" />
