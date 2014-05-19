@@ -57,6 +57,7 @@
     <Compile Include="Api\Query\TestQueryBuilder.cs" />
     <Compile Include="Api\TestDataStoreFactory.cs" />
     <Compile Include="MapReduce\AllEvents.cs" />
+    <Compile Include="MapReduce\BackingStore.cs" />
     <Compile Include="MapReduce\BrokenDownBy.cs" />
     <Compile Include="MapReduce\CountUnique.cs" />
     <Compile Include="MapReduce\Only.cs" />
