@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using Regard.Query.Api;
 
 namespace Regard.Query.MapReduce
@@ -7,18 +8,24 @@ namespace Regard.Query.MapReduce
     /// <summary>
     /// Represents a product that can be queried using the map/reduce system
     /// </summary>
-    class QueryableProduct : IQueryableProduct
+    class QueryableProduct : IQueryableProduct, IUserAdmin
     {
         /// <summary>
         /// The key/value store dedicated to this product
         /// </summary>
         private readonly IKeyValueStore m_ProductDataStore;
 
+        /// <summary>
+        /// The data store where information about users is stored
+        /// </summary>
+        private readonly IKeyValueStore m_UserDataStore;
+
         public QueryableProduct(IKeyValueStore productDataStore)
         {
             if (productDataStore == null) throw new ArgumentNullException("productDataStore");
 
             m_ProductDataStore = productDataStore;
+            m_UserDataStore = m_ProductDataStore.ChildStore(new JArray("users"));
         }
 
         /// <summary>
@@ -50,6 +57,33 @@ namespace Regard.Query.MapReduce
         /// <summary>
         /// Retrieves the object that can administer the users of this project
         /// </summary>
-        public IUserAdmin Users { get { throw new NotImplementedException(); } }
+        public IUserAdmin Users { get { return this; } }
+
+        /// <summary>
+        /// Marks a specific user ID as being opted in to data collection for a specific product
+        /// </summary>
+        public async Task OptIn(Guid userId)
+        {
+            JObject userData = new JObject();
+
+            userData["OptInState"] = "opt-in";
+
+            await m_UserDataStore.SetValue(new JArray(userId.ToString()), userData);
+        }
+
+        /// <summary>
+        /// Marks a specific user ID as being opted out from data collection for a specific product
+        /// </summary>
+        /// <remarks>
+        /// This only opts out for future data collection. Any existing data will be retained.
+        /// </remarks>
+        public async Task OptOut(Guid userId)
+        {
+            JObject userData = new JObject();
+
+            userData["OptInState"] = "opt-out";
+
+            await m_UserDataStore.SetValue(new JArray(userId.ToString()), userData);
+        }
     }
 }
