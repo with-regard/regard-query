@@ -57,9 +57,9 @@ namespace Regard.Query.Sql
         /// </summary>
         public async Task OptIn(Guid userId)
         {
-            using (var transaction = m_Connection.BeginTransaction())
+            //using (var transaction = m_Connection.BeginTransaction())
             {
-                var updateUser = new SqlCommand(c_UpdateUser, m_Connection, transaction);
+                var updateUser = new SqlCommand(c_UpdateUser, m_Connection, null);
 
                 updateUser.Parameters.AddWithValue("@userId", userId);
                 updateUser.Parameters.AddWithValue("@newStateName", c_StateOptIn);
@@ -67,7 +67,7 @@ namespace Regard.Query.Sql
 
                 await updateUser.ExecuteNonQueryAsync();
 
-                transaction.Commit();
+                //transaction.Commit();
             }
         }
 
@@ -79,12 +79,12 @@ namespace Regard.Query.Sql
         /// </remarks>
         public async Task OptOut(Guid userId)
         {
-            using (var transaction = m_Connection.BeginTransaction())
+            //using (var transaction = m_Connection.BeginTransaction())
             {
                 // TODO: this will actually start collecting data for the user if they weren't in the database to begin with!
                 // (Though it won't include it in any results)
 
-                var updateUser = new SqlCommand(c_UpdateUser, m_Connection, transaction);
+                var updateUser = new SqlCommand(c_UpdateUser, m_Connection, null);
 
                 updateUser.Parameters.AddWithValue("@userId", userId);
                 updateUser.Parameters.AddWithValue("@newStateName", c_StateOptOut);
@@ -92,7 +92,7 @@ namespace Regard.Query.Sql
 
                 await updateUser.ExecuteNonQueryAsync();
 
-                transaction.Commit();
+                // transaction.Commit();
             }
         }
     }

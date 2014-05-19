@@ -34,16 +34,16 @@ namespace Regard.Query.Sql
         /// </summary>
         public async Task CreateProduct(string organization, string product)
         {
-            using (var transaction = m_Connection.BeginTransaction())
+            // using (var transaction = m_Connection.BeginTransaction())
             {
                 // Insert a new product into the database
-                var createANewProduct = new SqlCommand(c_CreateProduct, m_Connection, transaction);
+                var createANewProduct = new SqlCommand(c_CreateProduct, m_Connection, null);
 
                 createANewProduct.Parameters.AddWithValue("@productName", product);
                 createANewProduct.Parameters.AddWithValue("@productOrganization", organization);
 
                 await createANewProduct.ExecuteNonQueryAsync();
-                transaction.Commit();
+                //transaction.Commit();
             }
         }
 
