@@ -12,7 +12,7 @@ namespace Regard.Query.Tests.MapReduce
     class Only
     {
         [Test]
-        public void OnlyClick()
+        public void ThereShouldBe5ClickEvents()
         {
             var task = Task.Run(async () =>
             {
@@ -26,7 +26,7 @@ namespace Regard.Query.Tests.MapReduce
                 var ingestor = new DataIngestor(query, resultStore);
 
                 // Run the standard set of docs through
-                await Util.TestBasicDocuments(ingestor);
+                await TestDataGenerator.Ingest12BasicDocuments(ingestor);
 
                 // This should create a data store with one record indicating that there are 12 records 
                 var reader = resultStore.EnumerateAllValues();

@@ -12,8 +12,10 @@ namespace Regard.Query.Tests.MapReduce
     class BrokenDownBy
     {
         [Test]
-        public void Session()
+        public void ThereAre3EventsInTheFirstSession()
         {
+            // ... but also 4 in the second, and 5 in the third. THis makes the method name rather long, though.
+            // Not actually sure if these should be separate tests. I think not really as they are different failure conditions rather than different behaviours
             var task = Task.Run(async () =>
             {
                 // Create the 'only clicks' query
@@ -26,7 +28,7 @@ namespace Regard.Query.Tests.MapReduce
                 var ingestor = new DataIngestor(query, resultStore);
 
                 // Run the standard set of docs through
-                await Util.TestBasicDocuments(ingestor);
+                await TestDataGenerator.Ingest12BasicDocuments(ingestor);
 
                 // This should create a data store with one record indicating that there are 12 records 
                 var reader = resultStore.EnumerateAllValues();
@@ -43,10 +45,12 @@ namespace Regard.Query.Tests.MapReduce
                             break;
 
                         case "2":
+                            // 4 events in the second
                             Assert.AreEqual(4, nextRecord.Item2["Count"].Value<int>());
                             break;
 
                         case "3":
+                            // 5 events in the third
                             Assert.AreEqual(5, nextRecord.Item2["Count"].Value<int>());
                             break;
 

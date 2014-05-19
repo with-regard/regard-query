@@ -12,7 +12,7 @@ namespace Regard.Query.Tests.MapReduce
     class CountUnique
     {
         [Test]
-        public void UniqueSessions()
+        public void ThereShouldBe3UniqueSessions()
         {
             var task = Task.Run(async () =>
             {
@@ -26,7 +26,8 @@ namespace Regard.Query.Tests.MapReduce
                 var ingestor = new DataIngestor(query, resultStore);
 
                 // Run the standard set of docs through
-                await Util.TestBasicDocuments(ingestor);
+                // As the database is empty, it only needs to reduce the docs, not re-reduce
+                await TestDataGenerator.Ingest12BasicDocuments(ingestor);
 
                 // This should create a data store with one record indicating that there are 12 records 
                 var reader = resultStore.EnumerateAllValues();
@@ -51,7 +52,7 @@ namespace Regard.Query.Tests.MapReduce
         }
 
         [Test]
-        public void UniqueSessionsRereduce()
+        public void ThereShouldStillBe3SessionsAfterIngestingDocsTwice()
         {
             var task = Task.Run(async () =>
             {
@@ -65,8 +66,9 @@ namespace Regard.Query.Tests.MapReduce
                 var ingestor = new DataIngestor(query, resultStore);
 
                 // Run the standard set of docs through twice
-                await Util.TestBasicDocuments(ingestor);
-                await Util.TestBasicDocuments(ingestor);
+                // This forces a re-reduce on the second run through
+                await TestDataGenerator.Ingest12BasicDocuments(ingestor);
+                await TestDataGenerator.Ingest12BasicDocuments(ingestor);
 
                 // This should create a data store with one record indicating that there are 12 records 
                 var reader = resultStore.EnumerateAllValues();
@@ -91,7 +93,7 @@ namespace Regard.Query.Tests.MapReduce
         }
 
         [Test]
-        public void UniqueSessionsRereduceNew()
+        public void ThereShouldBe4SessionsIfWeReReduceANewOne()
         {
             var task = Task.Run(async () =>
             {
@@ -105,8 +107,8 @@ namespace Regard.Query.Tests.MapReduce
                 var ingestor = new DataIngestor(query, resultStore);
 
                 // Run the standard set of docs through twice
-                await Util.TestBasicDocuments(ingestor);
-                await Util.TestBasicDocuments(ingestor);
+                await TestDataGenerator.Ingest12BasicDocuments(ingestor);
+                await TestDataGenerator.Ingest12BasicDocuments(ingestor);
 
                 // Add a new session too
                 ingestor.Ingest(JObject.FromObject(new { SessionId = "4" }));
@@ -135,7 +137,7 @@ namespace Regard.Query.Tests.MapReduce
         }
 
         [Test]
-        public void UniqueSessionsWithClick()
+        public void Only2SessionsContainAtLeastOneClick()
         {
             var task = Task.Run(async () =>
             {
@@ -149,7 +151,7 @@ namespace Regard.Query.Tests.MapReduce
                 var ingestor = new DataIngestor(query, resultStore);
 
                 // Run the standard set of docs through
-                await Util.TestBasicDocuments(ingestor);
+                await TestDataGenerator.Ingest12BasicDocuments(ingestor);
 
                 // This should create a data store with one record indicating that there are 12 records 
                 var reader = resultStore.EnumerateAllValues();

@@ -11,10 +11,12 @@ namespace Regard.Query.Tests.MapReduce
     class AllEvents
     {
         [Test]
-        public void BasicDocuments()
+        public void WeShouldCount12BasicDocuments()
         {
             var task = Task.Run(async () =>
             {
+                // == SETUP ==
+
                 // Create the 'all events query'
                 var queryBuilder = new SerializableQueryBuilder(null);
                 var allEvents = queryBuilder.AllEvents();
@@ -25,7 +27,10 @@ namespace Regard.Query.Tests.MapReduce
                 var ingestor = new DataIngestor(query, resultStore);
 
                 // Run the standard set of docs through
-                await Util.TestBasicDocuments(ingestor);
+                // As there are no documents in the data store currently, this will reduce but not re-reduce
+                await TestDataGenerator.Ingest12BasicDocuments(ingestor);
+
+                // == ASSERT ==
 
                 // This should create a data store with one record indicating that there are 12 records 
                 var reader = resultStore.EnumerateAllValues();
@@ -47,7 +52,7 @@ namespace Regard.Query.Tests.MapReduce
         }
 
         [Test]
-        public void Rereduce()
+        public void IfWeReReduceAgainThereShouldBe24Documents()
         {
             var task = Task.Run(async () =>
             {
@@ -61,8 +66,8 @@ namespace Regard.Query.Tests.MapReduce
                 var ingestor = new DataIngestor(query, resultStore);
 
                 // Run the standard set of docs through twice (forcing a re-reduce)
-                await Util.TestBasicDocuments(ingestor);
-                await Util.TestBasicDocuments(ingestor);
+                await TestDataGenerator.Ingest12BasicDocuments(ingestor);
+                await TestDataGenerator.Ingest12BasicDocuments(ingestor);
 
                 // This should create a data store with one record indicating that there are 12 records 
                 var reader = resultStore.EnumerateAllValues();

@@ -5,12 +5,12 @@ using Regard.Query.MapReduce;
 
 namespace Regard.Query.Tests.MapReduce
 {
-    static class Util
+    static class TestDataGenerator
     {
         /// <summary>
-        /// Pass some basic documents into a Map/Reduce query processor
+        /// Pass some basic documents into a Map/Reduce query processor. We re-use this set and its particular format in numerous tests
         /// </summary>
-        public static async Task TestBasicDocuments(DataIngestor ingestor)
+        public static async Task Ingest12BasicDocuments(DataIngestor ingestor)
         {
             // Ingest some documents
             // 3 sessions, 6 clicks, 12 events total
