@@ -93,12 +93,13 @@
     <Compile Include="Api\IKvStoreEnumerator.cs" />
     <Compile Include="MapReduce\IngestorMapTarget.cs" />
     <Compile Include="MapReduce\KeySerializer.cs" />
-    <Compile Include="MapReduce\MapReduceDataStore.cs" />
+    <Compile Include="MapReduce\DataStore.cs" />
+    <Compile Include="MapReduce\MapReduceDataStoreFactory.cs" />
     <Compile Include="MapReduce\MapReduceEventRecorder.cs" />
     <Compile Include="MapReduce\MapReduceProductAdmin.cs" />
     <Compile Include="MapReduce\MemoryKeyValueStore.cs" />
     <Compile Include="MapReduce\QueryMapReduce.cs" />
-    <Compile Include="MapReduce\MapReduceFactory.cs" />
+    <Compile Include="MapReduce\MapReduceQueryFactory.cs" />
     <Compile Include="MapReduce\MapResult.cs" />
     <Compile Include="Util\StorageUtil.cs" />
     <Compile Include="DataStoreFactory.cs" />

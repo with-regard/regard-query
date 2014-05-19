@@ -11,7 +11,7 @@ namespace Regard.Query.MapReduce
     /// <summary>
     /// Class that generates map/reduce queries for serialised queries
     /// </summary>
-    public static class MapReduceFactory
+    public static class MapReduceQueryFactory
     {
         /// <summary>
         /// Generates the map/reduce chain corresponding to the specified serializable query

@@ -1,4 +1,5 @@
 ﻿using Regard.Query.Api;
+using Regard.Query.MapReduce;
 
 namespace Regard.Query.Tests.Api
 {
@@ -9,7 +10,8 @@ namespace Regard.Query.Tests.Api
     {
         public static IRegardDataStore CreateEmptyDataStore()
         {
-            return new MissingDataStore();
+            // Use an in-memory data store for testing purposes (will check that the algorithms work independently of needing actual backing store/server capacity)
+            return MapReduceDataStoreFactory.CreateInMemoryTemporaryDataStore();
         }
     }
 }
