@@ -103,8 +103,40 @@ namespace Regard.Query.MapReduce
         /// <summary>
         /// Runs the query with the specified name against the database
         /// </summary>
-        public Task<IResultEnumerator<QueryResultLine>> RunQuery(string queryName)
+        public async Task<IResultEnumerator<QueryResultLine>> RunQuery(string queryName)
         {
+            // Check if the query exists
+            // TODO: performance would be improved considerably by some sort of caching scheme
+            var projectQueries = m_QueryDataStore.EnumerateAllValues();
+            bool exists = false;
+            for (var query = await projectQueries.FetchNext(); query != null; query = await projectQueries.FetchNext())
+            {
+                JToken queryListToken;
+
+                // Should contain a 'queries' element with this list of queries in it
+                if (query.Item2.TryGetValue("Queries", out queryListToken))
+                {
+                    JObject queryList = queryListToken.Value<JObject>();
+
+                    // The query exists if we can 
+                    JToken queryDataToken;
+                    if (queryList.TryGetValue(queryName, out queryDataToken))
+                    {
+                        exists = true;
+                        break;
+                    }
+                }
+            }
+
+            // Result is null if no node has created this query
+            if (!exists)
+            {
+                return null;
+            }
+
+            // TODO: handle other nodes
+
+
             throw new NotImplementedException();
         }
 
