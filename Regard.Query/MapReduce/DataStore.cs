@@ -45,7 +45,7 @@ namespace Regard.Query.MapReduce
             m_NodeName  = nodeName;
 
             m_EventRecorder = new EventRecorder();
-            m_ProductAdmin  = new ProductAdmin(m_Store);
+            m_ProductAdmin  = new ProductAdmin(m_Store, m_NodeName);
         }
 
         /// <summary>

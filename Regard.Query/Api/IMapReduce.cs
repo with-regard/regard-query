@@ -51,6 +51,9 @@ namespace Regard.Query.Api
         /// <remarks>
         /// The documents passed to the chain will be the reduced result of this operation. Each document will have a '_key' field
         /// indicating the key that was reduced.
+        /// <para/>
+        /// TODO: we'll eventually want to support multiple data nodes so we can scale things up. It's not clear that chaind queries
+        /// will work correctly.
         /// </remarks>
         IMapReduce Chain { get; }
     }

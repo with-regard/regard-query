@@ -11,14 +11,16 @@ namespace Regard.Query.MapReduce
     internal class ProductAdmin : IProductAdmin
     {
         private readonly IKeyValueStore m_DataStore;
+        private readonly string m_NodeName;
 
-        public ProductAdmin(IKeyValueStore dataStore)
+        public ProductAdmin(IKeyValueStore dataStore, string nodeName)
         {
             if (dataStore == null) throw new ArgumentNullException("dataStore");
             
             // We store the products in a separate child store, in case there's a clash somewhere along the lines
             // Product data stores aren't isolated per node, so if two nodes perform operations on the same product, the results are subject to a race condition
             m_DataStore = dataStore.ChildStore(JArray.FromObject(new[] { "products" }));
+            m_NodeName = nodeName;
         }
 
         private JArray KeyForProduct(string organization, string product)
@@ -76,7 +78,7 @@ namespace Regard.Query.MapReduce
             }
 
             // Create a new queryable store using a child store represented by the organization/product
-            return new QueryableProduct(m_DataStore.ChildStore(KeyForProduct(organization, product)));
+            return new QueryableProduct(m_DataStore.ChildStore(KeyForProduct(organization, product)), m_NodeName);
         }
     }
 }

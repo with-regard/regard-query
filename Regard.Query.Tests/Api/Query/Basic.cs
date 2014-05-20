@@ -9,6 +9,19 @@ namespace Regard.Query.Tests.Api.Query
     class Basic
     {
         [Test]
+        public void CanCreateAQueryBuilder()
+        {
+            Task.Run(async () =>
+            {
+                var store = await TestQueryBuilder.CreateEmptyDataStore();
+                var testProduct = await store.Products.GetProduct("WithRegard", "Test");
+
+                var builder = testProduct.CreateQueryBuilder();
+                Assert.IsNotNull(builder);
+            }).Wait();
+        }
+
+        [Test]
         public void CanRegisterAQuery()
         {
             Task.Run(async () =>
