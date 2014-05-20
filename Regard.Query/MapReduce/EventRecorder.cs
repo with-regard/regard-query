@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Globalization;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Regard.Query.Api;
@@ -28,12 +30,66 @@ namespace Regard.Query.MapReduce
         /// </remarks>
         private readonly IKeyValueStore m_SessionDataStore;
 
+        /// <summary>
+        /// The data store used for raw events (prior to any map/reduce operations being performed on it). Also the home of the 'last recorded' event ID, important if
+        /// we need to replay events.
+        /// </summary>
+        private readonly IKeyValueStore m_EventDataStore;
+
+        /// <summary>
+        /// The next event ID, or -1 if it's unknown.
+        /// </summary>
+        private long m_NextEventId = -1;
+
         public EventRecorder(IKeyValueStore rootDataStore, string nodeName)
         {
             m_RootDataStore = rootDataStore;
             m_NodeName      = nodeName;
 
+            // Sessions are stored in a data store shared across all nodes
             m_SessionDataStore = m_RootDataStore.ChildStore(new JArray("sessions"));
+
+            // Raw events are stored only for this node, to avoid ingestion nodes needing to lock against one another
+            m_EventDataStore = m_RootDataStore.ChildStore(new JArray("raw-events", nodeName));
+        }
+
+        /// <summary>
+        /// Claims a new event ID
+        /// </summary>
+        private async Task<long> ClaimEventId()
+        {
+            // TODO: if there are multiple threads (which there will be in the live consumer), check if another thread is doing the startup and defer to it
+            if (m_NextEventId == -1)
+            {
+                // No event ID has been claimed yet. Try to get one from the database
+                var nextEventObject = await m_EventDataStore.GetValue(new JArray("event-id"));
+
+                if (nextEventObject == null)
+                {
+                    // No events have been recorded yet
+                    m_NextEventId = 0;
+                }
+                else
+                {
+                    // Restarting the process?
+                    m_NextEventId = nextEventObject["EventId"].Value<long>();
+
+                    // This is kind of a rubbish way of avoiding collisions
+                    // As a last resort, assume that some events might have been recorded but the event record has failed to update
+                    // Use a much larger event ID to avoid overwriting events if this occurs
+                    m_NextEventId += 10000;
+                }
+            }
+
+            // Assign an event ID for this event
+            var eventId = Interlocked.Increment(ref m_NextEventId);
+
+            // Update the event object
+            // TODO: if there are multiple threads, write only from the thread with the highest ID, after any pending write has completed
+            await m_EventDataStore.SetValue(new JArray("event-id"), JObject.FromObject(new {EventId = eventId}));
+
+            // This is the result;
+            return eventId;
         }
 
         /// <summary>
@@ -47,6 +103,10 @@ namespace Regard.Query.MapReduce
         /// If sessionId is not Guid.Empty, then it will be the return value</returns>
         public async Task<Guid> StartSession(string organization, string product, Guid userId, Guid sessionId)
         {
+            // TODO: do not start sessions for products that don't exist
+            // TODO: do not start sessions for unknown user IDs
+            // TODO: do not start sessions for opted-out user IDs
+
             // Generate a new session ID if the one passed in was empty
             if (sessionId == Guid.Empty)
             {
@@ -63,7 +123,7 @@ namespace Regard.Query.MapReduce
 
             // Create the session in the store
             // Overwrite it if it already exists: this should be OK provided that session IDs are never re-used
-            await m_SessionDataStore.SetValue(new JArray(sessionId.ToString()), sessionData);
+            await m_SessionDataStore.ChildStore(new JArray(organization, product)).SetValue(new JArray(sessionId.ToString()), sessionData);
 
             return sessionId;
         }
@@ -77,16 +137,19 @@ namespace Regard.Query.MapReduce
         /// <param name="data">JSON data indicating the properties for this event</param>
         public async Task RecordEvent(Guid sessionId, string organization, string product, JObject data)
         {
-            // Fetch the data for this session
-            var sessionData = await m_SessionDataStore.GetValue(new JArray(sessionId.ToString()));
+            // TODO: do not record events for sessions that don't exist
 
-            // Can't process events with no session data
-            if (sessionData == null)
-            {
-                return;
-            }
+            // Store in the raw events store
+            var eventId = await ClaimEventId();
 
-            // Decompose the session data
+            await m_EventDataStore.SetValue(new JArray(eventId.ToString(CultureInfo.InvariantCulture)), data);
+
+            // TODO: this needs quite a bit of work.
+            // Right now, we fetch, decode and run the map/reduce algorithms individually on each event which is really inefficient
+            // We can likely cache the decoded map/reduce algorithms
+            // We could only calculate query results when they're actually requested
+            // There's probably a missing class here: the same data format objects are used in the ProductAdmin class
+            // If there are multiple threads there are issues too
 
             throw new NotImplementedException();
         }
