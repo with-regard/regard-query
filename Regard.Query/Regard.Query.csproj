@@ -102,6 +102,7 @@
     <Compile Include="MapReduce\QueryMapReduce.cs" />
     <Compile Include="MapReduce\MapReduceQueryFactory.cs" />
     <Compile Include="MapReduce\MapResult.cs" />
+    <Compile Include="MapReduce\QueryResultEnumerator.cs" />
     <Compile Include="Util\StorageUtil.cs" />
     <Compile Include="DataStoreFactory.cs" />
     <Compile Include="Sql\SqlDataStore.cs" />

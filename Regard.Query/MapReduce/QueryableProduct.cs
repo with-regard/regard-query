@@ -129,15 +129,24 @@ namespace Regard.Query.MapReduce
             }
 
             // Result is null if no node has created this query
+            // The KV data store is actually forgiving enough that we could return a result instead here
             if (!exists)
             {
                 return null;
             }
 
+            // Return the results
+            // Currently, this will process the data for this node only (the initial version of the product only has a single consumer node so this is fine)
             // TODO: handle other nodes
 
+            // The event recorder runs the query and puts the results in a child store
+            var results         = m_ProductDataStore.ChildStore(new JArray("query-results", queryName));
+            var ourNodeResults  = results.ChildStore(new JArray(m_NodeName));
 
-            throw new NotImplementedException();
+            // Fetch the entire set of results from the query
+            var nodeEnumerator  = ourNodeResults.EnumerateAllValues();
+
+            return new QueryResultEnumerator(nodeEnumerator);
         }
 
         /// <summary>
