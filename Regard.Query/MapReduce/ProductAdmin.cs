@@ -23,7 +23,10 @@ namespace Regard.Query.MapReduce
             m_NodeName = nodeName;
         }
 
-        private JArray KeyForProduct(string organization, string product)
+        /// <summary>
+        /// Creates the data store key for a particular product 
+        /// </summary>
+        internal static JArray KeyForProduct(string organization, string product)
         {
             return JArray.FromObject(new[] {organization, product});
         }

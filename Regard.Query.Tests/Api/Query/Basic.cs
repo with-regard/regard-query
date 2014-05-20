@@ -116,8 +116,8 @@ namespace Regard.Query.Tests.Api.Query
                     Assert.AreEqual(0, result.EventCount);
                 }
 
-                // And there should only be one of them
-                Assert.AreEqual(1, resultCount);
+                // There shouldn't be any results
+                Assert.AreEqual(0, resultCount);
             }).Wait();
         }
 

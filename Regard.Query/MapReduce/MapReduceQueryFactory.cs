@@ -28,6 +28,17 @@ namespace Regard.Query.MapReduce
         }
 
         /// <summary>
+        /// Generates the map/reduce chain corresponding to a JSON-encoded query
+        /// </summary>
+        public static IMapReduce GenerateMapReduce(JObject serializedQuery)
+        {
+            var queryBuilder = new SerializableQueryBuilder(null);
+            var realQuery = (SerializableQuery) queryBuilder.FromJson(serializedQuery);
+
+            return GenerateMapReduce(realQuery);
+        }
+
+        /// <summary>
         /// Appends a query component to a query
         /// </summary>
         /// <param name="query">The query to append to</param>
