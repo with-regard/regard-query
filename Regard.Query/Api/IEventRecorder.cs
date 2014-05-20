@@ -24,7 +24,9 @@ namespace Regard.Query.Api
         /// Schedules a single event to be recorded by this object
         /// </summary>
         /// <param name="sessionId">The ID of the session (as returned by StartSession)</param>
+        /// <param name="organization">The name of the organization that the session is for</param>
+        /// <param name="product">The name of the product that the session is for</param>
         /// <param name="data">JSON data indicating the properties for this event</param>
-        Task RecordEvent(Guid sessionId, JObject data);
+        Task RecordEvent(Guid sessionId, string organization, string product, JObject data);
     }
 }

@@ -72,9 +72,22 @@ namespace Regard.Query.MapReduce
         /// Schedules a single event to be recorded by this object
         /// </summary>
         /// <param name="sessionId">The ID of the session (as returned by StartSession)</param>
+        /// <param name="organization">The name of the organization that the session is for</param>
+        /// <param name="product">The name of the product that the session is for</param>
         /// <param name="data">JSON data indicating the properties for this event</param>
-        public Task RecordEvent(Guid sessionId, JObject data)
+        public async Task RecordEvent(Guid sessionId, string organization, string product, JObject data)
         {
+            // Fetch the data for this session
+            var sessionData = await m_SessionDataStore.GetValue(new JArray(sessionId.ToString()));
+
+            // Can't process events with no session data
+            if (sessionData == null)
+            {
+                return;
+            }
+
+            // Decompose the session data
+
             throw new NotImplementedException();
         }
     }

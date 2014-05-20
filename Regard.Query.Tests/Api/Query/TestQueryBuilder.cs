@@ -34,7 +34,7 @@ namespace Regard.Query.Tests.Api.Query
 
             foreach (var doc in TestDataGenerator.Generate12BasicDocuments())
             {
-                await target.EventRecorder.RecordEvent(sessionId, doc);
+                await target.EventRecorder.RecordEvent(sessionId, "WithRegard", "Test", doc);
             }
         }
     }

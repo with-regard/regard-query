@@ -32,7 +32,7 @@ namespace Regard.Query.Samples
 
                 var day = rng.Next(256);
 
-                await recorder.RecordEvent(sessionId,
+                await recorder.RecordEvent(sessionId, "WithRegard", "Test",
                     JObject.FromObject(new
                     {
                         Day         = day,
@@ -45,7 +45,8 @@ namespace Regard.Query.Samples
                 // TODO: different numbers of events for different sessions?
                 for (int evt = 1; evt < numEvents; ++evt)
                 {
-                    await recorder.RecordEvent(sessionId, JObject.FromObject(new
+                    await recorder.RecordEvent(sessionId,  "WithRegard", "Test",
+                        JObject.FromObject(new
                         {
                             Day         = day,
                             SessionId   = session,
@@ -150,13 +151,13 @@ namespace Regard.Query.Samples
                 var recorder = dataStore.EventRecorder;
                 var sessionId = await recorder.StartSession("WithRegard", "Test", WellKnownUserIdentifier.TestUser, Guid.Empty);
 
-                await recorder.RecordEvent(sessionId, JObject.FromObject(new
+                await recorder.RecordEvent(sessionId, "WithRegard", "Test", JObject.FromObject(new
                     {
                         Day = 1,
                         Test = "Hello"
                     }));
 
-                await recorder.RecordEvent(sessionId, JObject.FromObject(new
+                await recorder.RecordEvent(sessionId, "WithRegard", "Test", JObject.FromObject(new
                     {
                         Day = 203,
                         EventType = "DoSomething",
@@ -164,7 +165,7 @@ namespace Regard.Query.Samples
                     }));
 
                 // Try recording an event for a non-existent session
-                await recorder.RecordEvent(Guid.NewGuid(), JObject.FromObject(new
+                await recorder.RecordEvent(Guid.NewGuid(), "WithRegard", "Test", JObject.FromObject(new
                 {
                     Day = 3478,
                     EventType = "BadEvent",

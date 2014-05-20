@@ -179,8 +179,10 @@ namespace Regard.Query.Sql
         /// Schedules a single event to be recorded by this object
         /// </summary>
         /// <param name="sessionId">The ID of the session (as returned by StartSession)</param>
+        /// <param name="organization">The name of the organization that the session is for</param>
+        /// <param name="product">The name of the product that the session is for</param>
         /// <param name="data">JSON data indicating the properties for this event</param>
-        public async Task RecordEvent(Guid sessionId, JObject data)
+        public async Task RecordEvent(Guid sessionId, string organization, string product, JObject data)
         {
             // Do not record against the empty ID (it's used for 'dead'/nonexistent sessions)
             if (sessionId == Guid.Empty)
