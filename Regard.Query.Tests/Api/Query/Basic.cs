@@ -54,7 +54,7 @@ namespace Regard.Query.Tests.Api.Query
         }
 
         [Test]
-        public void QueryInitiallyHasACountOfZero()
+        public void QueryInitiallyHasNoResults()
         {
             Task.Run(async () =>
             {
@@ -70,18 +70,15 @@ namespace Regard.Query.Tests.Api.Query
 
                 Assert.IsNotNull(queryResult);
 
-                // All the results should have an event count of 0
-                // They should also have no columns, but we don't check that here. I think it's OK if they return bonus columns, so long all the explicitly requested columns are present
+                // When there are no events, the query should return an empty result set
                 int resultCount = 0;
                 for (var result = await queryResult.FetchNext(); result != null; result = await queryResult.FetchNext())
                 {
                     resultCount++;
-
-                    Assert.AreEqual(0, result.EventCount);
                 }
 
                 // And there should only be one of them
-                Assert.AreEqual(1, resultCount);
+                Assert.AreEqual(0, resultCount);
             }).Wait();
         }
 
