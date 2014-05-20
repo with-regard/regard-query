@@ -11,6 +11,32 @@ namespace Regard.Query.MapReduce
     internal class EventRecorder : IEventRecorder
     {
         /// <summary>
+        /// The root data store where this will store its events
+        /// </summary>
+        private readonly IKeyValueStore m_RootDataStore;
+
+        /// <summary>
+        /// The name of this node
+        /// </summary>
+        private readonly string m_NodeName;
+
+        /// <summary>
+        /// Data store used to store information about active sessions
+        /// </summary>
+        /// <remarks>
+        /// Session stores are shared across all instances: we assume that any given session will just be redefined the same way
+        /// </remarks>
+        private readonly IKeyValueStore m_SessionDataStore;
+
+        public EventRecorder(IKeyValueStore rootDataStore, string nodeName)
+        {
+            m_RootDataStore = rootDataStore;
+            m_NodeName      = nodeName;
+
+            m_SessionDataStore = m_RootDataStore.ChildStore(new JArray("sessions"));
+        }
+
+        /// <summary>
         /// Indicates that a new session has begun
         /// </summary>
         /// <param name="organization">The name of the organization that the session is for</param>
@@ -19,9 +45,27 @@ namespace Regard.Query.MapReduce
         /// <param name="sessionId">Should be Guid.Empty to indicate that the call should generate a session ID, otherwise it should be a session ID that has not been used before</param>
         /// <returns>A GUID that identifies this session, or Guid.Empty if the session can't be started (because the user is opted-out, for example)
         /// If sessionId is not Guid.Empty, then it will be the return value</returns>
-        public Task<Guid> StartSession(string organization, string product, Guid userId, Guid sessionId)
+        public async Task<Guid> StartSession(string organization, string product, Guid userId, Guid sessionId)
         {
-            throw new NotImplementedException();
+            // Generate a new session ID if the one passed in was empty
+            if (sessionId == Guid.Empty)
+            {
+                sessionId = Guid.NewGuid();
+            }
+
+            // Add this session to the data store
+            JObject sessionData = JObject.FromObject(new
+            {
+                Organization = organization,
+                Product = product,
+                UserId = userId,
+            });
+
+            // Create the session in the store
+            // Overwrite it if it already exists: this should be OK provided that session IDs are never re-used
+            await m_SessionDataStore.SetValue(new JArray(sessionId.ToString()), sessionData);
+
+            return sessionId;
         }
 
         /// <summary>
