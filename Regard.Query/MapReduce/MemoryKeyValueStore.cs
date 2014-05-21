@@ -140,7 +140,17 @@ namespace Regard.Query.MapReduce
         /// </summary>
         public async Task DeleteChildStore(JArray key)
         {
-            throw new NotImplementedException();
+            lock (m_Sync)
+            {
+                // Use the serialized JSON as the actual key
+                string keyString = key.ToString(Formatting.None);
+
+                MemoryKeyValueStore result;
+                if (m_ChildStores.TryGetValue(keyString, out result))
+                {
+                    m_ChildStores.Remove(keyString);
+                }
+            }
         }
 
         /// <summary>
