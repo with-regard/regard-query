@@ -67,6 +67,28 @@ namespace Regard.Query.Tests.MapReduce
         }
 
         [Test]
+        public void CanResetADocumentToNull()
+        {
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+
+                var key = JArray.FromObject(new[] { "test-key" });
+                var storeValue = JObject.FromObject(new { SomeValue = "hello" });
+
+                await store.SetValue(key, storeValue);
+                var value = await store.GetValue(key);
+
+                Assert.IsNotNull(value);
+
+                await store.SetValue(key, null);
+                value = await store.GetValue(key);
+
+                Assert.IsNull(value);
+            }).Wait();
+        }
+
+        [Test]
         public void CanRetrieveAChildStore()
         {
             Task.Run(async () =>
