@@ -96,8 +96,8 @@ namespace Regard.Query.MapReduce
             // TODO: do not record events for sessions that don't exist
             // TODO: in particular, do not record events for users who are not opted in
 
-            // Store in the raw events store
-            await m_EventDataStore.AppendValue(data);
+            // Store in the raw events store for this product/organization
+            await m_EventDataStore.ChildStore(new JArray(organization, product, m_NodeName)).AppendValue(data);
         }
     }
 }
