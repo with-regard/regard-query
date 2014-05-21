@@ -88,10 +88,10 @@ namespace Regard.Query.MapReduce
             // TODO: in particular, do not record events for users who are not opted in
 
             // Store in the raw events store for this product/organization
-            var productStore    = m_RootDataStore.ChildStore(ProductAdmin.KeyForProduct(organization, product));
+            var productStore    = m_RootDataStore.ChildStore(new JArray("products")).ChildStore(ProductAdmin.KeyForProduct(organization, product));
             var eventStore      = productStore.ChildStore(new JArray("raw-events", m_NodeName));
 
-            await eventStore.ChildStore(new JArray(organization, product, m_NodeName)).AppendValue(data);
+            await eventStore.AppendValue(data);
         }
     }
 }
