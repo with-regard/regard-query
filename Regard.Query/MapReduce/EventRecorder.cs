@@ -36,11 +36,6 @@ namespace Regard.Query.MapReduce
         /// </summary>
         private readonly IKeyValueStore m_EventDataStore;
 
-        /// <summary>
-        /// The next event ID, or -1 if it's unknown.
-        /// </summary>
-        private long m_NextEventId = -1;
-
         public EventRecorder(IKeyValueStore rootDataStore, string nodeName)
         {
             m_RootDataStore = rootDataStore;
@@ -51,45 +46,6 @@ namespace Regard.Query.MapReduce
 
             // Raw events are stored only for this node, to avoid ingestion nodes needing to lock against one another
             m_EventDataStore = m_RootDataStore.ChildStore(new JArray("raw-events", nodeName));
-        }
-
-        /// <summary>
-        /// Claims a new event ID
-        /// </summary>
-        private async Task<long> ClaimEventId()
-        {
-            // TODO: if there are multiple threads (which there will be in the live consumer), check if another thread is doing the startup and defer to it
-            if (m_NextEventId == -1)
-            {
-                // No event ID has been claimed yet. Try to get one from the database
-                var nextEventObject = await m_EventDataStore.GetValue(new JArray("event-id"));
-
-                if (nextEventObject == null)
-                {
-                    // No events have been recorded yet
-                    m_NextEventId = 0;
-                }
-                else
-                {
-                    // Restarting the process?
-                    m_NextEventId = nextEventObject["EventId"].Value<long>();
-
-                    // This is kind of a rubbish way of avoiding collisions
-                    // As a last resort, assume that some events might have been recorded but the event record has failed to update
-                    // Use a much larger event ID to avoid overwriting events if this occurs
-                    m_NextEventId += 10000;
-                }
-            }
-
-            // Assign an event ID for this event
-            var eventId = Interlocked.Increment(ref m_NextEventId);
-
-            // Update the event object
-            // TODO: if there are multiple threads, write only from the thread with the highest ID, after any pending write has completed
-            await m_EventDataStore.SetValue(new JArray("event-id"), JObject.FromObject(new {EventId = eventId}));
-
-            // This is the result;
-            return eventId;
         }
 
         /// <summary>
@@ -140,9 +96,7 @@ namespace Regard.Query.MapReduce
             // TODO: do not record events for sessions that don't exist
 
             // Store in the raw events store
-            var eventId = await ClaimEventId();
-
-            await m_EventDataStore.SetValue(new JArray(eventId.ToString(CultureInfo.InvariantCulture)), data);
+            await m_EventDataStore.AppendValue(data);
 
             // TODO: this needs quite a bit of work.
             // Right now, we fetch, decode and run the map/reduce algorithms individually on each event which is really inefficient
