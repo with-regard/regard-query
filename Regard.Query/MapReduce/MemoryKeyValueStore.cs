@@ -162,9 +162,17 @@ namespace Regard.Query.MapReduce
         /// A long representing the key assigned to the value. The key for GetValue can be obtained by putting this result (alone) in a JArray.
         /// The result is guaranteed to be positive, and will always increase.
         /// </returns>
-        public Task<long> AppendValue(JObject value)
+        public async Task<long> AppendValue(JObject value)
         {
-            throw new NotImplementedException();
+            lock (m_Sync)
+            {
+                long result = m_Objects.Count;
+
+                var keyString = new JArray(result).ToString(Formatting.None);
+                m_Objects[keyString] = value;
+
+                return result;
+            }
         }
 
         /// <summary>
