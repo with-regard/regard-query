@@ -298,7 +298,7 @@ namespace Regard.Query.Tests.MapReduce
                 var store = CreateStoreToTest();
 
                 var halfWay = await AppendData(store, 100, 50);
-                await CheckEnumerationContainsAllIndexes(store.EnumerateValuesAppendedSince(halfWay), 50, 100);
+                await CheckEnumerationContainsAllIndexes(store.EnumerateValuesAppendedSince(halfWay), 51, 100);
             }).Wait();
         }
 

@@ -186,7 +186,50 @@ namespace Regard.Query.MapReduce
         /// </remarks>
         public IKvStoreEnumerator EnumerateValuesAppendedSince(long appendKey)
         {
-            throw new NotImplementedException();
+            // This is pretty inefficient, but it should work OK
+            var allValues = m_Objects.GetEnumerator();
+
+            return new AllValuesEnumerator(() =>
+            {
+                // Iterate until we find a value or run out of values
+                for (;;)
+                {
+                    // Stop if we run out of values
+                    if (!allValues.MoveNext())
+                    {
+                        return null;
+                    }
+
+                    var thisValue = allValues.Current;
+                    
+                    // The key is actually a JArray
+                    var key = JArray.Parse(thisValue.Key);
+
+                    // AppendValues items contain only one key
+                    if (key.Count != 1)
+                    {
+                        continue;
+                    }
+
+                    // ... which must be a long
+                    if (key[0].Type != JTokenType.Integer)
+                    {
+                        continue;
+                    }
+
+                    long keyValue = key[0].Value<long>();
+
+                    // The long must occur after the appendKey
+                    // Ie, this means not the appendKey itself
+                    if (keyValue <= appendKey)
+                    {
+                        continue;
+                    }
+
+                    // This is an item we should return
+                    return new Tuple<JArray, JObject>(key, thisValue.Value);
+                }
+            });
         }
 
         /// <summary>
