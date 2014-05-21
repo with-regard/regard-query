@@ -76,13 +76,12 @@ namespace Regard.Query.Tests.Api.Query
                     resultCount++;
                 }
 
-                // And there should only be one of them
                 Assert.AreEqual(0, resultCount);
             }).Wait();
         }
 
         [Test]
-        public void WeDontCountEventsThatOccurBeforeTheQueryWasRegistered()
+        public void WeCountEventsThatOccurredBeforeTheQueryWasRegistered()
         {
             // This is a simplification for the initial version
             // The SQL query engine doesn't work this way, but the map/reduce one does.
@@ -112,11 +111,10 @@ namespace Regard.Query.Tests.Api.Query
                 {
                     resultCount++;
 
-                    Assert.AreEqual(0, result.EventCount);
+                    Assert.AreEqual(12, result.EventCount);
                 }
 
-                // There shouldn't be any results
-                Assert.AreEqual(0, resultCount);
+                Assert.AreEqual(1, resultCount);
             }).Wait();
         }
 
@@ -173,25 +171,42 @@ namespace Regard.Query.Tests.Api.Query
                 // Run the events through
                 await TestQueryBuilder.IngestBasic12TestDocuments(store);
 
-                // Re-register the query, deleting the old results
-                // We replace with the 'all events' query as this is useful for testing the behaviour that is eventually desired: that the query updates against the
-                // current database contents
-                await testProduct.RegisterQuery("test", allEventsQuery);
-
-                var queryResult = await testProduct.RunQuery("test");
-
-                Assert.IsNotNull(queryResult);
-
-                // All the results should have an event count of 12
-                // They should also have no columns, but we don't check that here. I think it's OK if they return bonus columns, so long all the explicitly requested columns are present
+                // There are three sessions that should be retrieved by this query
+                // For some possible implementations the query results might not exist unless we actually read the results, so force this to occur
+                // A failure here indicates a problem with something other than this specific feature
+                var queryResult = await testProduct.RunQuery("test"); 
                 int resultCount = 0;
                 for (var result = await queryResult.FetchNext(); result != null; result = await queryResult.FetchNext())
                 {
                     resultCount++;
                 }
 
-                // Re-registering the query should replace the old results, so there should be none 
-                Assert.AreEqual(0, resultCount);
+                Assert.AreEqual(3, resultCount);
+
+                // Re-register the query, deleting the old results
+                // We replace with the 'all events' query as this is useful for testing the behaviour that is eventually desired: that the query updates against the
+                // current database contents
+                await testProduct.RegisterQuery("test", allEventsQuery);
+
+                // Re-run the test now it has been replaced
+                // The old results should be gone
+                queryResult = await testProduct.RunQuery("test");
+
+                Assert.IsNotNull(queryResult);
+
+                // All the results should have an event count of 12
+                // They should also have no columns, but we don't check that here. I think it's OK if they return bonus columns, so long all the explicitly requested columns are present
+                resultCount = 0;
+                for (var result = await queryResult.FetchNext(); result != null; result = await queryResult.FetchNext())
+                {
+                    resultCount++;
+
+                    // Should contain all 12 events
+                    Assert.AreEqual(12, result.EventCount);
+                }
+
+                // Re-registering the query should replace the old results, so there should only be one
+                Assert.AreEqual(1, resultCount);
             }).Wait();
         }
 
