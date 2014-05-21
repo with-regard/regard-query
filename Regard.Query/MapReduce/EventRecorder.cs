@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Regard.Query.Api;
+using Regard.Query.MapReduce.DataAccessor;
 
 namespace Regard.Query.MapReduce
 {
@@ -88,7 +89,7 @@ namespace Regard.Query.MapReduce
             // TODO: in particular, do not record events for users who are not opted in
 
             // Store in the raw events store for this product/organization
-            var productStore    = m_RootDataStore.ChildStore(new JArray("products")).ChildStore(ProductAdmin.KeyForProduct(organization, product));
+            var productStore    = m_RootDataStore.ChildStore(new JArray("products")).ChildStore(ProductDataStore.KeyForProduct(organization, product));
             var eventStore      = productStore.ChildStore(new JArray("raw-events", m_NodeName));
 
             await eventStore.AppendValue(data);

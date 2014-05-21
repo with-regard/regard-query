@@ -87,9 +87,14 @@
     <Compile Include="Flat\CountFieldEntity.cs" />
     <Compile Include="Flat\EntityKey.cs" />
     <Compile Include="Flat\IPipelineAction.cs" />
+    <Compile Include="MapReduce\DataAccessor\IndividualProductDataStore.cs" />
+    <Compile Include="MapReduce\DataAccessor\ProductDataStore.cs" />
+    <Compile Include="MapReduce\DataAccessor\QueryDataStore.cs" />
+    <Compile Include="MapReduce\DataAccessor\UserDataStore.cs" />
     <Compile Include="MapReduce\DataIngestor.cs" />
     <Compile Include="Api\IKeyValueStore.cs" />
     <Compile Include="Api\IKvStoreEnumerator.cs" />
+    <Compile Include="MapReduce\DataAccessor\RootDataStore.cs" />
     <Compile Include="MapReduce\IngestorMapTarget.cs" />
     <Compile Include="MapReduce\KeySerializer.cs" />
     <Compile Include="MapReduce\DataStore.cs" />

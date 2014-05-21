@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Regard.Query.Api;
+using Regard.Query.MapReduce.DataAccessor;
 using Regard.Query.Serializable;
 
 namespace Regard.Query.MapReduce
@@ -12,34 +12,25 @@ namespace Regard.Query.MapReduce
     /// </summary>
     class QueryableProduct : IQueryableProduct, IUserAdmin
     {
-        /// <summary>
-        /// The key/value store dedicated to this product
-        /// </summary>
-        private readonly IKeyValueStore m_ProductDataStore;
+        private readonly IndividualProductDataStore m_ProductDataStore;
 
-        /// <summary>
-        /// The data store where information about users is stored
-        /// </summary>
-        private readonly IKeyValueStore m_UserDataStore;
+        private readonly QueryDataStore m_QueryDataStore;
 
-        /// <summary>
-        /// The data store where information about queries is stored
-        /// </summary>
-        private readonly IKeyValueStore m_QueryDataStore;
+        private readonly UserDataStore m_UserDataStore;
 
         /// <summary>
         /// The name of the node that this query represents
         /// </summary>
         private readonly string m_NodeName;
 
-        public QueryableProduct(IKeyValueStore productDataStore, string nodeName)
+        public QueryableProduct(IndividualProductDataStore productDataStore, string nodeName)
         {
             if (productDataStore == null) throw new ArgumentNullException("productDataStore");
 
             m_NodeName          = nodeName;
             m_ProductDataStore  = productDataStore;
-            m_UserDataStore     = m_ProductDataStore.ChildStore(new JArray("users"));
-            m_QueryDataStore    = m_ProductDataStore.ChildStore(new JArray("queries"));
+            m_UserDataStore     = m_ProductDataStore.Users;
+            m_QueryDataStore    = m_ProductDataStore.Queries;
         }
 
         /// <summary>
@@ -60,9 +51,6 @@ namespace Regard.Query.MapReduce
             var serializable = query as SerializableQuery;
             if (serializable == null) throw new ArgumentException("Invalid query object", "query");
 
-            // Each running node should have a unique name
-            JArray nodeQueryKey = new JArray(m_NodeName);
-
             // Generate data for this particular query
             JObject queryData = new JObject();
 
@@ -72,7 +60,7 @@ namespace Regard.Query.MapReduce
 
             // The queries are all stored in a single data object
             // There is one data object per node to support scaling (no node needs to worry about overwriting another's data)
-            JObject existingQuery = await m_QueryDataStore.GetValue(nodeQueryKey);
+            JObject existingQuery = await m_QueryDataStore.GetQueriesRegisteredByNode(m_NodeName);
             JObject queryList;
 
             if (existingQuery == null)
@@ -97,13 +85,11 @@ namespace Regard.Query.MapReduce
             queryList[queryName] = queryData;
 
             // Erase any existing query data
-            await m_ProductDataStore.DeleteChildStore(new JArray("query-results", queryName));
-            var queryStatusStore = m_ProductDataStore.ChildStore(new JArray("query-status", m_NodeName));               // TODO: erase in other nodes too, I think
-            await queryStatusStore.SetValue(new JArray(queryName), null);
+            await m_ProductDataStore.DeleteQueryResults(queryName, m_NodeName);
 
             // Store this item
             existingQuery["Queries"] = queryList;
-            await m_QueryDataStore.SetValue(nodeQueryKey, existingQuery);
+            await m_QueryDataStore.SetRegisteredQueries(m_NodeName, existingQuery);
         }
 
         /// <summary>
@@ -126,12 +112,10 @@ namespace Regard.Query.MapReduce
             // and then aggregate the results later on. This is a scaling issue so it is not critical at this time.
             //
             // To fix this issue, we could send updated results around the nodes using a service bus
-            var thisQueryStore  = m_ProductDataStore.ChildStore(new JArray("query-results", queryName)).ChildStore(new JArray(m_NodeName));
-            var ingestor        = new DataIngestor(mapReduce, thisQueryStore);
+            var ingestor        = m_ProductDataStore.CreateIngestorForQuery(queryName, m_NodeName, mapReduce);
 
             // Get the status of this query
-            var queryStatusStore = m_ProductDataStore.ChildStore(new JArray("query-status", m_NodeName));
-            var previousQueryStatus = await queryStatusStore.GetValue(new JArray(queryName));
+            var previousQueryStatus = await m_ProductDataStore.GetQueryStatus(queryName, m_NodeName);
 
             if (previousQueryStatus == null)
             {
@@ -143,7 +127,7 @@ namespace Regard.Query.MapReduce
 
             // Ingest any data that has arrived since the query was last processed
             // TODO: we want to ingest data for all nodes, not just this one. Right now we only need one node, so this is a stop-gap measure
-            var eventStore              = m_ProductDataStore.ChildStore(new JArray("raw-events", m_NodeName));
+            var eventStore              = m_ProductDataStore.GetRawEventStore(m_NodeName);
             var dataSinceLastQuery      = eventStore.EnumerateValuesAppendedSince(lastProcessedIndex);
             var newLastProcessedIndex   = lastProcessedIndex;
 
@@ -164,7 +148,7 @@ namespace Regard.Query.MapReduce
             if (newLastProcessedIndex != lastProcessedIndex)
             {
                 var updatedQueryStatus = JObject.FromObject(new {LastProcessedIndex = newLastProcessedIndex});
-                await queryStatusStore.SetValue(new JArray(queryName), updatedQueryStatus);
+                await m_ProductDataStore.SetQueryStatus(queryName, m_NodeName, updatedQueryStatus);
             }
         }
 
@@ -175,30 +159,7 @@ namespace Regard.Query.MapReduce
         {
             // Check if the query exists
             // TODO: performance would be improved considerably by some sort of caching scheme
-            var projectQueries = m_QueryDataStore.EnumerateAllValues();
-            JObject queryDefinition = null;
-            for (var query = await projectQueries.FetchNext(); query != null; query = await projectQueries.FetchNext())
-            {
-                JToken queryListToken;
-
-                // Should contain a 'queries' element with this list of queries in it
-                if (query.Item2.TryGetValue("Queries", out queryListToken))
-                {
-                    JObject queryList = queryListToken.Value<JObject>();
-
-                    // The query exists if we can find the name in this object
-                    JToken queryDataToken;
-                    if (queryList.TryGetValue(queryName, out queryDataToken))
-                    {
-                        // TODO: pick the most recent definition of the query from all nodes
-                        if (queryDataToken.Type == JTokenType.Object)
-                        {
-                            queryDefinition = queryDataToken.Value<JObject>();
-                            break;
-                        }
-                    }
-                }
-            }
+            JObject queryDefinition = await m_QueryDataStore.GetJsonQueryDefinition(queryName);
 
             // Result is null if no node has created this query
             // The KV data store is actually forgiving enough that we could return a result instead here
@@ -215,7 +176,7 @@ namespace Regard.Query.MapReduce
             // TODO: handle other nodes
 
             // The event recorder runs the query and puts the results in a child store
-            var results         = m_ProductDataStore.ChildStore(new JArray("query-results", queryName)).ChildStore(new JArray(m_NodeName));
+            IKeyValueStore results = m_ProductDataStore.GetQueryResults(queryName, m_NodeName);
 
             // Fetch the entire set of results from the query
             var nodeEnumerator  = results.EnumerateAllValues();
@@ -239,7 +200,7 @@ namespace Regard.Query.MapReduce
 
             userData["OptInState"] = "opt-in";
 
-            await m_UserDataStore.SetValue(new JArray(userId.ToString()), userData);
+            await m_UserDataStore.SetUserData(userId, userData);
         }
 
         /// <summary>
@@ -254,7 +215,7 @@ namespace Regard.Query.MapReduce
 
             userData["OptInState"] = "opt-out";
 
-            await m_UserDataStore.SetValue(new JArray(userId.ToString()), userData);
+            await m_UserDataStore.SetUserData(userId, userData);
         }
     }
 }

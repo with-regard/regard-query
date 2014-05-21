@@ -1,5 +1,6 @@
 ﻿using System;
 using Regard.Query.Api;
+using Regard.Query.MapReduce.DataAccessor;
 
 namespace Regard.Query.MapReduce
 {
@@ -8,11 +9,6 @@ namespace Regard.Query.MapReduce
     /// </summary>
     class DataStore : IRegardDataStore
     {
-        /// <summary>
-        /// The root key/value store
-        /// </summary>
-        private readonly IKeyValueStore m_Store;
-
         /// <summary>
         /// The name of the current node
         /// </summary>
@@ -41,11 +37,12 @@ namespace Regard.Query.MapReduce
         {
             if (store == null) throw new ArgumentNullException("store");
 
-            m_Store     = store;
+            var rootStore = new RootDataStore(store);
+
             m_NodeName  = nodeName;
 
-            m_EventRecorder = new EventRecorder(m_Store, m_NodeName);
-            m_ProductAdmin  = new ProductAdmin(m_Store, m_NodeName);
+            m_EventRecorder = new EventRecorder(store, m_NodeName);
+            m_ProductAdmin  = new ProductAdmin(rootStore, m_NodeName);
         }
 
         /// <summary>
