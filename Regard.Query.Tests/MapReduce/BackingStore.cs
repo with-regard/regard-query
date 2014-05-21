@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Regard.Query.Api;
@@ -215,6 +216,109 @@ namespace Regard.Query.Tests.MapReduce
                 var retrievedObject = await store.GetValue(new JArray(keyValue));
                 Assert.IsNotNull(retrievedObject);
                 Assert.AreEqual("Hello", retrievedObject["Something"].Value<string>());
+            }).Wait();
+        }
+
+        /// <summary>
+        /// Writes a number of data items (each specifying its index) to a key value store using the AppendValue operator
+        /// </summary>
+        private static async Task<long> AppendData(IKeyValueStore store, int numData, int returnKeyIndex)
+        {
+            long appendKeyIndex = -1;
+
+            for (int x = 0; x < numData; ++x)
+            {
+                var thisKeyIndex = await store.AppendValue(JObject.FromObject(new { Index = x }));
+                if (x == returnKeyIndex)
+                {
+                    appendKeyIndex = thisKeyIndex;
+                }
+            }
+
+            return appendKeyIndex;
+        }
+
+        /// <summary>
+        /// Checks that an enumeration contains all the elements between lowerIndex (inclusive) and upperIndex (exclusive)
+        /// </summary>
+        /// <param name="enumerator"></param>
+        /// <param name="lowerIndex"></param>
+        /// <param name="upperIndex"></param>
+        /// <returns></returns>
+        private static async Task CheckEnumerationContainsAllIndexes(IKvStoreEnumerator enumerator, int lowerIndex, int upperIndex)
+        {
+            var foundItems = new HashSet<int>();
+
+            for (var value = await enumerator.FetchNext(); value != null; value = await enumerator.FetchNext())
+            {
+                // Every value must have an index
+                var index = value.Item2["Index"].Value<int>();
+
+                // Must be in the specified range
+                Assert.That(index >= lowerIndex);
+                Assert.That(index < upperIndex);
+
+                Assert.That(!foundItems.Contains(index));
+
+                foundItems.Add(index);
+            }
+
+            Assert.AreEqual(upperIndex - lowerIndex, foundItems.Count);
+        }
+
+        [Test]
+        public void CanEnumerateOver100Items()
+        {
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+                await AppendData(store, 100, -1);
+                await CheckEnumerationContainsAllIndexes(store.EnumerateAllValues(), 0, 100);
+            }).Wait();
+        }
+
+
+        [Test]
+        public void CanEnumerateFromStartUsingAppendedSince()
+        {
+            Task.Run(async () =>
+            {
+                // The key '-1' can be used to enumerate over all of the data
+                var store = CreateStoreToTest();
+                await AppendData(store, 100, -1);
+                await CheckEnumerationContainsAllIndexes(store.EnumerateValuesAppendedSince(-1), 0, 100);
+            }).Wait();
+        }
+
+        [Test]
+        public void CanEnumerateFromHalfWayUsingAnAppendKey()
+        {
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+
+                var halfWay = await AppendData(store, 100, 50);
+                await CheckEnumerationContainsAllIndexes(store.EnumerateValuesAppendedSince(halfWay), 50, 100);
+            }).Wait();
+        }
+
+
+        [Test]
+        public void EnumerationDoesNotHitKeysAddedWithoutAppendValue()
+        {
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+
+                // Generate data through AppendValue
+                await AppendData(store, 100, -1);
+
+                // Add an extra value which doesn't have an AppendValue style key
+                // Behaviour is undefined if you use an AppendValue key here
+                await store.SetValue(new JArray("ShouldntEnumerate"), JObject.FromObject(new {Index = 50}));
+
+                // This key would appear if EnumerateAllValues is here instead
+                await CheckEnumerationContainsAllIndexes(store.EnumerateValuesAppendedSince(-1), 0, 100);
             }).Wait();
         }
     }
