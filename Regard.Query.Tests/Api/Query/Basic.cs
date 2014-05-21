@@ -156,6 +156,46 @@ namespace Regard.Query.Tests.Api.Query
             }).Wait();
         }
 
+
+        [Test]
+        public void UpdatingAQueryRemovesOldResults()
+        {
+            Task.Run(async () =>
+            {
+                // Register the query, as before
+                var store = await TestQueryBuilder.CreateEmptyDataStore();
+                var testProduct = await store.Products.GetProduct("WithRegard", "Test");
+
+                var builder = testProduct.CreateQueryBuilder();
+                var allEventsQuery = builder.AllEvents();
+                var sessionCountQuery = builder.AllEvents().BrokenDownBy("SessionId", "WhichSession");
+                await testProduct.RegisterQuery("test", sessionCountQuery);
+
+                // Run the events through
+                await TestQueryBuilder.IngestBasic12TestDocuments(store);
+
+                // Re-register the query, deleting the old results
+                // We replace with the 'all events' query as this is useful for testing the behaviour that is eventually desired: that the query updates against the
+                // current database contents
+                await testProduct.RegisterQuery("test", allEventsQuery);
+
+                var queryResult = await testProduct.RunQuery("test");
+
+                Assert.IsNotNull(queryResult);
+
+                // All the results should have an event count of 12
+                // They should also have no columns, but we don't check that here. I think it's OK if they return bonus columns, so long all the explicitly requested columns are present
+                int resultCount = 0;
+                for (var result = await queryResult.FetchNext(); result != null; result = await queryResult.FetchNext())
+                {
+                    resultCount++;
+                }
+
+                // Re-registering the query should replace the old results, so there should be none 
+                Assert.AreEqual(0, resultCount);
+            }).Wait();
+        }
+
         [Test]
         public void WeCanCountTheTwoSessionsWithOneOrMoreClicks()
         {
