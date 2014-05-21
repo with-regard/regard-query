@@ -213,11 +213,10 @@ namespace Regard.Query.MapReduce
             // TODO: handle other nodes
 
             // The event recorder runs the query and puts the results in a child store
-            var results         = m_ProductDataStore.ChildStore(new JArray("query-results", queryName));
-            var ourNodeResults  = results.ChildStore(new JArray(m_NodeName));
+            var results         = m_ProductDataStore.ChildStore(new JArray("query-results", queryName, m_NodeName));
 
             // Fetch the entire set of results from the query
-            var nodeEnumerator  = ourNodeResults.EnumerateAllValues();
+            var nodeEnumerator  = results.EnumerateAllValues();
 
             return new QueryResultEnumerator(nodeEnumerator);
         }
