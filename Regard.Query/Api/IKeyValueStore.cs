@@ -26,6 +26,17 @@ namespace Regard.Query.Api
         Task SetValue(JArray key, JObject value);
 
         /// <summary>
+        /// Assigns a key that is unique to this child store and uses it as a key to store a value. The store guarantees that this will be unique within this process, but not 
+        /// if the same child store is being accessed by multiple processes.
+        /// </summary>
+        /// <param name="value">The value to store</param>
+        /// <returns>
+        /// A long representing the key assigned to the value. The key for GetValue can be obtained by putting this result (alone) in a JArray.
+        /// The result is guaranteed to be positive, and will always increase.
+        /// </returns>
+        Task<long> AppendValue(JObject value);
+
+        /// <summary>
         /// Retrieves null or the value associated with a particular key
         /// </summary>
         Task<JObject> GetValue(JArray key);

@@ -147,7 +147,6 @@ namespace Regard.Query.Tests.MapReduce
             }).Wait();
         }
 
-
         [Test]
         public void DeletingAChildStoreIsRecursive()
         {
@@ -167,6 +166,33 @@ namespace Regard.Query.Tests.MapReduce
                 await store.DeleteChildStore(childStoreKey);
                 Assert.IsNull(await store.ChildStore(childStoreKey).GetValue(documentKey));
                 Assert.IsNull(await store.ChildStore(childStoreKey).ChildStore(childStoreKey).GetValue(documentKey));
+            }).Wait();
+        }
+
+        [Test]
+        public void CanAppendAResult()
+        {
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+
+                var keyValue = await store.AppendValue(JObject.FromObject(new { Something = "Hello " }));
+                Assert.That(keyValue >= 0);
+            }).Wait();
+        }
+
+        [Test]
+        public void AppendedResultsGenerateValidKey()
+        {
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+
+                var keyValue = await store.AppendValue(JObject.FromObject(new { Something = "Hello" }));
+
+                var retrievedObject = await store.GetValue(new JArray(keyValue));
+                Assert.IsNotNull(retrievedObject);
+                Assert.AreEqual("Hello", retrievedObject["Something"].Value<string>());
             }).Wait();
         }
     }
