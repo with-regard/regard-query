@@ -136,6 +136,14 @@ namespace Regard.Query.MapReduce
         }
 
         /// <summary>
+        /// Erases all of the values in a particular child store
+        /// </summary>
+        public async Task DeleteChildStore(JArray key)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
         /// Waits for all of the pending SetValue requests to complete (if they are cached or otherwise write-through)
         /// </summary>
         public async Task Commit()

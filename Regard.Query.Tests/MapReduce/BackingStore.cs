@@ -107,5 +107,44 @@ namespace Regard.Query.Tests.MapReduce
                 Assert.AreEqual("ChildStore", childValue["SomeValue"].Value<string>());
             }).Wait();
         }
+
+        [Test]
+        public void ValueKeysDoNotClashWithChildStoreKeys()
+        {
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+
+                var childStoreKey = new JArray("child-store");
+                var documentKey = new JArray("child-store");
+
+                Assert.IsNull(await store.GetValue(documentKey));
+                Assert.IsNull(await store.ChildStore(childStoreKey).GetValue(documentKey));
+
+                await store.ChildStore(childStoreKey).SetValue(documentKey, JObject.FromObject(new { Something = "Hello" }));
+
+                Assert.IsNull(await store.GetValue(documentKey));
+                Assert.IsNotNull(await store.ChildStore(childStoreKey).GetValue(documentKey));
+            }).Wait();
+        }
+
+        [Test]
+        public void DeletingAChildStoreRemovesItsKeys()
+        {
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+
+                var childStoreKey = new JArray("child-store");
+                var documentKey = new JArray("document");
+
+                Assert.IsNull(await store.ChildStore(childStoreKey).GetValue(documentKey));
+                await store.ChildStore(childStoreKey).SetValue(documentKey, JObject.FromObject(new { Something = "Hello" }));
+                Assert.IsNotNull(await store.ChildStore(childStoreKey).GetValue(documentKey));
+
+                await store.DeleteChildStore(childStoreKey);
+                Assert.IsNull(await store.ChildStore(childStoreKey).GetValue(documentKey));
+            }).Wait();
+        }
     }
 }

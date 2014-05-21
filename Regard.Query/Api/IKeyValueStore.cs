@@ -36,6 +36,11 @@ namespace Regard.Query.Api
         IKvStoreEnumerator EnumerateAllValues();
 
         /// <summary>
+        /// Erases all of the values in a particular child store
+        /// </summary>
+        Task DeleteChildStore(JArray key);
+
+        /// <summary>
         /// Waits for all of the pending SetValue requests to complete (if they are cached or otherwise write-through)
         /// </summary>
         Task Commit();
