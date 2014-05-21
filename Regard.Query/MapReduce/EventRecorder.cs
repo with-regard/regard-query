@@ -94,64 +94,10 @@ namespace Regard.Query.MapReduce
         public async Task RecordEvent(Guid sessionId, string organization, string product, JObject data)
         {
             // TODO: do not record events for sessions that don't exist
+            // TODO: in particular, do not record events for users who are not opted in
 
             // Store in the raw events store
             await m_EventDataStore.AppendValue(data);
-
-            // TODO: this needs quite a bit of work.
-            // Right now, we fetch, decode and run the map/reduce algorithms individually on each event which is really inefficient
-            // We can likely cache the decoded map/reduce algorithms
-            // We could only calculate query results when they're actually requested
-            // There's probably a missing class here: the same data format objects are used in the ProductAdmin class
-            // If there are multiple threads in this process there are issues too
-
-            // Get the product data store for this org/product
-            var productDataStore = m_RootDataStore.ChildStore(new JArray("products")).ChildStore(ProductAdmin.KeyForProduct(organization, product));               // TODO: also defined in ProductAdmin
-            var queryDataStore = productDataStore.ChildStore(new JArray("queries"));                                            // TODO: also defined in QueryableProduct
-
-            // Get the queries for this org/product by merging all the queries from all the nodes
-            // TODO: this code needs to be refactored :-)
-            JObject queries = new JObject();
-            var projectQueries = queryDataStore.EnumerateAllValues();
-            for (var query = await projectQueries.FetchNext(); query != null; query = await projectQueries.FetchNext())
-            {
-                JToken queryListToken;
-
-                // Should contain a 'queries' element with this list of queries in it
-                if (query.Item2.TryGetValue("Queries", out queryListToken))
-                {
-                    JObject queryList = queryListToken.Value<JObject>();
-
-                    // Add these queries to the queries object
-                    // TODO: this just picks the last query: we should probably pick the most recent instead
-                    foreach (var nodeQuery in queryList)
-                    {
-                        queries[nodeQuery.Key] = nodeQuery.Value;
-                    }
-                }
-            }
-
-            // Run all of the queries
-            foreach (var queryToRun in queries)
-            {
-                // Get the query
-                var queryName = queryToRun.Key;
-                var queryJson = queryToRun.Value["Query"].Value<JObject>();
-
-                // Turn into a map/reduce query
-                var mapReduce = MapReduceQueryFactory.GenerateMapReduce(queryJson);
-
-                // Create an ingestor for this query
-                var thisQueryStore = productDataStore.ChildStore(new JArray("query-results", queryName));
-                thisQueryStore = thisQueryStore.ChildStore(new JArray(m_NodeName));
-
-                var ingestor = new DataIngestor(mapReduce, thisQueryStore);
-
-                // Commit this query to it
-                // TODO: ingesting one event at once is pretty inefficient
-                ingestor.Ingest(data);
-                await ingestor.Commit();
-            }
         }
     }
 }
