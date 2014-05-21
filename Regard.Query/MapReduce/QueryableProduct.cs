@@ -95,6 +95,9 @@ namespace Regard.Query.MapReduce
             // Add to this query
             queryList[queryName] = queryData;
 
+            // Erase any existing query data
+            await m_ProductDataStore.DeleteChildStore(new JArray("query-results", queryName));
+
             // Store this item
             existingQuery["Queries"] = queryList;
             await m_QueryDataStore.SetValue(nodeQueryKey, existingQuery);
