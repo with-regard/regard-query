@@ -146,5 +146,28 @@ namespace Regard.Query.Tests.MapReduce
                 Assert.IsNull(await store.ChildStore(childStoreKey).GetValue(documentKey));
             }).Wait();
         }
+
+
+        [Test]
+        public void DeletingAChildStoreIsRecursive()
+        {
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+
+                var childStoreKey = new JArray("child-store");
+                var documentKey = new JArray("document");
+
+                Assert.IsNull(await store.ChildStore(childStoreKey).GetValue(documentKey));
+                await store.ChildStore(childStoreKey).SetValue(documentKey, JObject.FromObject(new { Something = "Hello" }));
+                await store.ChildStore(childStoreKey).ChildStore(childStoreKey).SetValue(documentKey, JObject.FromObject(new { Something = "Hello" }));
+                Assert.IsNotNull(await store.ChildStore(childStoreKey).GetValue(documentKey));
+                Assert.IsNotNull(await store.ChildStore(childStoreKey).ChildStore(childStoreKey).GetValue(documentKey));
+
+                await store.DeleteChildStore(childStoreKey);
+                Assert.IsNull(await store.ChildStore(childStoreKey).GetValue(documentKey));
+                Assert.IsNull(await store.ChildStore(childStoreKey).ChildStore(childStoreKey).GetValue(documentKey));
+            }).Wait();
+        }
     }
 }
