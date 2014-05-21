@@ -30,12 +30,6 @@ namespace Regard.Query.MapReduce
         /// </remarks>
         private readonly IKeyValueStore m_SessionDataStore;
 
-        /// <summary>
-        /// The data store used for raw events (prior to any map/reduce operations being performed on it). Also the home of the 'last recorded' event ID, important if
-        /// we need to replay events.
-        /// </summary>
-        private readonly IKeyValueStore m_EventDataStore;
-
         public EventRecorder(IKeyValueStore rootDataStore, string nodeName)
         {
             m_RootDataStore = rootDataStore;
@@ -43,9 +37,6 @@ namespace Regard.Query.MapReduce
 
             // Sessions are stored in a data store shared across all nodes
             m_SessionDataStore = m_RootDataStore.ChildStore(new JArray("sessions"));
-
-            // Raw events are stored only for this node, to avoid ingestion nodes needing to lock against one another
-            m_EventDataStore = m_RootDataStore.ChildStore(new JArray("raw-events", nodeName));
         }
 
         /// <summary>
@@ -97,7 +88,10 @@ namespace Regard.Query.MapReduce
             // TODO: in particular, do not record events for users who are not opted in
 
             // Store in the raw events store for this product/organization
-            await m_EventDataStore.ChildStore(new JArray(organization, product, m_NodeName)).AppendValue(data);
+            var productStore    = m_RootDataStore.ChildStore(ProductAdmin.KeyForProduct(organization, product));
+            var eventStore      = productStore.ChildStore(new JArray("raw-events", m_NodeName));
+
+            await eventStore.ChildStore(new JArray(organization, product, m_NodeName)).AppendValue(data);
         }
     }
 }

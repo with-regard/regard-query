@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Regard.Query.Api;
@@ -104,6 +105,68 @@ namespace Regard.Query.MapReduce
         }
 
         /// <summary>
+        /// Causes the results for a query to be updated
+        /// </summary>
+        /// <param name="queryName">The name of the query that should be updated</param>
+        /// <param name="queryDefinition"></param>
+        private async Task UpdateQuery(string queryName, JObject queryDefinition)
+        {
+            // Get the query definition
+            var queryJson = queryDefinition["Query"].Value<JObject>();
+
+            // Turn into a map/reduce querty
+            var mapReduce = MapReduceQueryFactory.GenerateMapReduce(queryJson);
+
+            // Create an ingestor for this query
+            // Update on a per-node basis
+            //
+            // One disadvantage of this technique is that multiple nodes need to run the query multiple times; you can't process some events on some nodes
+            // and then aggregate the results later on. This is a scaling issue so it is not critical at this time.
+            //
+            // To fix this issue, we could send updated results around the nodes using a service bus
+            var thisQueryStore  = m_ProductDataStore.ChildStore(new JArray("query-results", queryName, m_NodeName));
+            var ingestor        = new DataIngestor(mapReduce, thisQueryStore);
+
+            // Get the status of this query
+            var queryStatusStore = m_ProductDataStore.ChildStore(new JArray("query-status", m_NodeName));
+            var previousQueryStatus = await queryStatusStore.GetValue(new JArray(queryName));
+
+            if (previousQueryStatus == null)
+            {
+                previousQueryStatus = JObject.FromObject(new {LastProcessedIndex = -1});
+            }
+
+            // Get the last processed index for this query
+            var lastProcessedIndex = previousQueryStatus["LastProcessedIndex"].Value<long>();
+
+            // Ingest any data that has arrived since the query was last processed
+            // TODO: we want to ingest data for all nodes, not just this one. Right now we only need one node, so this is a stop-gap measure
+            var eventStore              = m_ProductDataStore.ChildStore(new JArray("raw-events", m_NodeName));
+            var dataSinceLastQuery      = eventStore.EnumerateValuesAppendedSince(lastProcessedIndex);
+            var newLastProcessedIndex   = lastProcessedIndex;
+
+            for (var newEvent = await dataSinceLastQuery.FetchNext(); newEvent != null; newEvent = await dataSinceLastQuery.FetchNext())
+            {
+                ingestor.Ingest(newEvent.Item2);
+
+                // Make a note of the most recently processed event
+                var thisIndex = newEvent.Item1[0].Value<long>();
+                if (thisIndex > newLastProcessedIndex)
+                {
+                    newLastProcessedIndex = thisIndex;
+                }
+            }
+            await ingestor.Commit();
+
+            // Update the query status
+            if (newLastProcessedIndex != lastProcessedIndex)
+            {
+                var updatedQueryStatus = JObject.FromObject(new {LastProcessedIndex = newLastProcessedIndex});
+                await queryStatusStore.SetValue(new JArray(queryName), updatedQueryStatus);
+            }
+        }
+
+        /// <summary>
         /// Runs the query with the specified name against the database
         /// </summary>
         public async Task<IResultEnumerator<QueryResultLine>> RunQuery(string queryName)
@@ -111,7 +174,7 @@ namespace Regard.Query.MapReduce
             // Check if the query exists
             // TODO: performance would be improved considerably by some sort of caching scheme
             var projectQueries = m_QueryDataStore.EnumerateAllValues();
-            bool exists = false;
+            JObject queryDefinition = null;
             for (var query = await projectQueries.FetchNext(); query != null; query = await projectQueries.FetchNext())
             {
                 JToken queryListToken;
@@ -121,22 +184,29 @@ namespace Regard.Query.MapReduce
                 {
                     JObject queryList = queryListToken.Value<JObject>();
 
-                    // The query exists if we can 
+                    // The query exists if we can find the name in this object
                     JToken queryDataToken;
                     if (queryList.TryGetValue(queryName, out queryDataToken))
                     {
-                        exists = true;
-                        break;
+                        // TODO: pick the most recent definition of the query from all nodes
+                        if (queryDataToken.Type == JTokenType.Object)
+                        {
+                            queryDefinition = queryDataToken.Value<JObject>();
+                            break;
+                        }
                     }
                 }
             }
 
             // Result is null if no node has created this query
             // The KV data store is actually forgiving enough that we could return a result instead here
-            if (!exists)
+            if (queryDefinition == null)
             {
                 return null;
             }
+
+            // Ensure that the query results are up to date
+            await UpdateQuery(queryName, queryDefinition);
 
             // Return the results
             // Currently, this will process the data for this node only (the initial version of the product only has a single consumer node so this is fine)
@@ -151,6 +221,8 @@ namespace Regard.Query.MapReduce
 
             return new QueryResultEnumerator(nodeEnumerator);
         }
+
+        // TODO: factor user admin functions out into a separate class
 
         /// <summary>
         /// Retrieves the object that can administer the users of this project
