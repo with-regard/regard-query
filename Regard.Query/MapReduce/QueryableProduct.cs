@@ -124,7 +124,7 @@ namespace Regard.Query.MapReduce
             // and then aggregate the results later on. This is a scaling issue so it is not critical at this time.
             //
             // To fix this issue, we could send updated results around the nodes using a service bus
-            var thisQueryStore  = m_ProductDataStore.ChildStore(new JArray("query-results", queryName, m_NodeName));
+            var thisQueryStore  = m_ProductDataStore.ChildStore(new JArray("query-results", queryName)).ChildStore(new JArray(m_NodeName));
             var ingestor        = new DataIngestor(mapReduce, thisQueryStore);
 
             // Get the status of this query
@@ -213,7 +213,7 @@ namespace Regard.Query.MapReduce
             // TODO: handle other nodes
 
             // The event recorder runs the query and puts the results in a child store
-            var results         = m_ProductDataStore.ChildStore(new JArray("query-results", queryName, m_NodeName));
+            var results         = m_ProductDataStore.ChildStore(new JArray("query-results", queryName)).ChildStore(new JArray(m_NodeName));
 
             // Fetch the entire set of results from the query
             var nodeEnumerator  = results.EnumerateAllValues();
