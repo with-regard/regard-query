@@ -98,6 +98,8 @@ namespace Regard.Query.MapReduce
 
             // Erase any existing query data
             await m_ProductDataStore.DeleteChildStore(new JArray("query-results", queryName));
+            var queryStatusStore = m_ProductDataStore.ChildStore(new JArray("query-status", m_NodeName));               // TODO: erase in other nodes too, I think
+            await queryStatusStore.SetValue(new JArray(queryName), null);
 
             // Store this item
             existingQuery["Queries"] = queryList;
