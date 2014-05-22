@@ -255,8 +255,17 @@ namespace Regard.Query.Sql
                         case JTokenType.String:
                         {
                             string val = property.Value.Value<string>();
+                            double parsedNumericVal;
                             addPropertyCmd.Parameters.AddWithValue("@propertyStringValue", val.ToString());
-                            addPropertyCmd.Parameters.AddWithValue("@propertyNumericValue", DBNull.Value);
+
+                            if (double.TryParse(val, out parsedNumericVal))
+                            {
+                                addPropertyCmd.Parameters.AddWithValue("@propertyNumericValue", parsedNumericVal);
+                            }
+                            else
+                            {
+                                addPropertyCmd.Parameters.AddWithValue("@propertyNumericValue", DBNull.Value);
+                            }
                             break;
                         }
 

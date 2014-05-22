@@ -135,7 +135,7 @@ namespace Regard.Query.Sql
                                                              new SqlQuerySumFun
                                                              {
                                                                  Distinct = false,
-                                                                 FieldName = "Value",
+                                                                 FieldName = "NumericValue",
                                                                  Function = "SUM",
                                                                  ResultName = name
                                                              }
