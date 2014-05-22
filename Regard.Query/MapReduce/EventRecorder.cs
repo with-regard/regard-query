@@ -16,7 +16,7 @@ namespace Regard.Query.MapReduce
         /// <summary>
         /// The root data store where this will store its events
         /// </summary>
-        private readonly IKeyValueStore m_RootDataStore;
+        private readonly RootDataStore m_RootDataStore;
 
         /// <summary>
         /// The name of this node
@@ -29,15 +29,15 @@ namespace Regard.Query.MapReduce
         /// <remarks>
         /// Session stores are shared across all instances: we assume that any given session will just be redefined the same way
         /// </remarks>
-        private readonly IKeyValueStore m_SessionDataStore;
+        private readonly SessionDataStore m_SessionDataStore;
 
-        public EventRecorder(IKeyValueStore rootDataStore, string nodeName)
+        public EventRecorder(RootDataStore rootDataStore, string nodeName)
         {
             m_RootDataStore = rootDataStore;
             m_NodeName      = nodeName;
 
             // Sessions are stored in a data store shared across all nodes
-            m_SessionDataStore = m_RootDataStore.ChildStore(new JArray("sessions"));
+            m_SessionDataStore = m_RootDataStore.SessionDataStore;
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace Regard.Query.MapReduce
 
             // Create the session in the store
             // Overwrite it if it already exists: this should be OK provided that session IDs are never re-used
-            await m_SessionDataStore.ChildStore(new JArray(organization, product)).SetValue(new JArray(sessionId.ToString()), sessionData);
+            await m_SessionDataStore.StoreSessionData(organization, product, sessionId, sessionData);
 
             return sessionId;
         }
@@ -88,9 +88,10 @@ namespace Regard.Query.MapReduce
             // TODO: do not record events for sessions that don't exist
             // TODO: in particular, do not record events for users who are not opted in
 
-            // Store in the raw events store for this product/organization
-            var productStore    = m_RootDataStore.ChildStore(new JArray("products")).ChildStore(ProductDataStore.KeyForProduct(organization, product));
-            var eventStore      = productStore.ChildStore(new JArray("raw-events", m_NodeName));
+            // Write as a raw event
+            // When the product executes a query, these events are read back in again in order to generate the results
+            var productStore    = m_RootDataStore.ProductDataStore.DataStoreForIndividualProduct(organization, product);
+            var eventStore      = productStore.GetRawEventStore(m_NodeName);
 
             await eventStore.AppendValue(data);
         }

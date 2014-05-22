@@ -17,8 +17,10 @@ namespace Regard.Query.MapReduce.DataAccessor
             m_RawRootStore = rawRootStore;
 
             ProductDataStore = new ProductDataStore(m_RawRootStore.ChildStore(new JArray("products")));
+            SessionDataStore = new SessionDataStore(m_RawRootStore.ChildStore(new JArray("sessions")));
         }
 
         public ProductDataStore ProductDataStore { get; private set; }
+        public SessionDataStore SessionDataStore { get; private set; }
     }
 }

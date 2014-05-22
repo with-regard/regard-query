@@ -90,6 +90,7 @@
     <Compile Include="MapReduce\DataAccessor\IndividualProductDataStore.cs" />
     <Compile Include="MapReduce\DataAccessor\ProductDataStore.cs" />
     <Compile Include="MapReduce\DataAccessor\QueryDataStore.cs" />
+    <Compile Include="MapReduce\DataAccessor\SessionDataStore.cs" />
     <Compile Include="MapReduce\DataAccessor\UserDataStore.cs" />
     <Compile Include="MapReduce\DataIngestor.cs" />
     <Compile Include="Api\IKeyValueStore.cs" />
