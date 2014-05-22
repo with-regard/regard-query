@@ -60,6 +60,7 @@
     <Compile Include="MapReduce\BackingStore.cs" />
     <Compile Include="MapReduce\BrokenDownBy.cs" />
     <Compile Include="MapReduce\CountUnique.cs" />
+    <Compile Include="MapReduce\Mean.cs" />
     <Compile Include="MapReduce\Only.cs" />
     <Compile Include="MapReduce\RunMapReduce.cs" />
     <Compile Include="MapReduce\Sum.cs" />
