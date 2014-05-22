@@ -68,6 +68,21 @@ namespace Regard.Query.MapReduce
         }
 
         /// <summary>
+        /// Sets the value of an intermediate field (stored in the __intermediate__ field of the resulting doc)
+        /// </summary>
+        public void SetIntermediateValue(string field, JObject value)
+        {
+            JToken intermediateToken;
+            if (!m_EmitDoc.TryGetValue("__intermediate__", out intermediateToken))
+            {
+                m_EmitDoc["__intermediate__"] = new JObject();
+                intermediateToken = m_EmitDoc["__intermediate__"];
+            }
+
+            intermediateToken[field] = value;
+        }
+
+        /// <summary>
         /// Removes a field from the result
         /// </summary>
         public void RemoveValue(string field)

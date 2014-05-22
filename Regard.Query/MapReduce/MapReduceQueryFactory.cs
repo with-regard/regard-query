@@ -73,6 +73,10 @@ namespace Regard.Query.MapReduce
                     query.CountUniqueValues(component.Name, component.Key);
                     break;
 
+                case QueryVerbs.Mean:
+                    query.Mean(component.Name, component.Key);
+                    break;
+
                 default:
                     // Not implemented
                     throw new NotImplementedException("Unknown query verb");
@@ -153,12 +157,134 @@ namespace Regard.Query.MapReduce
         }
 
         /// <summary>
+        /// Tries to read a field from an object, returning null if it doesn't exist
+        /// </summary>
+        private static JObject TryGetObject(this JToken source, string name)
+        {
+            if (source == null) return null;
+            if (source.Type != JTokenType.Object) return null;
+
+            JToken resultToken;
+            if (!source.Value<JObject>().TryGetValue(name, out resultToken))
+            {
+                return null;
+            }
+
+            if (resultToken.Type != JTokenType.Object) return null;
+
+            return resultToken.Value<JObject>();
+        }
+
+        /// <summary>
+        /// Composes a 'Mean' query with an existing map/reduce query
+        /// </summary>
+        internal static void Mean(this QueryMapReduce query, string name, string fieldName)
+        {
+            // During map/reduce, store an intermediate value in a 'hidden' key
+            query.OnMap += (mapResult, document) =>
+            {
+                JToken keyToken;
+
+                double val = 0;
+
+                if (!document.TryGetValue(fieldName, out keyToken))
+                {
+                    // If the value doesn't exist, the value is 0
+                    val = 0;
+                }
+                else
+                {
+                    // Value must evaluate to double or int (we always treat it as double in the result)
+                    if (keyToken.Type == JTokenType.Integer)
+                    {
+                        val = keyToken.Value<long>();
+                    }
+                    else if (keyToken.Type == JTokenType.Float)
+                    {
+                        val = keyToken.Value<double>();
+                    }
+                    else
+                    {
+                        // If the value isn't numeric, treat it as 0
+                        val = 0;
+                    }
+                }
+
+                // Store an intermediate result with the total value and the count
+                mapResult.SetIntermediateValue(name, JObject.FromObject(new { Value = val, Count = 1}));
+
+                // Also store the mean value for this element, which will just be the value with only one item 
+                mapResult.SetValue(name, new JValue(val));
+            };
+
+            // Sum values on reduce and re-reduce
+            query.ReduceAndRereduce((result, documents) =>
+            {
+                double  sum     = 0.0;
+                long    count   = 0;
+
+                // Add up the values in the documents
+                foreach (var doc in documents)
+                {
+                    // Get the intermediate results for this value
+                    var intermediateDoc = doc.TryGetObject("__intermediate__").TryGetObject(name);
+                    if (intermediateDoc == null)
+                    {
+                        continue;
+                    }
+
+                    sum += intermediateDoc["Value"].Value<double>();
+                    count += intermediateDoc["Count"].Value<long>();
+                }
+
+                // Store intermediate results
+                var intermediateResult = result.TryGetObject("__intermediate__");
+                if (intermediateResult == null)
+                {
+                    result["__intermediate__"] = intermediateResult = new JObject();
+                }
+
+                var meanIntermediate = JObject.FromObject(new { Value = sum, Count = count });
+                intermediateResult[name] = meanIntermediate;
+
+                // Store in the result
+                result[name] = sum / (double) count;
+            });
+
+            query.OnUnreduce += (result, documents) =>
+            {
+                double  sum     = result["__intermediate__"][name]["Value"].Value<double>();
+                long    count   = result["__intermediate__"][name]["Count"].Value<long>();
+
+                // Subtract the values in the documents from the result
+                foreach (var doc in documents)
+                {
+                    JToken docValue;
+                    if (doc.TryGetValue(name, out docValue))
+                    {
+                        var intermediateDoc = doc.TryGetObject("__intermediate__").TryGetObject(name);
+                        if (intermediateDoc == null)
+                        {
+                            continue;
+                        }
+
+                        sum -= intermediateDoc["Value"].Value<double>();
+                        count -= intermediateDoc["Count"].Value<long>();
+                    }
+                }
+
+                result["__intermediate__"][name]["Value"] = sum;
+                result["__intermediate__"][name]["Count"] = count;
+                result[name] = sum/(double)count;
+            };
+        }
+
+        /// <summary>
         /// Composes a 'Sum' query with an existing map/reduce query
         /// </summary>
         internal static void Sum(this QueryMapReduce query, string name, string fieldName)
         {
             // Store the numeric value of the field in the result
-            // Reject items that don't contain this item
             query.OnMap += (mapResult, document) =>
             {
                 JToken keyToken;
