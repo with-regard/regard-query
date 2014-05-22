@@ -15,18 +15,18 @@ namespace Regard.Query.Tests.MapReduce
             // 3 sessions, 6 clicks, 12 events total
             // Spread across 2 days
             yield return JObject.FromObject(new { SessionId = "1", Day = "1", EventType = "Start" });
-            yield return JObject.FromObject(new { SessionId = "1", Day = "1", EventType = "NotClick" });
+            yield return JObject.FromObject(new { SessionId = "1", Day = "1", EventType = "NotClick", NumberValue = 1 });
             yield return JObject.FromObject(new { SessionId = "1", Day = "1", EventType = "Stop" });
 
             yield return JObject.FromObject(new { SessionId = "2", Day = "1", EventType = "Start" });
-            yield return JObject.FromObject(new { SessionId = "2", Day = "1", EventType = "Click" });
-            yield return JObject.FromObject(new { SessionId = "2", Day = "1", EventType = "Click" });
+            yield return JObject.FromObject(new { SessionId = "2", Day = "1", EventType = "Click", NumberValue = 2 });
+            yield return JObject.FromObject(new { SessionId = "2", Day = "1", EventType = "Click", NumberValue = 3 });
             yield return JObject.FromObject(new { SessionId = "2", Day = "1", EventType = "Stop" });
 
             yield return JObject.FromObject(new { SessionId = "3", Day = "2", EventType = "Start" });
-            yield return JObject.FromObject(new { SessionId = "3", Day = "2", EventType = "Click" });
-            yield return JObject.FromObject(new { SessionId = "3", Day = "2", EventType = "Click" });
-            yield return JObject.FromObject(new { SessionId = "3", Day = "2", EventType = "Click" });
+            yield return JObject.FromObject(new { SessionId = "3", Day = "2", EventType = "Click", NumberValue = 4 });
+            yield return JObject.FromObject(new { SessionId = "3", Day = "2", EventType = "Click", NumberValue = 5 });
+            yield return JObject.FromObject(new { SessionId = "3", Day = "2", EventType = "Click", NumberValue = 6 });
             yield return JObject.FromObject(new { SessionId = "3", Day = "2", EventType = "Stop" });
         }
 
