@@ -186,11 +186,13 @@ namespace Regard.Query.MapReduce
                 JToken keyToken;
 
                 double val = 0;
+                long count = 1;
 
                 if (!document.TryGetValue(fieldName, out keyToken))
                 {
                     // If the value doesn't exist, the value is 0
                     val = 0;
+                    count = 0;
                 }
                 else
                 {
@@ -207,11 +209,12 @@ namespace Regard.Query.MapReduce
                     {
                         // If the value isn't numeric, treat it as 0
                         val = 0;
+                        count = 0;
                     }
                 }
 
                 // Store an intermediate result with the total value and the count
-                mapResult.SetIntermediateValue(name, JObject.FromObject(new { Value = val, Count = 1}));
+                mapResult.SetIntermediateValue(name, JObject.FromObject(new { Value = val, Count = count}));
 
                 // Also store the mean value for this element, which will just be the value with only one item 
                 mapResult.SetValue(name, new JValue(val));
@@ -248,7 +251,14 @@ namespace Regard.Query.MapReduce
                 intermediateResult[name] = meanIntermediate;
 
                 // Store in the result
-                result[name] = sum / (double) count;
+                if (count == 0)
+                {
+                    result[name] = double.NaN;
+                }
+                else
+                {
+                    result[name] = sum / (double) count;
+                }
             });
 
             query.OnUnreduce += (result, documents) =>
@@ -275,7 +285,15 @@ namespace Regard.Query.MapReduce
 
                 result["__intermediate__"][name]["Value"] = sum;
                 result["__intermediate__"][name]["Count"] = count;
-                result[name] = sum/(double)count;
+
+                if (count == 0)
+                {
+                    result[name] = double.NaN;
+                }
+                else
+                {
+                    result[name] = sum / (double)count;
+                }
             };
         }
 
