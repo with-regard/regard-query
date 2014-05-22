@@ -163,27 +163,29 @@ namespace Regard.Query.MapReduce
             {
                 JToken keyToken;
 
-                // Reject if no value
-                if (!document.TryGetValue(fieldName, out keyToken))
-                {
-                    mapResult.Reject();
-                    return;
-                }
-
-                // Value must evaluate to double or int (we always treat it as double in the result)
                 double val = 0;
 
-                if (keyToken.Type == JTokenType.Integer)
+                if (!document.TryGetValue(fieldName, out keyToken))
                 {
-                    val = keyToken.Value<int>();
-                }
-                else if (keyToken.Type == JTokenType.Float)
-                {
-                    val = keyToken.Value<double>();
+                    // If the value doesn't exist, the value is 0
+                    val = 0;
                 }
                 else
                 {
-                    mapResult.Reject();
+                    // Value must evaluate to double or int (we always treat it as double in the result)
+                    if (keyToken.Type == JTokenType.Integer)
+                    {
+                        val = keyToken.Value<long>();
+                    }
+                    else if (keyToken.Type == JTokenType.Float)
+                    {
+                        val = keyToken.Value<double>();
+                    }
+                    else
+                    {
+                        // If the value isn't numeric, treat it as 0
+                        val = 0;
+                    }
                 }
 
                 // Store in the result
@@ -211,6 +213,9 @@ namespace Regard.Query.MapReduce
                         }
                     }
                 }
+
+                // Store in the result
+                result[name] = sum;
             });
 
             query.OnUnreduce += (result, documents) =>

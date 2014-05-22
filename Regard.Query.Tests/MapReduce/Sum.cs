@@ -25,7 +25,11 @@ namespace Regard.Query.Tests.MapReduce
                 Tuple<JArray, JObject> nextRecord;
                 while ((nextRecord = await reader.FetchNext()) != null)
                 {
-                    // There are 5 click events
+                    // There are 12 total events
+                    Assert.AreEqual(12, nextRecord.Item2["Count"].Value<double>());
+
+                    // The sum of the NumberValue should be 21
+                    // Note that only 6 of the records actually contain this field
                     Assert.AreEqual(21, nextRecord.Item2["SumOfAllTheNumberValue"].Value<double>());
                     recordCount++;
                 }
