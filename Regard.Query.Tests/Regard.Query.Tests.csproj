@@ -61,6 +61,8 @@
     <Compile Include="MapReduce\BrokenDownBy.cs" />
     <Compile Include="MapReduce\CountUnique.cs" />
     <Compile Include="MapReduce\Only.cs" />
+    <Compile Include="MapReduce\RunMapReduce.cs" />
+    <Compile Include="MapReduce\Sum.cs" />
     <Compile Include="MapReduce\TestDataGenerator.cs" />
     <Compile Include="MissingDataStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
