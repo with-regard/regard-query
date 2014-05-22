@@ -9,6 +9,7 @@
         public const string Only                = "Only";
         public const string BrokenDownBy        = "BrokenDownBy";
         public const string Sum                 = "Sum";
+        public const string Mean                = "Mean";
         public const string CountUniqueValues   = "CountUniqueValues";
     }
 }

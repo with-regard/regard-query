@@ -186,7 +186,10 @@ namespace Regard.Query.Samples
 
                 var builder = testWithRegard.CreateQueryBuilder();
                 IRegardQuery result = builder.AllEvents();
-                result = result.Only("EventType", "Click").Sum("SomeNumber", "TotalOfSomeNumber").BrokenDownBy("Day", "Day");
+                result = result.Only("EventType", "Click")
+                    .Sum("SomeNumber", "TotalOfSomeNumber")
+                    .Mean("SomeNumber", "AverageOfSomeNumber")
+                    .BrokenDownBy("Day", "Day");
 
                 await testWithRegard.RegisterQuery("ClicksByDay", result);
 

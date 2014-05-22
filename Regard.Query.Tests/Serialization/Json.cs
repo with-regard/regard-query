@@ -57,13 +57,20 @@ namespace Regard.Query.Tests.Serialization
             Try((SerializableQuery)builder.AllEvents().CountUniqueValues("Test1", "Test2"));
         }
 
-
         [Test]
         public static void Sum()
         {
             // Create the query
             var builder = new SerializableQueryBuilder(null);
             Try((SerializableQuery)builder.AllEvents().Sum("Test1", "Test2"));
+        }
+
+        [Test]
+        public static void Mean()
+        {
+            // Create the query
+            var builder = new SerializableQueryBuilder(null);
+            Try((SerializableQuery)builder.AllEvents().Mean("Test1", "Test2"));
         }
 
         [Test]

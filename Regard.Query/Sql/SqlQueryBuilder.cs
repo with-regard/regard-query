@@ -127,7 +127,7 @@ namespace Regard.Query.Sql
         /// <param name="name">The name to assign to the result</param>
         public IRegardQuery Sum(SqlQuery query, string key, string name)
         {
-            // SELECT SUM(table.Value) ... WHERE table.PropertyName = key
+            // SELECT SUM(table.NumericValue) ... WHERE table.PropertyName = key
             var countUniqueElement = new SqlQueryElement()
                                      {
                                          Summarisation = new []
@@ -149,6 +149,40 @@ namespace Regard.Query.Sql
                                                      }
                                                  }
                                      };
+
+            return new SqlQuery(query, countUniqueElement);
+        }
+
+        /// <summary>
+        /// Finds the average (mean) of a paticular field across all of the events matched by a particuila
+        /// </summary>
+        /// <param name="query">The query to add a new mean to</param>
+        /// <param name="key">The field to average</param>
+        /// <param name="name">The name to assign to the result</param>
+        public SqlQuery Mean(SqlQuery query, string key, string name)
+        {
+            // SELECT AVG(table.NumericValue) ... WHERE table.PropertyName = key
+            var countUniqueElement = new SqlQueryElement()
+            {
+                Summarisation = new[]
+                                                         {
+                                                             new SqlQuerySumFun
+                                                             {
+                                                                 Distinct = false,
+                                                                 FieldName = "NumericValue",
+                                                                 Function = "AVG",
+                                                                 ResultName = name
+                                                             }
+                                                         },
+                Wheres = new[]
+                                                 {
+                                                     new SqlQueryWhere
+                                                     {
+                                                         FieldName = "PropertyName",
+                                                         FieldValue = key
+                                                     }
+                                                 }
+            };
 
             return new SqlQuery(query, countUniqueElement);
         }
@@ -247,6 +281,11 @@ namespace Regard.Query.Sql
         public IRegardQuery Sum(IRegardQuery query, string key, string name)
         {
             return Sum((SqlQuery) query, key, name);
+        }
+
+        public IRegardQuery Mean(IRegardQuery query, string key, string name)
+        {
+            return Mean((SqlQuery) query, key, name);
         }
 
         #endregion
