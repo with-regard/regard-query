@@ -82,6 +82,17 @@ namespace Regard.Query.Serializable
         }
 
         /// <summary>
+        /// Finds the average (mean) of a paticular field across all of the events matched by a particuila
+        /// </summary>
+        /// <param name="query">The query to add a new mean to</param>
+        /// <param name="key">The field to average</param>
+        /// <param name="name">The name to assign to the result</param>
+        public SerializableQuery Mean(SerializableQuery query, string key, string name)
+        {
+            return new SerializableQuery(this) { AppliesTo = query, Verb = QueryVerbs.Mean, Key = key, Name = name };
+        }
+
+        /// <summary>
         /// Creates a query that counts all the events in the source
         /// </summary>
         /// <remarks>
@@ -111,6 +122,11 @@ namespace Regard.Query.Serializable
         IRegardQuery IQueryBuilder.CountUniqueValues(IRegardQuery query, string key, string name)
         {
             return CountUniqueValues((SerializableQuery) query, key, name);
+        }
+
+        public IRegardQuery Mean(IRegardQuery query, string key, string name)
+        {
+            return Mean((SerializableQuery) query, key, name);
         }
     }
 }

@@ -20,6 +20,11 @@
             return query.Builder.Sum(query, key, name);
         }
 
+        public static IRegardQuery Mean(this IRegardQuery query, string key, string name)
+        {
+            return query.Builder.Mean(query, key, name);
+        }
+
         public static IRegardQuery CountUniqueValues(this IRegardQuery query, string key, string name)
         {
             return query.Builder.CountUniqueValues(query, key, name);

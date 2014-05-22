@@ -139,6 +139,13 @@ namespace Regard.Query.Serializable
                     }
                     return builder.Sum(appliesTo, GetString(json, "key", true), GetString(json, "name"));
 
+                case QueryVerbs.Mean:
+                    if (appliesTo == null)
+                    {
+                        throw new InvalidOperationException("Mean must be applied to an existing query");
+                    }
+                    return builder.Mean(appliesTo, GetString(json, "key", true), GetString(json, "name"));
+
                 case QueryVerbs.Only:
                     if (appliesTo == null)
                     {
