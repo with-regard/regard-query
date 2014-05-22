@@ -46,7 +46,8 @@ namespace Regard.Query.Samples
                         {
                             Day         = day,
                             SessionId   = session,
-                            EventType   = eventTypes[rng.Next(eventTypes.Length)]
+                            EventType   = eventTypes[rng.Next(eventTypes.Length)],
+                            SomeNumber  = rng.NextDouble() * 200.0
                         }));
 
                     DateTime now = DateTime.Now;
@@ -104,7 +105,7 @@ namespace Regard.Query.Samples
                 // 10000 sessions of 100 events each.
                 // 10000 sessions is likely from a medium-sized open-source project
                 // 100 events per session is on the high side but not necessarily unreasonable
-                await GenerateData(recorder, WellKnownUserIdentifier.TestUser, 10000, 100, 1);
+                await GenerateData(recorder, WellKnownUserIdentifier.TestUser, 100, 100, 1);
 
                 // Try querying the database
                 var testWithRegard = await dataStore.Products.GetProduct("WithRegard", "Test");
@@ -114,7 +115,7 @@ namespace Regard.Query.Samples
 
                 var builder = testWithRegard.CreateQueryBuilder();
                 IRegardQuery result = builder.AllEvents();
-                result = result.Only("EventType", "Click").CountUniqueValues("SessionId", "NumSessions").BrokenDownBy("Day", "Day");
+                result = result.Only("EventType", "Click").Sum("SomeNumber", "TotalOfSomeNumber").BrokenDownBy("Day", "Day");
 
                 await testWithRegard.RegisterQuery("ClicksByDay", result);
 
