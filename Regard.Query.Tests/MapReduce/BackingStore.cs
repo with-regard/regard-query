@@ -90,6 +90,31 @@ namespace Regard.Query.Tests.MapReduce
         }
 
         [Test]
+        public void NullDocumentsAreNotReturnedDuringEnumeration()
+        {
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+
+                var key = JArray.FromObject(new[] { "test-key" });
+                var storeValue = JObject.FromObject(new { SomeValue = "hello" });
+
+                await store.SetValue(key, storeValue);
+                var value = await store.GetValue(key);
+
+                Assert.IsNotNull(value);
+
+                await store.SetValue(key, null);
+
+                var enumerator = store.EnumerateAllValues();
+                for (var shouldNotBeNull = await enumerator.FetchNext(); shouldNotBeNull != null; shouldNotBeNull = await enumerator.FetchNext())
+                {
+                    Assert.IsNotNull(shouldNotBeNull.Item2);
+                }
+            }).Wait();
+        }
+
+        [Test]
         public void CanRetrieveAChildStore()
         {
             Task.Run(async () =>
