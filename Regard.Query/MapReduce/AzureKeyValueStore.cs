@@ -114,9 +114,10 @@ namespace Regard.Query.MapReduce
             else
             {
                 // Create a table entity
-                var newEntity           = new JsonTableEntity();
-                newEntity.RowKey        = rowKeyString;
-                newEntity.PartitionKey  = m_Partition;
+                var newEntity               = new JsonTableEntity();
+                newEntity.RowKey            = rowKeyString;
+                newEntity.PartitionKey      = m_Partition;
+                newEntity.SerializedJson    = value.ToString(Formatting.None);
 
                 var insertCommand = TableOperation.InsertOrReplace(newEntity);
                 await m_Table.ExecuteAsync(insertCommand);
@@ -140,9 +141,26 @@ namespace Regard.Query.MapReduce
         /// <summary>
         /// Retrieves null or the value associated with a particular key
         /// </summary>
-        public Task<JObject> GetValue(JArray key)
+        public async Task<JObject> GetValue(JArray key)
         {
-            throw new System.NotImplementedException();
+            // Generate a string for the row key
+            var rowKeyString = CreateKey(key);
+
+            // Create a query to retrieve this key
+            TableOperation retrieve = TableOperation.Retrieve<JsonTableEntity>(m_Partition, rowKeyString);
+
+            // Try to retrieve the entity from the table
+            var retrieveResult = await m_Table.ExecuteAsync(retrieve);
+            var entity = (JsonTableEntity) retrieveResult.Result;
+
+            // Result is null if the row doesn't exist
+            if (entity == null)
+            {
+                return null;
+            }
+
+            // Parse the serialized JSON to produce the final result
+            return JObject.Parse(entity.SerializedJson);
         }
 
         /// <summary>
