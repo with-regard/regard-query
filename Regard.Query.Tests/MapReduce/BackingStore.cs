@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Regard.Query.Api;
 using Regard.Query.MapReduce;
+using Regard.Query.MapReduce.Azure;
 
 namespace Regard.Query.Tests.MapReduce
 {

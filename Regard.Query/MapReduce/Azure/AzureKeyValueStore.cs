@@ -8,7 +8,7 @@ using Newtonsoft.Json.Linq;
 using Regard.Query.Api;
 using Regard.Query.Util;
 
-namespace Regard.Query.MapReduce
+namespace Regard.Query.MapReduce.Azure
 {
     /// <summary>
     /// Key/value store that targets Azure data stores
