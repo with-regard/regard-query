@@ -122,8 +122,8 @@ namespace Regard.Query.Tests.MapReduce
                     recordCount++;
                 }
 
-                // Should be only one record
-                Assert.AreEqual(1, recordCount);
+                // Should be no records
+                Assert.AreEqual(0, recordCount);
             }).Wait();
         }
     }

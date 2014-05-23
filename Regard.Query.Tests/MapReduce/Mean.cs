@@ -113,7 +113,7 @@ namespace Regard.Query.Tests.MapReduce
                 Tuple<JArray, JObject> nextRecord;
                 while ((nextRecord = await reader.FetchNext()) != null)
                 {
-                    // There are 12 total events
+                    // There are 0 total events
                     Assert.AreEqual(0, nextRecord.Item2["Count"].Value<double>());
 
                     // The mean of the NumberValue field should be 3.5
@@ -122,8 +122,8 @@ namespace Regard.Query.Tests.MapReduce
                     recordCount++;
                 }
 
-                // Should be only one record
-                Assert.AreEqual(1, recordCount);
+                // Should be no records
+                Assert.AreEqual(0, recordCount);
             }).Wait();
         }
     }
