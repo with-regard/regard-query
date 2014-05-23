@@ -30,7 +30,7 @@ namespace Regard.Query.Tests.MapReduce
                     return new MemoryKeyValueStore();
 
                 case "LocalAzureTableStore":
-                    return new AzureKeyValueStore("UseDevelopmentStorage=true", Guid.NewGuid().ToString());
+                    return new AzureKeyValueStore("UseDevelopmentStorage=true", "TestTable" + new Random().Next(int.MaxValue));
 
                 default:
                     Assert.Fail();
@@ -53,6 +53,36 @@ namespace Regard.Query.Tests.MapReduce
 
                 var value = await store.GetValue(JArray.FromObject(new[] { "test-key" }));
                 Assert.IsNull(value);
+            }).Wait();
+        }
+
+        [Test]
+        public void CanStoreSomething()
+        {
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+
+                var key = JArray.FromObject(new[] { "test-key" });
+                var storeValue = JObject.FromObject(new { SomeValue = "hello" });
+
+                await store.SetValue(key, storeValue);
+            }).Wait();
+        }
+
+        [Test]
+        public void CanStoreAndOverwriteSomething()
+        {
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+
+                var key = JArray.FromObject(new[] { "test-key" });
+                var storeValue = JObject.FromObject(new { SomeValue = "hello" });
+                var overwriteValue = JObject.FromObject(new { SomeValue = "goodbye" });
+
+                await store.SetValue(key, storeValue);
+                await store.SetValue(key, overwriteValue);
             }).Wait();
         }
 
