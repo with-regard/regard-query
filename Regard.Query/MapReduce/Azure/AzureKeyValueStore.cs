@@ -16,17 +16,6 @@ namespace Regard.Query.MapReduce.Azure
     public class AzureKeyValueStore : IKeyValueStore
     {
         /// <summary>
-        /// What we store in records for the table
-        /// </summary>
-        class JsonTableEntity : TableEntity
-        {
-            /// <summary>
-            /// The serialized JSON representation of this entity
-            /// </summary>
-            public string SerializedJson { get; set; }
-        }
-
-        /// <summary>
         /// The table that this store will write to
         /// </summary>
         private readonly CloudTable m_Table;
