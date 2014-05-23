@@ -93,6 +93,12 @@ namespace Regard.Query.MapReduce
                 }
             }
 
+            // The record is deleted if the count reaches 0
+            if (count == 0)
+            {
+                return null;
+            }
+
             // Initial result is just an object containing a count
             var result = JObject.FromObject(new { Count = count });
 
@@ -168,6 +174,12 @@ namespace Regard.Query.MapReduce
                     // If no count is specified, it counts for 1
                     count -= 1;
                 }
+            }
+
+            // Document is deleted once the count hits 0
+            if (count == 0)
+            {
+                return null;
             }
 
             result["Count"] = count;

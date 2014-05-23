@@ -57,8 +57,8 @@ namespace Regard.Query.Tests.MapReduce
                     // There are 12 total events
                     Assert.AreEqual(24, nextRecord.Item2["Count"].Value<double>());
 
-                    // The sum of the NumberValue should be 21
-                    // Note that only 6 of the records actually contain this field
+                    // The sum of the NumberValue should be 42
+                    // Note that only 6 of the records actually contain this field (but they go through twice)
                     Assert.AreEqual(42, nextRecord.Item2["SumOfAllTheNumberValue"].Value<double>());
                     recordCount++;
                 }
@@ -116,8 +116,7 @@ namespace Regard.Query.Tests.MapReduce
                     // There are 12 total events
                     Assert.AreEqual(0, nextRecord.Item2["Count"].Value<double>());
 
-                    // The sum of the NumberValue should be 21
-                    // Note that only 6 of the records actually contain this field
+                    // The sum of the NumberValue should be 0
                     Assert.AreEqual(0, nextRecord.Item2["SumOfAllTheNumberValue"].Value<double>());
                     recordCount++;
                 }

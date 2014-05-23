@@ -292,7 +292,10 @@ namespace Regard.Query.MapReduce
                 {
                     // Reduce these items
                     var reduced = m_MapReduce.Reduce(keyForKey[reducePair.Key], reducePair.Value);
-                    reducedObjects[reducePair.Key] = reduced;
+                    if (reduced != null)
+                    {
+                        reducedObjects[reducePair.Key] = reduced;
+                    }
                 }
                 waitingToReduce.Clear();
 
@@ -326,7 +329,11 @@ namespace Regard.Query.MapReduce
                         {
                             // Send to the chain ingestor. We're effectively replacing the old value, so uningest that.
                             m_ChainIngestor.Uningest(KeySerializer.CopyAndAddKey(previousValue, key));
-                            m_ChainIngestor.Ingest(KeySerializer.CopyAndAddKey(rereduced, key));
+
+                            if (rereduced != null)
+                            {
+                                m_ChainIngestor.Ingest(KeySerializer.CopyAndAddKey(rereduced, key));
+                            }
                         }
                     }
                 }
