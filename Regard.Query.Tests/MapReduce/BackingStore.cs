@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -8,6 +9,7 @@ using Regard.Query.MapReduce;
 namespace Regard.Query.Tests.MapReduce
 {
     [TestFixture("InMemory")]
+    [TestFixture("LocalAzureTableStore")]
     class BackingStore
     {
         private string m_DataStoreType;
@@ -24,7 +26,12 @@ namespace Regard.Query.Tests.MapReduce
         {
             switch (m_DataStoreType)
             {
-                case "InMemory": return new MemoryKeyValueStore();
+                case "InMemory": 
+                    return new MemoryKeyValueStore();
+
+                case "LocalAzureTableStore":
+                    return new AzureKeyValueStore("UseDevelopmentStorage=true", Guid.NewGuid().ToString());
+
                 default:
                     Assert.Fail();
                     return null;

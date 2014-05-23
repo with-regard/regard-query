@@ -87,6 +87,7 @@
     <Compile Include="Flat\CountFieldEntity.cs" />
     <Compile Include="Flat\EntityKey.cs" />
     <Compile Include="Flat\IPipelineAction.cs" />
+    <Compile Include="MapReduce\AzureKeyValueStore.cs" />
     <Compile Include="MapReduce\DataAccessor\IndividualProductDataStore.cs" />
     <Compile Include="MapReduce\DataAccessor\ProductDataStore.cs" />
     <Compile Include="MapReduce\DataAccessor\QueryDataStore.cs" />

@@ -63,7 +63,6 @@ namespace Regard.Query.Tests.MapReduce
             return resultStore;
         }
 
-
         /// <summary>
         /// Runs a map/reduce task on the basic documents, feeding them through twice, then uningesting one set (which should have the same outcome as feeding them through
         /// once)
