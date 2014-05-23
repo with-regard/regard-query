@@ -53,7 +53,15 @@ namespace Regard.Query.MapReduce
             lock (m_Sync)
             {
                 string keyString = key.ToString(Formatting.None);
-                m_Objects[keyString] = value;
+
+                if (value == null)
+                {
+                    m_Objects.Remove(keyString);
+                }
+                else
+                {
+                    m_Objects[keyString] = value;
+                }
             }
         }
 

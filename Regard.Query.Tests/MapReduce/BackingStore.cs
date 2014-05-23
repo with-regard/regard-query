@@ -90,6 +90,22 @@ namespace Regard.Query.Tests.MapReduce
         }
 
         [Test]
+        public void CanSetANonexistentDocumentToNull()
+        {
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+
+                var key = JArray.FromObject(new[] { "test-key" });
+
+                await store.SetValue(key, null);
+                var value = await store.GetValue(key);
+
+                Assert.IsNull(value);
+            }).Wait();
+        }
+
+        [Test]
         public void NullDocumentsAreNotReturnedDuringEnumeration()
         {
             Task.Run(async () =>
