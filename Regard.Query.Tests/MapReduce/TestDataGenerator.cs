@@ -44,5 +44,21 @@ namespace Regard.Query.Tests.MapReduce
             // Finish the commit (this will cause reduce/re-reduce in the map/reduce table storage)
             await ingestor.Commit();
         }
+
+
+        /// <summary>
+        /// Uningests (deletes) the 12 basic documents
+        /// </summary>
+        public static async Task Uningest12BasicDocuments(DataIngestor ingestor)
+        {
+            // Ingest some documents
+            foreach (var doc in Generate12BasicDocuments())
+            {
+                ingestor.Uningest(doc);
+            }
+
+            // Finish the commit (this will cause reduce/re-reduce in the map/reduce table storage)
+            await ingestor.Commit();
+        }
     }
 }
