@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
@@ -43,6 +44,15 @@ namespace Regard.Query.MapReduce.Azure
         }
 
         /// <summary>
+        /// Creates a child store for an azure key/value store
+        /// </summary>
+        private AzureKeyValueStore(CloudTable table, string partition)
+        {
+            m_Table     = table;
+            m_Partition = partition;
+        }
+
+        /// <summary>
         /// Converts a JArray to something suitable to use as a partition/row key
         /// </summary>
         private string CreateKey(JArray source)
@@ -83,7 +93,10 @@ namespace Regard.Query.MapReduce.Azure
         /// </remarks>
         public IKeyValueStore ChildStore(JArray key)
         {
-            throw new System.NotImplementedException();
+            var extraPartitionKey = CreateKey(key);
+
+            // Use '--' to separate child stores to prevent clashes between similar names
+            return new AzureKeyValueStore(m_Table, m_Partition + "--" + extraPartitionKey);
         }
 
         /// <summary>
