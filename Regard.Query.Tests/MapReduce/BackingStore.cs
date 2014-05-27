@@ -9,7 +9,6 @@ using Regard.Query.MapReduce.Azure;
 
 namespace Regard.Query.Tests.MapReduce
 {
-    // TODO: restart appendvalue on a fresh data store (simulate restart)
     // TODO: deleting a child store doesn't delete similar stores
 
     [TestFixture("InMemory")]
@@ -17,6 +16,8 @@ namespace Regard.Query.Tests.MapReduce
     class BackingStore
     {
         private string m_DataStoreType;
+        private MemoryKeyValueStore m_LastMemoryStore;
+        private string m_LastStoreKey;
 
         public BackingStore(string storeType)
         {
@@ -31,10 +32,32 @@ namespace Regard.Query.Tests.MapReduce
             switch (m_DataStoreType)
             {
                 case "InMemory": 
-                    return new MemoryKeyValueStore();
+                    m_LastMemoryStore = new MemoryKeyValueStore();
+                    return m_LastMemoryStore;
 
                 case "LocalAzureTableStore":
-                    return new AzureKeyValueStore("UseDevelopmentStorage=true", "TestTable" + new Random().Next(int.MaxValue));
+                    m_LastStoreKey = new Random().Next(int.MaxValue).ToString();
+                    return new AzureKeyValueStore("UseDevelopmentStorage=true", "TestTable" + m_LastStoreKey);
+
+                default:
+                    Assert.Fail();
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// Creates a new connection to the same store that was last returned from CreateStoreToTest
+        /// </summary>
+        /// <returns></returns>
+        private IKeyValueStore RecreateStoreToTest()
+        {
+            switch (m_DataStoreType)
+            {
+                case "InMemory":
+                    return m_LastMemoryStore;
+
+                case "LocalAzureTableStore":
+                    return new AzureKeyValueStore("UseDevelopmentStorage=true", "TestTable" + m_LastStoreKey);
 
                 default:
                     Assert.Fail();
@@ -480,6 +503,23 @@ namespace Regard.Query.Tests.MapReduce
                 Assert.AreNotEqual(one, three);
                 Assert.AreNotEqual(one, four);
                 Assert.AreNotEqual(two, four);
+            }).Wait();
+        }
+
+        [Test]
+        public void AppendValueDoesntClashAfterRecreatingStore()
+        {
+            Task.Run(async () =>
+            {
+                var initialStore = CreateStoreToTest();
+                var one = await initialStore.AppendValue(new JObject());
+                await initialStore.Commit();
+
+                var recreatedStore = RecreateStoreToTest();
+                var two = await recreatedStore.AppendValue(new JObject());
+                await recreatedStore.Commit();
+
+                Assert.AreNotEqual(one, two);
             }).Wait();
         }
     }
