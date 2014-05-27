@@ -1,5 +1,6 @@
-﻿using System.Globalization;
-using System.Net;
+﻿using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
@@ -384,9 +385,9 @@ namespace Regard.Query.MapReduce.Azure
             return new SegmentedEnumerator(m_Table, findKeysQuery, (key, obj) =>
             {
                 // Must be an item with an integer key, which is greater than the target key
-                if (key == null) return false;
-                if (key.Count != 1) return false;
-                if (key[0].Type != JTokenType.Integer) return false;
+                if (key == null)                        return false;
+                if (key.Count != 1)                     return false;
+                if (key[0].Type != JTokenType.Integer)  return false;
 
                 return key[0].Value<long>() > appendKey;
             });
@@ -395,9 +396,67 @@ namespace Regard.Query.MapReduce.Azure
         /// <summary>
         /// Erases all of the values in a particular child store
         /// </summary>
-        public Task DeleteChildStore(JArray key)
+        public async Task DeleteChildStore(JArray key)
         {
-            throw new System.NotImplementedException();
+            // Ugh, here's where the limitations of Azure's query language really show themselves
+            // There's no 'startswith' query for strings, even though that ought to be really easy to implement if you can do greater-than.
+            // There's no way to just delete the results of a query. You need to read the records then batch up a deletion operation
+
+            // Using the technique here: http://www.dotnetsolutions.co.uk/blog/starts-with-query-pattern---windows-azure-table-design-patterns
+            // to work around the first limitation
+            var extraPartitionKey = CreateKey(key);
+
+            // Use '--' to separate child stores to prevent clashes between similar names
+            var childStoreKey       = m_Partition + "--" + extraPartitionKey;
+            var childStoreNextKey   = childStoreKey.Remove(childStoreKey.Length-1) + (childStoreKey[childStoreKey.Length - 1] + 1);                 // Ie, the item lexographically after childStoreKey
+
+            var allKeysQuery = new TableQuery<JsonTableEntity>();
+            allKeysQuery.Where(
+                    TableQuery.CombineFilters(
+                        TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.GreaterThanOrEqual, childStoreKey),
+                        TableOperators.And,
+                        TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.LessThan, childStoreNextKey)
+                    )
+                );
+
+            // Select all the items and then batch delete them
+            // See http://wintellect.com/blogs/jlane/deleting-entities-in-windows-azure-table-storage for the basic technique used here
+            Dictionary<string, TableBatchOperation> batches = new Dictionary<string, TableBatchOperation>();
+
+            var currentSegment = await m_Table.ExecuteQuerySegmentedAsync(allKeysQuery, null);
+
+            while (currentSegment != null && currentSegment.Results != null)
+            {
+                // Batch up the items in this segment
+                foreach (var value in currentSegment.Results)
+                {
+                    // Find or create the batch operation for this partition
+                    TableBatchOperation partitionBatchOp;
+                    if (!batches.TryGetValue(value.PartitionKey, out partitionBatchOp))
+                    {
+                        partitionBatchOp = batches[value.PartitionKey] = new TableBatchOperation();
+                    }
+
+                    // Delete this item
+                    partitionBatchOp.Add(TableOperation.Delete(value));
+
+                    if (partitionBatchOp.Count >= 100)
+                    {
+                        // Execute this batch when it gets large enough
+                        await m_Table.ExecuteBatchAsync(partitionBatchOp);
+                        batches[value.PartitionKey] = new TableBatchOperation();
+                    }
+                }
+            }
+
+            // Execute all of the remaining batch operations to finish up
+            foreach (var batchOp in batches)
+            {
+                // Sometimes the batches might be empty
+                if (batchOp.Value.Count <= 0) continue;
+
+                await m_Table.ExecuteBatchAsync(batchOp.Value);
+            }
         }
 
         /// <summary>
