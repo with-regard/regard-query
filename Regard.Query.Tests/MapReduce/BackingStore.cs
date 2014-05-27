@@ -106,6 +106,26 @@ namespace Regard.Query.Tests.MapReduce
         }
 
         [Test]
+        public void CanStoreAndRetrieveADocumentByEnumeration()
+        {
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+
+                var key = JArray.FromObject(new[] { "test-key" });
+                var storeValue = JObject.FromObject(new { SomeValue = "hello" });
+
+                await store.SetValue(key, storeValue);
+
+                var enumerator = store.EnumerateAllValues();
+                var value = await enumerator.FetchNext();
+
+                Assert.IsNotNull(value);
+                Assert.AreEqual("hello", value.Item2["SomeValue"].Value<string>());
+            }).Wait();
+        }
+
+        [Test]
         public void CanResetADocumentToNull()
         {
             Task.Run(async () =>
