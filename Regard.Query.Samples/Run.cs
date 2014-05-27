@@ -6,6 +6,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json.Linq;
 using Regard.Query.Api;
 using Regard.Query.Flat;
+using Regard.Query.MapReduce;
 using Regard.Query.Sql;
 
 namespace Regard.Query.Samples
@@ -139,14 +140,12 @@ namespace Regard.Query.Samples
 
                 await testTable.CreateIfNotExistsAsync();
 
-                await TestAzurePipeline(testTable, 10000, 100, 1);
-
-                return;
+                // await TestAzurePipeline(testTable, 10000, 100, 1);
 
                 Console.WriteLine(@"builder.AllEvents().Only(""EventType"", ""DoSomething"").CountUniqueValues(""SessionId"").BrokenDownBy(""Day"");");
 
                 // Create the database connection
-                var dataStore = await DataStoreFactory.CreateDefaultDataStore();
+                var dataStore = MapReduceDataStoreFactory.CreateAzureTableDataStore("UseDevelopmentStorage=true", "TestAzureTableStorage", "TestNode");
 
                 // Generate some data
                 var recorder = dataStore.EventRecorder;
@@ -173,7 +172,7 @@ namespace Regard.Query.Samples
                     SessionId = 8
                 }));
 
-                // 10000 sessions of 100 events each.
+                // 100 sessions of 100 events each.
                 // 10000 sessions is likely from a medium-sized open-source project
                 // 100 events per session is on the high side but not necessarily unreasonable
                 await GenerateData(recorder, WellKnownUserIdentifier.TestUser, 100, 100, 1);
