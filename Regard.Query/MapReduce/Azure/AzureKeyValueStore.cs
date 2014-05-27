@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
@@ -153,8 +154,21 @@ namespace Regard.Query.MapReduce.Azure
 
                 // Delete the existing entity
                 // Azure Table Storage only actually uses the row/partition key with Delete but takes an entire entity anyway :-/
+                // Setting the ETag to * means we don't need to read the record before deleting it
                 var deleteCommand = TableOperation.Delete(new DynamicTableEntity(m_Partition, rowKeyString) { ETag = "*" });
-                await m_Table.ExecuteAsync(deleteCommand);
+
+                try
+                {
+                    await m_Table.ExecuteAsync(deleteCommand);
+                }
+                catch (StorageException e)
+                {
+                    // A 404 indicates that the record didn't exist in the first place
+                    if (e.RequestInformation.HttpStatusCode != 404)
+                    {
+                        throw;
+                    }
+                }
             }
             else
             {
