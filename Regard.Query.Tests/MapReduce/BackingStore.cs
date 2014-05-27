@@ -9,6 +9,10 @@ using Regard.Query.MapReduce.Azure;
 
 namespace Regard.Query.Tests.MapReduce
 {
+    // TODO: appendvalue on child stores retrieved independently
+    // TODO: restart appendvalue on a fresh data store (simulate restart)
+    // TODO: delete more than 200 records
+
     [TestFixture("InMemory")]
     [TestFixture("LocalAzureTableStore")]
     class BackingStore
