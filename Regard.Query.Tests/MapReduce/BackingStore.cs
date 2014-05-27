@@ -453,5 +453,35 @@ namespace Regard.Query.Tests.MapReduce
                 await CheckEnumerationContainsAllIndexes(store.EnumerateValuesAppendedSince(-1), 0, 100);
             }).Wait();
         }
+
+        [Test]
+        public void RetrievingChildTwiceStoreDoesNotCauseAppendClashes()
+        {
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+
+                var aChildStore = store.ChildStore(JArray.FromObject(new[] {"test"}));
+                var shouldBeTheSameChildStore = store.ChildStore(JArray.FromObject(new[] {"test"}));
+
+                // Slightly dependent on a race condition. If the stores are separate, we can get the same value because they don't know about each other
+                var taskOne = aChildStore.AppendValue(new JObject());
+                var taskTwo = shouldBeTheSameChildStore.AppendValue(new JObject());
+
+                await Task.WhenAll(taskOne, taskTwo);
+
+                long one = await taskOne;
+                long two = await taskTwo;
+                long three = await aChildStore.AppendValue(new JObject());
+                long four = await shouldBeTheSameChildStore.AppendValue(new JObject());
+
+                Assert.AreNotEqual(one, two);
+                Assert.AreNotEqual(two, three);
+                Assert.AreNotEqual(three, four);
+                Assert.AreNotEqual(one, three);
+                Assert.AreNotEqual(one, four);
+                Assert.AreNotEqual(two, four);
+            }).Wait();
+        }
     }
 }
