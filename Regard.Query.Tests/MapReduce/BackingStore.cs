@@ -515,6 +515,8 @@ namespace Regard.Query.Tests.MapReduce
                 var one = await initialStore.AppendValue(new JObject());
                 await initialStore.Commit();
 
+                initialStore = null;
+
                 var recreatedStore = RecreateStoreToTest();
                 var two = await recreatedStore.AppendValue(new JObject());
                 await recreatedStore.Commit();
