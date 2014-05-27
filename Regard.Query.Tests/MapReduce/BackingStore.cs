@@ -11,7 +11,8 @@ namespace Regard.Query.Tests.MapReduce
 {
     // TODO: appendvalue on child stores retrieved independently
     // TODO: restart appendvalue on a fresh data store (simulate restart)
-    // TODO: delete more than 200 records
+    // TODO: enumerate more than 200 records
+    // TODO: deleting a child store doesn't delete similar stores
 
     [TestFixture("InMemory")]
     [TestFixture("LocalAzureTableStore")]
@@ -296,6 +297,25 @@ namespace Regard.Query.Tests.MapReduce
         }
 
         [Test]
+        public void DeletingAChildStoreRemoves200Keys()
+        {
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+
+                var childStoreKey = new JArray("child-store");
+                var documentKey = new JArray("document");
+
+                await AppendData(store.ChildStore(childStoreKey), 200, -1);
+                Assert.IsNotNull(await store.ChildStore(childStoreKey).EnumerateAllValues().FetchNext());
+
+                await store.DeleteChildStore(childStoreKey);
+                Assert.IsNull(await store.ChildStore(childStoreKey).EnumerateAllValues().FetchNext());
+            }).Wait();
+        }
+
+
+        [Test]
         public void CanAppendAResult()
         {
             Task.Run(async () =>
@@ -380,6 +400,17 @@ namespace Regard.Query.Tests.MapReduce
             }).Wait();
         }
 
+        [Test]
+        public void CanEnumerateOver200Items()
+        {
+            // 100 happens to be a magic number for azure table storage, so try 200 too.
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+                await AppendData(store, 200, -1);
+                await CheckEnumerationContainsAllIndexes(store.EnumerateAllValues(), 0, 200);
+            }).Wait();
+        }
 
         [Test]
         public void CanEnumerateFromStartUsingAppendedSince()
