@@ -50,7 +50,7 @@ namespace Regard.Query.MapReduce.Azure
 
         public async Task<Tuple<JArray, JObject>> FetchNext()
         {
-            while (m_CurrentSegment == null || m_CurrentSegment.Results.Count >= m_NextResultIndex)
+            while (m_CurrentSegment == null || m_NextResultIndex >= m_CurrentSegment.Results.Count)
             {
                 // We either haven't retrieved a segment, or the current segment is out of date
                 if (m_NextSegmentTask == null)
