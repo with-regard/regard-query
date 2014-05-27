@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
@@ -53,6 +54,23 @@ namespace Regard.Query.MapReduce.Azure
         }
 
         /// <summary>
+        /// Prepares an entity to be stored in this table
+        /// </summary>
+        internal JsonTableEntity CreateEntity(JArray key, JObject data)
+        {
+            var newEntity               = new JsonTableEntity();
+            var rowKeyString            = CreateKey(key);
+
+            newEntity.RowKey            = rowKeyString;
+            newEntity.PartitionKey      = m_Partition;
+            newEntity.Index             = -1;
+            newEntity.SerializedKey     = key.ToString(Formatting.None);
+            newEntity.SerializedJson    = data.ToString(Formatting.None);
+
+            return newEntity;
+        }
+
+        /// <summary>
         /// Converts a JArray to something suitable to use as a partition/row key
         /// </summary>
         private string CreateKey(JArray source)
@@ -104,10 +122,10 @@ namespace Regard.Query.MapReduce.Azure
         /// </summary>
         public async Task SetValue(JArray key, JObject value)
         {
-            var rowKeyString = CreateKey(key);
-
             if (value == null)
             {
+                var rowKeyString = CreateKey(key);
+
                 // Delete the existing entity
                 // Azure Table Storage only actually uses the row/partition key with Delete but takes an entire entity anyway :-/
                 var deleteCommand = TableOperation.Delete(new DynamicTableEntity(m_Partition, rowKeyString));
@@ -116,10 +134,7 @@ namespace Regard.Query.MapReduce.Azure
             else
             {
                 // Create a table entity
-                var newEntity               = new JsonTableEntity();
-                newEntity.RowKey            = rowKeyString;
-                newEntity.PartitionKey      = m_Partition;
-                newEntity.SerializedJson    = value.ToString(Formatting.None);
+                var newEntity               = CreateEntity(key, value);
 
                 var insertCommand = TableOperation.InsertOrReplace(newEntity);
                 await m_Table.ExecuteAsync(insertCommand);
@@ -170,7 +185,13 @@ namespace Regard.Query.MapReduce.Azure
         /// </summary>
         public IKvStoreEnumerator EnumerateAllValues()
         {
-            throw new System.NotImplementedException();
+            // Get everything from the partition
+            var query = new TableQuery<JsonTableEntity>();
+            query.Where(
+                    TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, m_Partition)
+                );
+
+            return new SegmentedEnumerator(m_Table, query);
         }
 
         /// <summary>

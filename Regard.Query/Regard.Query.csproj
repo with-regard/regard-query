@@ -89,6 +89,7 @@
     <Compile Include="Flat\IPipelineAction.cs" />
     <Compile Include="MapReduce\Azure\AzureKeyValueStore.cs" />
     <Compile Include="MapReduce\Azure\JsonTableEntity.cs" />
+    <Compile Include="MapReduce\Azure\SegmentedEnumerator.cs" />
     <Compile Include="MapReduce\DataAccessor\IndividualProductDataStore.cs" />
     <Compile Include="MapReduce\DataAccessor\ProductDataStore.cs" />
     <Compile Include="MapReduce\DataAccessor\QueryDataStore.cs" />
