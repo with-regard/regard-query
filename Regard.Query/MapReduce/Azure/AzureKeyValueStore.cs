@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
@@ -17,6 +15,18 @@ namespace Regard.Query.MapReduce.Azure
     /// </summary>
     public class AzureKeyValueStore : IKeyValueStore
     {
+        public const string InternalKeyPrefix = "---";
+
+        private readonly object m_Sync = new object();
+
+        /// <summary>
+        /// -1 if we don't know the next append index, otherwise the append index for this table
+        /// </summary>
+        /// <remarks>
+        /// This assumes that there is only one instance of a key/value store per table so we don't generate overlapping indexes. This isn't true at the moment: need to write some tests for this :-)
+        /// </remarks>
+        private long m_NextAppendIndex = -1;
+
         /// <summary>
         /// The table that this store will write to
         /// </summary>
@@ -103,6 +113,15 @@ namespace Regard.Query.MapReduce.Azure
         }
 
         /// <summary>
+        /// Creates an internal key (which can be easily excluded from enumerations and which can never match a user-created key)
+        /// </summary>
+        private string CreateInternalKey(string value)
+        {
+            // Internal keys begin '---'
+            return InternalKeyPrefix + StorageUtil.SanitiseKey(value);
+        }
+
+        /// <summary>
         /// Retrieves a reference to a child key/value store with a particular key
         /// </summary>
         /// <remarks>
@@ -142,6 +161,55 @@ namespace Regard.Query.MapReduce.Azure
         }
 
         /// <summary>
+        /// Tries to retrieve the latest append index value from the table
+        /// </summary>
+        private async Task<long> RetrieveLatestAppendIndex()
+        {
+            lock (m_Sync)
+            {
+                if (m_NextAppendIndex >= 0)
+                {
+                    // We have an in-memory value to use instead
+                    var result = m_NextAppendIndex;
+                    m_NextAppendIndex++;
+                    return result;
+                }
+            }
+
+            var indexKey = CreateInternalKey("AppendIndex");
+
+            // Read the last key from the table
+            var retrieveOperation = TableOperation.Retrieve<AppendIndexStatusEntity>(m_Partition, indexKey);
+            var storedValue = await m_Table.ExecuteAsync(retrieveOperation);
+
+            lock (m_Sync)
+            {
+                if (m_NextAppendIndex < 0)
+                {
+                    // We're the first thread to retrieve the value. Use existing values if a different thread got there first
+                    // We add 10000 to the last result to avoid the case where the index was written out of order. We assume this can't happen over 10000 records
+                    // (This works around the fragility of this technique. If Azure tables supported counting then we could use a much more robust algorithm here)
+                    // TODO: could probe for entities after this one instead of this, which avoids 'gaps'
+                    if (storedValue != null && storedValue.Result != null)
+                    {
+                        // Existing item
+                        m_NextAppendIndex = ((AppendIndexStatusEntity) storedValue.Result).LastAppendIndex + 10000;
+                    }
+                    else
+                    {
+                        // First item in the table
+                        m_NextAppendIndex = 0;
+                    }
+                }
+
+                // Generate the final result
+                var result = m_NextAppendIndex;
+                m_NextAppendIndex++;
+                return result;
+            }
+        }
+
+        /// <summary>
         /// Assigns a key that is unique to this child store and uses it as a key to store a value. The store guarantees that this will be unique within this process, but not 
         /// if the same child store is being accessed by multiple processes.
         /// </summary>
@@ -150,9 +218,70 @@ namespace Regard.Query.MapReduce.Azure
         /// A long representing the key assigned to the value. The key for GetValue can be obtained by putting this result (alone) in a JArray.
         /// The result is guaranteed to be positive, and will always increase.
         /// </returns>
-        public Task<long> AppendValue(JObject value)
+        public async Task<long> AppendValue(JObject value)
         {
-            throw new System.NotImplementedException();
+            var indexKey = CreateInternalKey("AppendIndex");
+
+            long nextValue = -1;
+            lock (m_Sync)
+            {
+                if (m_NextAppendIndex >= 0)
+                {
+                    // Assign a value if we already know an append index
+                    nextValue = m_NextAppendIndex;
+                    m_NextAppendIndex++;
+                }
+                else
+                {
+                    // We don't already know an append index
+                    nextValue = -1;
+                }
+            }
+
+            // If we don't have an append index, we need to fetch the last index
+            if (nextValue == -1)
+            {
+                // Query the table to find the append index
+                nextValue = await RetrieveLatestAppendIndex();
+            }
+
+            // Generate a key for this value and store in the table
+            JArray valueKey = JArray.FromObject(new[] {nextValue});
+
+            // Store this as the latest key
+            Task storeLatest = null;
+            lock (m_Sync)
+            {
+                if (nextValue + 1 == m_NextAppendIndex)
+                {
+                    // This is the latest key
+                    var keyEntity = new AppendIndexStatusEntity
+                    {
+                        RowKey = indexKey,
+                        PartitionKey = m_Partition,
+                        LastAppendIndex = m_NextAppendIndex
+                    };
+                    var storeLatestOperation = TableOperation.InsertOrReplace(keyEntity);
+
+                    storeLatest = m_Table.ExecuteAsync(storeLatestOperation);
+                }
+            }
+
+            // Store the value associated with this key
+            var storeTask = SetValue(valueKey, value);
+
+            // Wait for the tasks to complete
+            if (storeLatest != null)
+            {
+                await Task.WhenAll(storeLatest, storeTask);
+            }
+            else
+            {
+                await storeTask;
+            }
+
+            // Return the appended value
+            return nextValue;
         }
 
         /// <summary>

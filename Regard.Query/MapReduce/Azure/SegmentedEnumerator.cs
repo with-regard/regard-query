@@ -88,6 +88,12 @@ namespace Regard.Query.MapReduce.Azure
 
             m_NextResultIndex++;
 
+            // Internal keys begin with '---' and should never be returned by one of these enumerators
+            if (nextResult.RowKey.StartsWith(AzureKeyValueStore.InternalKeyPrefix))
+            {
+                return await FetchNext();
+            }
+
             // Parse the Json/key for this result
             var nextResultObj = JObject.Parse(nextResult.SerializedJson);
             var nextResultKey = JArray.Parse(nextResult.SerializedKey);
