@@ -146,6 +146,7 @@ namespace Regard.Query.Samples
 
                 // Create the database connection
                 var dataStore = MapReduceDataStoreFactory.CreateAzureTableDataStore("UseDevelopmentStorage=true", "TestAzureTableStorage", "TestNode");
+                //var dataStore = MapReduceDataStoreFactory.CreateInMemoryTemporaryDataStore();
 
                 // Generate some data
                 var recorder = dataStore.EventRecorder;
