@@ -80,6 +80,12 @@ namespace Regard.Query.MapReduce.Azure
             return newEntity;
         }
 
+        private string CreateKeyComponent(long value)
+        {
+            // Using a fixed-length string for the key value ensures we can use it successfully in queries
+            return value.ToString("X16", CultureInfo.InvariantCulture);
+        }
+
         /// <summary>
         /// Converts a JArray to something suitable to use as a partition/row key
         /// </summary>
@@ -98,7 +104,7 @@ namespace Regard.Query.MapReduce.Azure
                         break;
 
                     case JTokenType.Integer:
-                        result.Append(StorageUtil.SanitiseKey(element.Value<long>().ToString(CultureInfo.InvariantCulture)));
+                        result.Append(CreateKeyComponent(element.Value<long>()));
                         break;
 
                     default:
@@ -334,7 +340,34 @@ namespace Regard.Query.MapReduce.Azure
         /// </remarks>
         public IKvStoreEnumerator EnumerateValuesAppendedSince(long appendKey)
         {
-            throw new System.NotImplementedException();
+            // Get the initial key
+            var initialKey = CreateKeyComponent(appendKey);
+
+            // Create a query that should find all of the keys greater than this value
+            // We use 16-digit strings so that the query won't match 100, 1, 2 but will actually find truly greater values
+            var findKeysQuery = new TableQuery<JsonTableEntity>();
+
+            if (appendKey >= 0)
+            {
+                findKeysQuery.Where(
+                    TableQuery.CombineFilters(
+                        TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, m_Partition),
+                        TableOperators.And,
+                        TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.GreaterThan, initialKey + "-"))
+                    );
+            }
+            else
+            {
+                findKeysQuery.Where(
+                    TableQuery.CombineFilters(
+                        TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, m_Partition),
+                        TableOperators.And,
+                        TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.GreaterThanOrEqual, CreateKeyComponent(0) + "-"))
+                    );
+            }
+
+            // Execute the query using an enumerator
+            return new SegmentedEnumerator(m_Table, findKeysQuery);
         }
 
         /// <summary>
@@ -348,9 +381,10 @@ namespace Regard.Query.MapReduce.Azure
         /// <summary>
         /// Waits for all of the pending SetValue requests to complete (if they are cached or otherwise write-through)
         /// </summary>
-        public Task Commit()
+        public async Task Commit()
         {
-            throw new System.NotImplementedException();
+            // Right now, this is a no-op. If we ever support caching or batching operations - and we should - this should clear out the current batch
+            // I won't suppress the warning so that we get some kind of reminder this would be a good idea
         }
     }
 }

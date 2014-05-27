@@ -401,7 +401,6 @@ namespace Regard.Query.Tests.MapReduce
             }).Wait();
         }
 
-
         [Test]
         public void EnumerationDoesNotHitKeysAddedWithoutAppendValue()
         {
