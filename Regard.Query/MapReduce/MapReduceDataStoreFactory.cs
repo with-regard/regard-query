@@ -1,4 +1,5 @@
 ﻿using Regard.Query.Api;
+using Regard.Query.MapReduce.Azure;
 
 namespace Regard.Query.MapReduce
 {
@@ -15,6 +16,11 @@ namespace Regard.Query.MapReduce
             // The node name would be based on the instance ID on Azure.
             // Here we use 'test-node' as there's only one
             return new DataStore(new MemoryKeyValueStore(), "test-node");
+        }
+
+        public static IRegardDataStore CreateAzureTableDataStore(string connectionName, string tableName, string nodeName)
+        {
+            return new DataStore(new AzureKeyValueStore(connectionName, tableName), nodeName);
         }
     }
 }

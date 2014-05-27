@@ -11,7 +11,6 @@ namespace Regard.Query.Tests.MapReduce
 {
     // TODO: appendvalue on child stores retrieved independently
     // TODO: restart appendvalue on a fresh data store (simulate restart)
-    // TODO: enumerate more than 200 records
     // TODO: deleting a child store doesn't delete similar stores
 
     [TestFixture("InMemory")]
