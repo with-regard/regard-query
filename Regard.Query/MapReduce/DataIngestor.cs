@@ -232,7 +232,7 @@ namespace Regard.Query.MapReduce
                 // Acquire the m_Committing task
                 for (;;)                                    // .. because we have a complex exit condition
                 {
-                    // If nothing if comitting then we become the 'main' commit source
+                    // If nothing if committing then we become the 'main' commit source
                     Task currentCommit;
                     lock (m_Sync)
                     {
@@ -357,9 +357,10 @@ namespace Regard.Query.MapReduce
                 // Mark our task as completed and unset m_Committing (which should always be our task)
                 lock (m_Sync)
                 {
-                    ourTask.SetResult(0);
                     m_Committing = null;
                 }
+
+                ourTask.SetResult(0);
             }
         }
     }
