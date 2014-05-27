@@ -340,7 +340,7 @@ namespace Regard.Query.MapReduce.Azure
                     TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, m_Partition)
                 );
 
-            return new SegmentedEnumerator(m_Table, query);
+            return new SegmentedEnumerator(m_Table, query, null);
         }
 
         /// <summary>
@@ -381,7 +381,15 @@ namespace Regard.Query.MapReduce.Azure
             }
 
             // Execute the query using an enumerator
-            return new SegmentedEnumerator(m_Table, findKeysQuery);
+            return new SegmentedEnumerator(m_Table, findKeysQuery, (key, obj) =>
+            {
+                // Must be an item with an integer key, which is greater than the target key
+                if (key == null) return false;
+                if (key.Count != 1) return false;
+                if (key[0].Type != JTokenType.Integer) return false;
+
+                return key[0].Value<long>() > appendKey;
+            });
         }
 
         /// <summary>

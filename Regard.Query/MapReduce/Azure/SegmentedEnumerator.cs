@@ -36,13 +36,22 @@ namespace Regard.Query.MapReduce.Azure
         /// </summary>
         private int m_NextResultIndex;
 
-        public SegmentedEnumerator(CloudTable table, TableQuery<JsonTableEntity> query)
+        /// <summary>
+        /// Function used to decide if a result is included or excluded from the results, or null if all results should be included
+        /// </summary>
+        /// <remarks>
+        /// Filterfuncs should ideally accept most items; performance will be hurt if a lot of irrelevant records are retrieved by the query
+        /// </remarks>
+        private readonly Func<JArray, JObject, bool> m_FilterFunc;
+
+        public SegmentedEnumerator(CloudTable table, TableQuery<JsonTableEntity> query, Func<JArray, JObject, bool> filterFunc)
         {
             if (table == null) throw new ArgumentNullException("table");
             if (query == null) throw new ArgumentNullException("query");
 
             m_Table = table;
             m_Query = query;
+            m_FilterFunc = filterFunc;
 
             // Start fetching the initial set of data
             m_NextSegmentTask = m_Table.ExecuteQuerySegmentedAsync(query, null);
@@ -97,6 +106,12 @@ namespace Regard.Query.MapReduce.Azure
             // Parse the Json/key for this result
             var nextResultObj = JObject.Parse(nextResult.SerializedJson);
             var nextResultKey = JArray.Parse(nextResult.SerializedKey);
+
+            if (m_FilterFunc != null && !m_FilterFunc(nextResultKey, nextResultObj))
+            {
+                // This object is filtered by the filterFunc: ignore it and get the next one
+                return await FetchNext();
+            }
 
             // Return this as the result
             return new Tuple<JArray, JObject>(nextResultKey, nextResultObj);
