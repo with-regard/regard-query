@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -421,6 +422,8 @@ namespace Regard.Query.MapReduce.Azure
 
             // Select all the items and then batch delete them
             // See http://wintellect.com/blogs/jlane/deleting-entities-in-windows-azure-table-storage for the basic technique used here
+            // This works best on small groups of items; luckily this is true unless we're deleting entire projects (which will take a while...)
+            // We should consider a 'one table per project' system to avoid problems here.
             Dictionary<string, TableBatchOperation> batches = new Dictionary<string, TableBatchOperation>();
 
             var currentSegment = await m_Table.ExecuteQuerySegmentedAsync(allKeysQuery, null);
@@ -443,7 +446,15 @@ namespace Regard.Query.MapReduce.Azure
                     if (partitionBatchOp.Count >= 100)
                     {
                         // Execute this batch when it gets large enough
-                        await m_Table.ExecuteBatchAsync(partitionBatchOp);
+                        try
+                        {
+                            await m_Table.ExecuteBatchAsync(partitionBatchOp);
+                        }
+                        catch (StorageException e)
+                        {
+                            Trace.WriteLine(e.ToString());
+                            throw;
+                        }
                         batches[value.PartitionKey] = new TableBatchOperation();
                     }
                 }
@@ -455,7 +466,15 @@ namespace Regard.Query.MapReduce.Azure
                 // Sometimes the batches might be empty
                 if (batchOp.Value.Count <= 0) continue;
 
-                await m_Table.ExecuteBatchAsync(batchOp.Value);
+                try
+                {
+                    await m_Table.ExecuteBatchAsync(batchOp.Value);
+                }
+                catch (StorageException e)
+                {
+                    Trace.WriteLine(e.ToString());
+                    throw;
+                }
             }
         }
 
