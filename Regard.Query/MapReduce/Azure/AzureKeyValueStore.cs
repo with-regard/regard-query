@@ -41,6 +41,11 @@ namespace Regard.Query.MapReduce.Azure
         private readonly string m_Partition;
 
         /// <summary>
+        /// Child stores that have been previously retrieved (and so should remain as the same object)
+        /// </summary>
+        private readonly Dictionary<string, AzureKeyValueStore> m_KnownChildStores = new Dictionary<string, AzureKeyValueStore>();
+
+        /// <summary>
         /// Creates a new key value store using an Azure table
         /// </summary>
         public AzureKeyValueStore(string connectionString, string tableName)
@@ -138,10 +143,20 @@ namespace Regard.Query.MapReduce.Azure
         /// </remarks>
         public IKeyValueStore ChildStore(JArray key)
         {
-            var extraPartitionKey = CreateKey(key);
+            lock (m_Sync)
+            {
+                var extraPartitionKey = CreateKey(key);
 
-            // Use '--' to separate child stores to prevent clashes between similar names
-            return new AzureKeyValueStore(m_Table, m_Partition + "--" + extraPartitionKey);
+                // Retrieve the previous store or create a new one if the key is new
+                AzureKeyValueStore result;
+                if (!m_KnownChildStores.TryGetValue(extraPartitionKey, out result))
+                {
+                    // Use '--' to separate child stores to prevent clashes between similar names
+                    m_KnownChildStores[extraPartitionKey] = result = new AzureKeyValueStore(m_Table, m_Partition + "--" + extraPartitionKey);
+                }
+
+                return result;
+            }
         }
 
         /// <summary>

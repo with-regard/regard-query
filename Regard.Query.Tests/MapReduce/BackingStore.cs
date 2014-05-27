@@ -9,7 +9,6 @@ using Regard.Query.MapReduce.Azure;
 
 namespace Regard.Query.Tests.MapReduce
 {
-    // TODO: appendvalue on child stores retrieved independently
     // TODO: restart appendvalue on a fresh data store (simulate restart)
     // TODO: deleting a child store doesn't delete similar stores
 
