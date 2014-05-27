@@ -153,7 +153,7 @@ namespace Regard.Query.MapReduce.Azure
 
                 // Delete the existing entity
                 // Azure Table Storage only actually uses the row/partition key with Delete but takes an entire entity anyway :-/
-                var deleteCommand = TableOperation.Delete(new DynamicTableEntity(m_Partition, rowKeyString));
+                var deleteCommand = TableOperation.Delete(new DynamicTableEntity(m_Partition, rowKeyString) { ETag = "*" });
                 await m_Table.ExecuteAsync(deleteCommand);
             }
             else
