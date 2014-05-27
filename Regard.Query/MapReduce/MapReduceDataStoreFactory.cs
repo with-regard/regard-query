@@ -18,9 +18,16 @@ namespace Regard.Query.MapReduce
             return new DataStore(new MemoryKeyValueStore(), "test-node");
         }
 
-        public static IRegardDataStore CreateAzureTableDataStore(string connectionName, string tableName, string nodeName)
+        /// <summary>
+        /// Creates a map/reduce data store that is backed by an Azure table
+        /// </summary>
+        /// <param name="connectionString">The connection string for the Azure storage instance</param>
+        /// <param name="tableName">The name of the table where data should be written</param>
+        /// <param name="nodeName">The name of the current node. Every running instance must have a unique node name so that data is always written to an independent partition</param>
+        /// <returns>A data store for the specified table</returns>
+        public static IRegardDataStore CreateAzureTableDataStore(string connectionString, string tableName, string nodeName)
         {
-            return new DataStore(new AzureKeyValueStore(connectionName, tableName), nodeName);
+            return new DataStore(new AzureKeyValueStore(connectionString, tableName), nodeName);
         }
     }
 }
