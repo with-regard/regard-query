@@ -172,16 +172,17 @@ namespace Regard.Query.Samples
                     SessionId = 8
                 }));
 
-                // 100 sessions of 100 events each.
-                // 10000 sessions is likely from a medium-sized open-source project
-                // 100 events per session is on the high side but not necessarily unreasonable
-                await GenerateData(recorder, WellKnownUserIdentifier.TestUser, 100, 100, 1);
-
-                // Try querying the database
+                // Ensure that the product exists
+                await dataStore.Products.CreateProduct("WithRegard", "Test");
                 var testWithRegard = await dataStore.Products.GetProduct("WithRegard", "Test");
 
                 // Opt in a random user
                 await testWithRegard.Users.OptIn(Guid.NewGuid());
+
+                // 100 sessions of 100 events each.
+                // 10000 sessions is likely from a medium-sized open-source project
+                // 100 events per session is on the high side but not necessarily unreasonable
+                await GenerateData(recorder, WellKnownUserIdentifier.TestUser, 10, 100, 1);
 
                 var builder = testWithRegard.CreateQueryBuilder();
                 IRegardQuery result = builder.AllEvents();
