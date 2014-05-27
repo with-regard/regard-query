@@ -8,11 +8,6 @@ namespace Regard.Query.MapReduce.Azure
     class JsonTableEntity : TableEntity
     {
         /// <summary>
-        /// -1, or the index for this item (if generated as an indexed item)
-        /// </summary>
-        public long Index { get; set; }
-
-        /// <summary>
         /// The fully serialized key for this item
         /// </summary>
         public string SerializedKey { get; set; }

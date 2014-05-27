@@ -76,7 +76,6 @@ namespace Regard.Query.MapReduce.Azure
 
             newEntity.RowKey            = rowKeyString;
             newEntity.PartitionKey      = m_Partition;
-            newEntity.Index             = -1;
             newEntity.SerializedKey     = key.ToString(Formatting.None);
             newEntity.SerializedJson    = data.ToString(Formatting.None);
 
@@ -441,6 +440,7 @@ namespace Regard.Query.MapReduce.Azure
                     }
 
                     // Delete this item
+                    Trace.WriteLine(value.RowKey);
                     partitionBatchOp.Add(TableOperation.Delete(value));
 
                     if (partitionBatchOp.Count >= 100)
@@ -457,6 +457,16 @@ namespace Regard.Query.MapReduce.Azure
                         }
                         batches[value.PartitionKey] = new TableBatchOperation();
                     }
+                }
+
+                // Fetch the next segment
+                if (currentSegment.ContinuationToken != null)
+                { 
+                    currentSegment = await m_Table.ExecuteQuerySegmentedAsync(allKeysQuery, currentSegment.ContinuationToken);
+                }
+                else
+                {
+                    currentSegment = null;
                 }
             }
 
