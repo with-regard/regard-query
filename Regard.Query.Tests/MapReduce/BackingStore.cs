@@ -357,6 +357,7 @@ namespace Regard.Query.Tests.MapReduce
                 var store = CreateStoreToTest();
 
                 var keyValue = await store.AppendValue(JObject.FromObject(new { Something = "Hello" }));
+                await store.Commit();
 
                 var retrievedObject = await store.GetValue(new JArray(keyValue));
                 Assert.IsNotNull(retrievedObject);
@@ -379,6 +380,8 @@ namespace Regard.Query.Tests.MapReduce
                     appendKeyIndex = thisKeyIndex;
                 }
             }
+
+            await store.Commit();
 
             return appendKeyIndex;
         }
