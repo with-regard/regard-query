@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Regard.Query.Api;
@@ -12,11 +13,16 @@ namespace Regard.Query.MapReduce
     /// </summary>
     class QueryableProduct : IQueryableProduct, IUserAdmin
     {
+        private readonly object m_Sync = new object();
+
         private readonly IndividualProductDataStore m_ProductDataStore;
-
         private readonly QueryDataStore m_QueryDataStore;
-
         private readonly UserDataStore m_UserDataStore;
+
+        /// <summary>
+        /// List of queries that are in the process of being updated
+        /// </summary>
+        private readonly Dictionary<string, Task> m_UpdatingQueries = new Dictionary<string, Task>();
 
         /// <summary>
         /// The name of the node that this query represents
@@ -96,59 +102,97 @@ namespace Regard.Query.MapReduce
         /// Causes the results for a query to be updated
         /// </summary>
         /// <param name="queryName">The name of the query that should be updated</param>
-        /// <param name="queryDefinition"></param>
+        /// <param name="queryDefinition">The definition for the query as retrieved from the database</param>
         private async Task UpdateQuery(string queryName, JObject queryDefinition)
         {
-            // Get the query definition
-            var queryJson = queryDefinition["Query"].Value<JObject>();
+            var updateComplete = new TaskCompletionSource<bool>();
+            Task activeUpdate;
 
-            // Turn into a map/reduce querty
-            var mapReduce = MapReduceQueryFactory.GenerateMapReduce(queryJson);
-
-            // Create an ingestor for this query
-            // Update on a per-node basis
-            //
-            // One disadvantage of this technique is that multiple nodes need to run the query multiple times; you can't process some events on some nodes
-            // and then aggregate the results later on. This is a scaling issue so it is not critical at this time.
-            //
-            // To fix this issue, we could send updated results around the nodes using a service bus
-            var ingestor        = m_ProductDataStore.CreateIngestorForQuery(queryName, m_NodeName, mapReduce);
-
-            // Get the status of this query
-            var previousQueryStatus = await m_ProductDataStore.GetQueryStatus(queryName, m_NodeName);
-
-            if (previousQueryStatus == null)
+            lock (m_Sync)
             {
-                previousQueryStatus = JObject.FromObject(new {LastProcessedIndex = -1});
-            }
-
-            // Get the last processed index for this query
-            var lastProcessedIndex = previousQueryStatus["LastProcessedIndex"].Value<long>();
-
-            // Ingest any data that has arrived since the query was last processed
-            // TODO: we want to ingest data for all nodes, not just this one. Right now we only need one node, so this is a stop-gap measure
-            var eventStore              = m_ProductDataStore.GetRawEventStore(m_NodeName);
-            var dataSinceLastQuery      = eventStore.EnumerateValuesAppendedSince(lastProcessedIndex);
-            var newLastProcessedIndex   = lastProcessedIndex;
-
-            for (var newEvent = await dataSinceLastQuery.FetchNext(); newEvent != null; newEvent = await dataSinceLastQuery.FetchNext())
-            {
-                ingestor.Ingest(newEvent.Item2);
-
-                // Make a note of the most recently processed event
-                var thisIndex = newEvent.Item1[0].Value<long>();
-                if (thisIndex > newLastProcessedIndex)
+                if (!m_UpdatingQueries.TryGetValue(queryName, out activeUpdate))
                 {
-                    newLastProcessedIndex = thisIndex;
+                    // This becomes the active update
+                    activeUpdate = null;
+
+                    // Other threads should just wait for this update to complete
+                    m_UpdatingQueries[queryName] = updateComplete.Task;
                 }
             }
-            await ingestor.Commit();
 
-            // Update the query status
-            if (newLastProcessedIndex != lastProcessedIndex)
+            // If another thread is updating the query, just wait for it to finish
+            if (activeUpdate != null)
             {
-                var updatedQueryStatus = JObject.FromObject(new {LastProcessedIndex = newLastProcessedIndex});
-                await m_ProductDataStore.SetQueryStatus(queryName, m_NodeName, updatedQueryStatus);
+                await activeUpdate;
+                return;
+            }
+
+            try
+            {
+                // Get the query definition
+                var queryJson = queryDefinition["Query"].Value<JObject>();
+
+                // Turn into a map/reduce querty
+                var mapReduce = MapReduceQueryFactory.GenerateMapReduce(queryJson);
+
+                // Create an ingestor for this query
+                // Update on a per-node basis
+                //
+                // One disadvantage of this technique is that multiple nodes need to run the query multiple times; you can't process some events on some nodes
+                // and then aggregate the results later on. This is a scaling issue so it is not critical at this time.
+                //
+                // To fix this issue, we could send updated results around the nodes using a service bus
+                var ingestor = m_ProductDataStore.CreateIngestorForQuery(queryName, m_NodeName, mapReduce);
+
+                // Get the status of this query
+                var previousQueryStatus = await m_ProductDataStore.GetQueryStatus(queryName, m_NodeName);
+
+                if (previousQueryStatus == null)
+                {
+                    previousQueryStatus = JObject.FromObject(new {LastProcessedIndex = -1});
+                }
+
+                // Get the last processed index for this query
+                var lastProcessedIndex = previousQueryStatus["LastProcessedIndex"].Value<long>();
+
+                // Ingest any data that has arrived since the query was last processed
+                // TODO: we want to ingest data for all nodes, not just this one. Right now we only need one node, so this is a stop-gap measure
+                var eventStore = m_ProductDataStore.GetRawEventStore(m_NodeName);
+                var dataSinceLastQuery = eventStore.EnumerateValuesAppendedSince(lastProcessedIndex);
+                var newLastProcessedIndex = lastProcessedIndex;
+
+                for (var newEvent = await dataSinceLastQuery.FetchNext();
+                    newEvent != null;
+                    newEvent = await dataSinceLastQuery.FetchNext())
+                {
+                    ingestor.Ingest(newEvent.Item2);
+
+                    // Make a note of the most recently processed event
+                    var thisIndex = newEvent.Item1[0].Value<long>();
+                    if (thisIndex > newLastProcessedIndex)
+                    {
+                        newLastProcessedIndex = thisIndex;
+                    }
+                }
+                await ingestor.Commit();
+
+                // Update the query status
+                if (newLastProcessedIndex != lastProcessedIndex)
+                {
+                    var updatedQueryStatus = JObject.FromObject(new {LastProcessedIndex = newLastProcessedIndex});
+                    await m_ProductDataStore.SetQueryStatus(queryName, m_NodeName, updatedQueryStatus);
+                }
+            }
+            finally
+            {
+                lock (m_Sync)
+                {
+                    // We're no longer the active update
+                    m_UpdatingQueries.Remove(queryName);
+                }
+
+                // Wake up any threads that might have been waiting on this update
+                updateComplete.SetResult(true);
             }
         }
 
