@@ -9,6 +9,19 @@ namespace Regard.Query.Tests.Api
     /// </summary>
     public static class TestDataStoreFactory
     {
+        public static string GetTestConnectionString()
+        {
+            // Try to read a connection string from an environment variable
+            var environmentString = Environment.GetEnvironmentVariable("REGARDTESTCONNECTIONSTRING");
+            if (environmentString != null)
+            {
+                return environmentString;
+            }
+
+            // Use the local development storage if no connection string is set
+            return "UseDevelopmentStorage=true";
+        }
+
         public static IRegardDataStore CreateEmptyDataStore(string dataStoreType)
         {
             switch (dataStoreType)
@@ -20,7 +33,7 @@ namespace Regard.Query.Tests.Api
                 case "LocalAzureTableStore":
                     // Use an in-memory data store for testing purposes (will check that the algorithms work independently of needing actual backing store/server capacity)
                     var storeKey = new Random().Next(int.MaxValue).ToString();
-                    return MapReduceDataStoreFactory.CreateAzureTableDataStore("UseDevelopmentStorage=true", "TestDataStore" + storeKey, "TestNode");
+                    return MapReduceDataStoreFactory.CreateAzureTableDataStore(GetTestConnectionString(), "TestDataStore" + storeKey, "TestNode");
 
                 default:
                     throw new InvalidOperationException("Unknown data store type");

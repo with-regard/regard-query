@@ -6,6 +6,7 @@ using NUnit.Framework;
 using Regard.Query.Api;
 using Regard.Query.MapReduce;
 using Regard.Query.MapReduce.Azure;
+using Regard.Query.Tests.Api;
 
 namespace Regard.Query.Tests.MapReduce
 {
@@ -37,7 +38,7 @@ namespace Regard.Query.Tests.MapReduce
 
                 case "LocalAzureTableStore":
                     m_LastStoreKey = new Random().Next(int.MaxValue).ToString();
-                    return new AzureKeyValueStore("UseDevelopmentStorage=true", "TestTable" + m_LastStoreKey);
+                    return new AzureKeyValueStore(TestDataStoreFactory.GetTestConnectionString(), "TestTable" + m_LastStoreKey);
 
                 default:
                     Assert.Fail();
@@ -57,7 +58,7 @@ namespace Regard.Query.Tests.MapReduce
                     return m_LastMemoryStore;
 
                 case "LocalAzureTableStore":
-                    return new AzureKeyValueStore("UseDevelopmentStorage=true", "TestTable" + m_LastStoreKey);
+                    return new AzureKeyValueStore(TestDataStoreFactory.GetTestConnectionString(), "TestTable" + m_LastStoreKey);
 
                 default:
                     Assert.Fail();
