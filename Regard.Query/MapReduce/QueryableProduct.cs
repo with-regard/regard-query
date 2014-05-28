@@ -85,6 +85,9 @@ namespace Regard.Query.MapReduce
                 var serializable = query as SerializableQuery;
                 if (serializable == null) throw new ArgumentException("Invalid query object", "query");
 
+                // Ensure that the data is up to date for this node
+                await m_ProductDataStore.Commit(m_NodeName);
+
                 // Generate data for this particular query
                 JObject queryData = new JObject();
 
@@ -145,6 +148,8 @@ namespace Regard.Query.MapReduce
         /// <param name="queryDefinition">The definition for the query as retrieved from the database</param>
         private async Task UpdateQuery(string queryName, JObject queryDefinition)
         {
+            await m_ProductDataStore.Commit(m_NodeName);
+
             var updateComplete = new TaskCompletionSource<bool>();
             Task activeUpdate;
 

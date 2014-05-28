@@ -47,6 +47,21 @@ namespace Regard.Query.MapReduce.Azure
         private readonly Dictionary<string, AzureKeyValueStore> m_KnownChildStores = new Dictionary<string, AzureKeyValueStore>();
 
         /// <summary>
+        /// Batched up append operations, or null if there are none
+        /// </summary>
+        private TableBatchOperation m_AppendBatch;
+
+        /// <summary>
+        /// Batched operations that are awaiting completion
+        /// </summary>
+        private readonly List<Task> m_InProgressOperations = new List<Task>();
+
+        /// <summary>
+        /// Task that ensures that this object commits its data after a delay
+        /// </summary>
+        private Task m_DelayedCommitTask;
+
+        /// <summary>
         /// Creates a new key value store using an Azure table
         /// </summary>
         public AzureKeyValueStore(string connectionString, string tableName)
@@ -255,6 +270,79 @@ namespace Regard.Query.MapReduce.Azure
         }
 
         /// <summary>
+        /// Finishes off a batch of append operations
+        /// </summary>
+        private void FinishAppendBatch()
+        {
+            var indexKey = CreateInternalKey("AppendIndex");
+
+            lock (m_Sync)
+            {
+                // Nothing to do if no append operations have been batched up
+                if (m_AppendBatch == null)
+                {
+                    return;
+                }
+
+                // The 100th operation should update the key
+                var keyEntity = new AppendIndexStatusEntity
+                {
+                    RowKey = indexKey,
+                    PartitionKey = m_Partition,
+                    LastAppendIndex = m_NextAppendIndex
+                };
+                var storeLatestOperation = TableOperation.InsertOrReplace(keyEntity);
+
+                m_AppendBatch.Add(storeLatestOperation);
+
+                // Begin executing the append batch
+                m_InProgressOperations.Add(m_Table.ExecuteBatchAsync(m_AppendBatch));
+
+                // Clear the batch operation
+                m_AppendBatch = null;
+            }
+        }
+
+        /// <summary>
+        /// Ensures that this key/value store periodically commits any data that is queued up
+        /// </summary>
+        private void QueueCommit()
+        {
+            // Time to commit from the first operation that requires a commit
+            const int queueCommitDelayMilliseconds = 30000;
+
+            lock (m_Sync)
+            {
+                if (m_DelayedCommitTask != null)
+                {
+                    // Create a new commit task
+                    Task newCommitTask = null;
+                    
+                    newCommitTask = Task.Run(async () =>
+                    {
+                        // Wait for a while
+                        await Task.Delay(TimeSpan.FromMilliseconds(queueCommitDelayMilliseconds));
+
+                        // This commit task is complete
+                        lock (m_Sync)
+                        {
+                            if (ReferenceEquals(newCommitTask, m_DelayedCommitTask))
+                            {
+                                m_DelayedCommitTask = null;
+                            }
+                        }
+
+                        // Force a commit
+                        await Commit();
+                    });
+
+                    // This becomes the active commit task
+                    m_DelayedCommitTask = newCommitTask;
+                }
+            }
+        }
+
+        /// <summary>
         /// Assigns a key that is unique to this child store and uses it as a key to store a value. The store guarantees that this will be unique within this process, but not 
         /// if the same child store is being accessed by multiple processes.
         /// </summary>
@@ -265,8 +353,6 @@ namespace Regard.Query.MapReduce.Azure
         /// </returns>
         public async Task<long> AppendValue(JObject value)
         {
-            var indexKey = CreateInternalKey("AppendIndex");
-
             long nextValue = -1;
             lock (m_Sync)
             {
@@ -293,37 +379,31 @@ namespace Regard.Query.MapReduce.Azure
             // Generate a key for this value and store in the table
             JArray valueKey = JArray.FromObject(new[] {nextValue});
 
-            // Store this as the latest key
-            Task storeLatest = null;
+            // Start a new batch operation if none exists
             lock (m_Sync)
             {
-                if (nextValue + 1 == m_NextAppendIndex)
+                // Create the batch operation
+                if (m_AppendBatch == null)
                 {
-                    // This is the latest key
-                    var keyEntity = new AppendIndexStatusEntity
-                    {
-                        RowKey = indexKey,
-                        PartitionKey = m_Partition,
-                        LastAppendIndex = m_NextAppendIndex
-                    };
-                    var storeLatestOperation = TableOperation.InsertOrReplace(keyEntity);
+                    m_AppendBatch = new TableBatchOperation();
+                }
 
-                    storeLatest = m_Table.ExecuteAsync(storeLatestOperation);
+                // Append the latest query
+                var newEntity = CreateEntity(valueKey, value);
+
+                var insertCommand = TableOperation.InsertOrReplace(newEntity);
+                m_AppendBatch.Add(insertCommand);
+
+                // Once we reach the end of the batch, store the most recent key
+                // TODO: use an etag to ensure that only the actual most recent key gets update
+                if (m_AppendBatch.Count >= 99)
+                {
+                    FinishAppendBatch();
                 }
             }
 
-            // Store the value associated with this key
-            var storeTask = SetValue(valueKey, value);
-
-            // Wait for the tasks to complete
-            if (storeLatest != null)
-            {
-                await Task.WhenAll(storeLatest, storeTask);
-            }
-            else
-            {
-                await storeTask;
-            }
+            // Ensure that the data is eventually committed to the database
+            QueueCommit();
 
             // Return the appended value
             return nextValue;
@@ -517,8 +597,23 @@ namespace Regard.Query.MapReduce.Azure
         /// </summary>
         public async Task Commit()
         {
-            // Right now, this is a no-op. If we ever support caching or batching operations - and we should - this should clear out the current batch
-            // I won't suppress the warning so that we get some kind of reminder this would be a good idea
+            List<Task> waitingTasks;
+
+            lock (m_Sync)
+            {
+                // Finish any append batch that was waiting
+                FinishAppendBatch();
+
+                // Wait for any queued tasks to complete
+                waitingTasks = new List<Task>(m_InProgressOperations);
+                m_InProgressOperations.Clear();
+            }
+
+            // Wait for everything to finish updating
+            if (waitingTasks.Count > 0)
+            {
+                await Task.WhenAll(waitingTasks);
+            }
         }
     }
 }
