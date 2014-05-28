@@ -313,16 +313,13 @@ namespace Regard.Query.MapReduce.Azure
 
             lock (m_Sync)
             {
-                if (m_DelayedCommitTask != null)
+                if (m_DelayedCommitTask == null)
                 {
                     // Create a new commit task
-                    Task newCommitTask = null;
+                    Task newCommitTask = Task.Delay(TimeSpan.FromMilliseconds(queueCommitDelayMilliseconds));
                     
-                    newCommitTask = Task.Run(async () =>
+                    newCommitTask.ContinueWith(async task =>
                     {
-                        // Wait for a while
-                        await Task.Delay(TimeSpan.FromMilliseconds(queueCommitDelayMilliseconds));
-
                         // This commit task is complete
                         lock (m_Sync)
                         {
