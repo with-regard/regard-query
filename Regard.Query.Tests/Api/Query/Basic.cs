@@ -4,15 +4,23 @@ using Regard.Query.Api;
 
 namespace Regard.Query.Tests.Api.Query
 {
-    [TestFixture]
+    [TestFixture("InMemory")]
+    [TestFixture("LocalAzureTableStore")]
     class Basic
     {
+        private string m_DataStoreType;
+
+        public Basic(string dataStoreType)
+        {
+            m_DataStoreType = dataStoreType;
+        }
+
         [Test]
         public void CanCreateAQueryBuilder()
         {
             Task.Run(async () =>
             {
-                var store = await TestQueryBuilder.CreateEmptyDataStore();
+                var store = await TestQueryBuilder.CreateEmptyDataStore(m_DataStoreType);
                 var testProduct = await store.Products.GetProduct("WithRegard", "Test");
 
                 var builder = testProduct.CreateQueryBuilder();
@@ -25,7 +33,7 @@ namespace Regard.Query.Tests.Api.Query
         {
             Task.Run(async () =>
             {
-                var store = await TestQueryBuilder.CreateEmptyDataStore();
+                var store = await TestQueryBuilder.CreateEmptyDataStore(m_DataStoreType);
                 var testProduct = await store.Products.GetProduct("WithRegard", "Test");
 
                 var builder = testProduct.CreateQueryBuilder();
@@ -44,7 +52,7 @@ namespace Regard.Query.Tests.Api.Query
             Task.Run(async () =>
             {
                 // Register the query, as before
-                var store = await TestQueryBuilder.CreateEmptyDataStore();
+                var store = await TestQueryBuilder.CreateEmptyDataStore(m_DataStoreType);
                 var testProduct = await store.Products.GetProduct("WithRegard", "Test");
 
                 var queryResult = await testProduct.RunQuery("test");
@@ -58,7 +66,7 @@ namespace Regard.Query.Tests.Api.Query
             Task.Run(async () =>
             {
                 // Register the query, as before
-                var store = await TestQueryBuilder.CreateEmptyDataStore();
+                var store = await TestQueryBuilder.CreateEmptyDataStore(m_DataStoreType);
                 var testProduct = await store.Products.GetProduct("WithRegard", "Test");
 
                 var builder = testProduct.CreateQueryBuilder();
@@ -90,7 +98,7 @@ namespace Regard.Query.Tests.Api.Query
             Task.Run(async () =>
             {
                 // Register the query, as before
-                var store = await TestQueryBuilder.CreateEmptyDataStore();
+                var store = await TestQueryBuilder.CreateEmptyDataStore(m_DataStoreType);
                 var testProduct = await store.Products.GetProduct("WithRegard", "Test");
 
                 // Run the events through before the query is registered
@@ -124,7 +132,7 @@ namespace Regard.Query.Tests.Api.Query
             Task.Run(async () =>
             {
                 // Register the query, as before
-                var store = await TestQueryBuilder.CreateEmptyDataStore();
+                var store = await TestQueryBuilder.CreateEmptyDataStore(m_DataStoreType);
                 var testProduct = await store.Products.GetProduct("WithRegard", "Test");
 
                 var builder = testProduct.CreateQueryBuilder();
@@ -160,7 +168,7 @@ namespace Regard.Query.Tests.Api.Query
             Task.Run(async () =>
             {
                 // Register the query, as before
-                var store = await TestQueryBuilder.CreateEmptyDataStore();
+                var store = await TestQueryBuilder.CreateEmptyDataStore(m_DataStoreType);
                 var testProduct = await store.Products.GetProduct("WithRegard", "Test");
 
                 var builder = testProduct.CreateQueryBuilder();
@@ -216,7 +224,7 @@ namespace Regard.Query.Tests.Api.Query
             Task.Run(async () =>
             {
                 // Register the query, as before
-                var store = await TestQueryBuilder.CreateEmptyDataStore();
+                var store = await TestQueryBuilder.CreateEmptyDataStore(m_DataStoreType);
                 var testProduct = await store.Products.GetProduct("WithRegard", "Test");
 
                 var builder = testProduct.CreateQueryBuilder();

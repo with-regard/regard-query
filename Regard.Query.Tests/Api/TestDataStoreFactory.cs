@@ -1,4 +1,5 @@
-﻿using Regard.Query.Api;
+﻿using System;
+using Regard.Query.Api;
 using Regard.Query.MapReduce;
 
 namespace Regard.Query.Tests.Api
@@ -8,10 +9,22 @@ namespace Regard.Query.Tests.Api
     /// </summary>
     public static class TestDataStoreFactory
     {
-        public static IRegardDataStore CreateEmptyDataStore()
+        public static IRegardDataStore CreateEmptyDataStore(string dataStoreType)
         {
-            // Use an in-memory data store for testing purposes (will check that the algorithms work independently of needing actual backing store/server capacity)
-            return MapReduceDataStoreFactory.CreateInMemoryTemporaryDataStore();
+            switch (dataStoreType)
+            {
+                case "InMemory":
+                    // Use an in-memory data store for testing purposes (will check that the algorithms work independently of needing actual backing store/server capacity)
+                    return MapReduceDataStoreFactory.CreateInMemoryTemporaryDataStore();
+
+                case "LocalAzureTableStore":
+                    // Use an in-memory data store for testing purposes (will check that the algorithms work independently of needing actual backing store/server capacity)
+                    var storeKey = new Random().Next(int.MaxValue).ToString();
+                    return MapReduceDataStoreFactory.CreateAzureTableDataStore("UseDevelopmentStorage=true", "TestDataStore" + storeKey, "TestNode");
+
+                default:
+                    throw new InvalidOperationException("Unknown data store type");
+            }
         }
     }
 }

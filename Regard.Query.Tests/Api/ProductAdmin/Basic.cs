@@ -3,15 +3,23 @@ using NUnit.Framework;
 
 namespace Regard.Query.Tests.Api.ProductAdmin
 {
-    [TestFixture]
+    [TestFixture("InMemory")]
+    [TestFixture("LocalAzureTableStore")]
     public class Basic
     {
+        private string m_DataStoreType;
+
+        public Basic(string dataStoreType)
+        {
+            m_DataStoreType = dataStoreType;
+        }
+
         [Test]
         public void CanCreateAProduct()
         {
             Task.Run(async () =>
             {
-                var store = TestDataStoreFactory.CreateEmptyDataStore();
+                var store = TestDataStoreFactory.CreateEmptyDataStore(m_DataStoreType);
                 await store.Products.CreateProduct("WithRegard", "Test");
             }).Wait();
         }
@@ -21,7 +29,7 @@ namespace Regard.Query.Tests.Api.ProductAdmin
         {
             Task.Run(async () =>
             {
-                var store = TestDataStoreFactory.CreateEmptyDataStore();
+                var store = TestDataStoreFactory.CreateEmptyDataStore(m_DataStoreType);
                 await store.Products.CreateProduct("WithRegard", "Test");
 
                 var retrievedProduct = await store.Products.GetProduct("WithRegard", "Test");
@@ -34,7 +42,7 @@ namespace Regard.Query.Tests.Api.ProductAdmin
         {
             Task.Run(async () =>
             {
-                var store = TestDataStoreFactory.CreateEmptyDataStore();
+                var store = TestDataStoreFactory.CreateEmptyDataStore(m_DataStoreType);
 
                 var retrievedProduct = await store.Products.GetProduct("WithRegard", "Test");
                 Assert.IsNull(retrievedProduct);

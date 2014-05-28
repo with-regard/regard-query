@@ -8,9 +8,9 @@ namespace Regard.Query.Tests.Api.EventRecorder
     /// </summary>
     static class SetupTestProject
     {
-        public static async Task<IRegardDataStore> CreateEventRecorderTestProject()
+        public static async Task<IRegardDataStore> CreateEventRecorderTestProject(string dataStoreType)
         {
-            var store = TestDataStoreFactory.CreateEmptyDataStore();
+            var store = TestDataStoreFactory.CreateEmptyDataStore(dataStoreType);
 
             // Create the WithRegard/Test product
             await store.Products.CreateProduct("WithRegard", "Test");

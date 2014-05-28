@@ -6,9 +6,9 @@ namespace Regard.Query.Tests.Api.ProductAdmin.UserAdmin
 {
     static class TestUserAdminFactory
     {
-        public static async Task<IUserAdmin> CreateUserAdminForTestProduct()
+        public static async Task<IUserAdmin> CreateUserAdminForTestProduct(string dataStoreType)
         {
-            var store = TestDataStoreFactory.CreateEmptyDataStore();
+            var store = TestDataStoreFactory.CreateEmptyDataStore(dataStoreType);
 
             await store.Products.CreateProduct("WithRegard", "Test");
             var product = await store.Products.GetProduct("WithRegard", "Test");

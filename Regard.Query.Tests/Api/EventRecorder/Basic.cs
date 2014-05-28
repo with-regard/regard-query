@@ -5,15 +5,23 @@ using Regard.Query.Tests.MapReduce;
 
 namespace Regard.Query.Tests.Api.EventRecorder
 {
-    [TestFixture]
+    [TestFixture("InMemory")]
+    [TestFixture("LocalAzureTableStore")]
     class Basic
     {
+        private string m_DataStoreType;
+
+        public Basic(string dataStoreType)
+        {
+            m_DataStoreType = dataStoreType;
+        }
+
         [Test]
         public void CanRecordThe12BasicDocuments()
         {
             Task.Run(async () =>
             {
-                var store = await SetupTestProject.CreateEventRecorderTestProject();
+                var store = await SetupTestProject.CreateEventRecorderTestProject(m_DataStoreType);
 
                 // Use the API form that generates a session ID
                 var sessionId = await store.EventRecorder.StartSession("WithRegard", "Test", WellKnownUserIdentifier.TestUser, Guid.Empty);
@@ -29,7 +37,7 @@ namespace Regard.Query.Tests.Api.EventRecorder
         {
             Task.Run(async () =>
             {
-                var store = await SetupTestProject.CreateEventRecorderTestProject();
+                var store = await SetupTestProject.CreateEventRecorderTestProject(m_DataStoreType);
 
                 // Specifying Guid.Empty as the session ID tells the event recorder to generate a session ID by itself
                 var sessionId = await store.EventRecorder.StartSession("WithRegard", "Test", WellKnownUserIdentifier.TestUser, Guid.Empty);
@@ -42,7 +50,7 @@ namespace Regard.Query.Tests.Api.EventRecorder
         {
             Task.Run(async () =>
             {
-                var store = await SetupTestProject.CreateEventRecorderTestProject();
+                var store = await SetupTestProject.CreateEventRecorderTestProject(m_DataStoreType);
 
                 // We want to allow the endpoint or the client to generate session IDs as well
                 // This is currently the way the live system generates session IDs.

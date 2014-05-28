@@ -10,9 +10,9 @@ namespace Regard.Query.Tests.Api.Query
         /// <summary>
         /// Creates an empty data store with the 'WithRegard/Test' project and the test user opted-in
         /// </summary>
-        public static async Task<IRegardDataStore> CreateEmptyDataStore()
+        public static async Task<IRegardDataStore> CreateEmptyDataStore(string dataStoreType)
         {
-            var store = TestDataStoreFactory.CreateEmptyDataStore();
+            var store = TestDataStoreFactory.CreateEmptyDataStore(dataStoreType);
 
             await store.Products.CreateProduct("WithRegard", "Test");
 
