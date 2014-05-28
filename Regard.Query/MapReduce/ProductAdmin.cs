@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Regard.Query.Api;
@@ -11,8 +12,14 @@ namespace Regard.Query.MapReduce
     /// </summary>
     internal class ProductAdmin : IProductAdmin
     {
+        private readonly object m_Sync = new object();
         private readonly ProductDataStore m_DataStore;
         private readonly string m_NodeName;
+
+        /// <summary>
+        /// Cached products that we've already created objects for
+        /// </summary>
+        private readonly Dictionary<Tuple<string, string>, QueryableProduct> m_KnownProducts = new Dictionary<Tuple<string, string>, QueryableProduct>(); 
 
         public ProductAdmin(RootDataStore dataStore, string nodeName)
         {
@@ -48,6 +55,18 @@ namespace Regard.Query.MapReduce
         /// </summary>
         public async Task<IQueryableProduct> GetProduct(string organization, string product)
         {
+            Tuple<string, string> name = new Tuple<string, string>(organization, product);
+            QueryableProduct result;
+
+            lock (m_Sync)
+            {
+                // Use an already known product if there is one
+                if (m_KnownProducts.TryGetValue(name, out result))
+                {
+                    return result;
+                }
+            }
+
             // Try to retrieve an existing product
             var existingProduct = await m_DataStore.GetSettingsObjectForProduct(organization, product);
 
@@ -58,7 +77,20 @@ namespace Regard.Query.MapReduce
             }
 
             // Create a new queryable store using a child store represented by the organization/product
-            return new QueryableProduct(await m_DataStore.DataStoreForIndividualProduct(organization, product), m_NodeName);
+            var newProduct = new QueryableProduct(await m_DataStore.DataStoreForIndividualProduct(organization, product), m_NodeName);
+
+            lock (m_Sync)
+            {
+                // Just use an existing product if another thread created one
+                if (m_KnownProducts.TryGetValue(name, out result))
+                {
+                    return result;
+                }
+
+                // Otherwise, remember this product and return it
+                m_KnownProducts[name] = newProduct;
+                return newProduct;
+            }
         }
     }
 }
