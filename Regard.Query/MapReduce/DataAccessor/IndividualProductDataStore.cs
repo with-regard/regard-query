@@ -63,5 +63,10 @@ namespace Regard.Query.MapReduce.DataAccessor
             var results = m_RawDataStore.ChildStore(new JArray("query-results", queryName)).ChildStore(new JArray(nodeName));
             return results;
         }
+
+        public async Task Commit(string nodeName)
+        {
+            await GetRawEventStore(nodeName).Commit();
+        }
     }
 }
