@@ -73,7 +73,7 @@
     <Compile Include="Api\IMapReduce.cs" />
     <Compile Include="Api\IMapTarget.cs" />
     <Compile Include="Api\IProductAdmin.cs" />
-    <Compile Include="Api\IProjectStoreRetrieval.cs" />
+    <Compile Include="Api\IProductStoreRetrieval.cs" />
     <Compile Include="Api\IQueryableProduct.cs" />
     <Compile Include="Api\IQueryBuilder.cs" />
     <Compile Include="Api\IRegardDataStore.cs" />
@@ -90,6 +90,7 @@
     <Compile Include="Flat\IPipelineAction.cs" />
     <Compile Include="MapReduce\Azure\AppendIndexStatusEntity.cs" />
     <Compile Include="MapReduce\Azure\AzureKeyValueStore.cs" />
+    <Compile Include="MapReduce\Azure\AzureStoreRetrieval.cs" />
     <Compile Include="MapReduce\Azure\JsonTableEntity.cs" />
     <Compile Include="MapReduce\Azure\SegmentedEnumerator.cs" />
     <Compile Include="MapReduce\DataAccessor\IndividualProductDataStore.cs" />
@@ -106,6 +107,7 @@
     <Compile Include="MapReduce\DataStore.cs" />
     <Compile Include="MapReduce\MapReduceDataStoreFactory.cs" />
     <Compile Include="MapReduce\EventRecorder.cs" />
+    <Compile Include="MapReduce\MemoryStoreRetrieval.cs" />
     <Compile Include="MapReduce\ProductAdmin.cs" />
     <Compile Include="MapReduce\MemoryKeyValueStore.cs" />
     <Compile Include="MapReduce\QueryableProduct.cs" />

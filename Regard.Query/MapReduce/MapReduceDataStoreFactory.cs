@@ -15,7 +15,7 @@ namespace Regard.Query.MapReduce
         {
             // The node name would be based on the instance ID on Azure.
             // Here we use 'test-node' as there's only one
-            return new DataStore(new MemoryKeyValueStore(), "test-node");
+            return new DataStore(new MemoryStoreRetrieval(), "test-node");
         }
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace Regard.Query.MapReduce
         /// <returns>A data store for the specified table</returns>
         public static IRegardDataStore CreateAzureTableDataStore(string connectionString, string tableName, string nodeName)
         {
-            return new DataStore(new AzureKeyValueStore(connectionString, tableName), nodeName);
+            return new DataStore(new AzureStoreRetrieval(connectionString, tableName), nodeName);
         }
     }
 }

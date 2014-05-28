@@ -33,7 +33,7 @@ namespace Regard.Query.MapReduce
         /// To allow for multiple nodes, we follow Microsoft's advice and use separate partitions for each data consumer. No two running consumers should use the same
         /// node name: events will be lost if this occurs
         /// </remarks>
-        public DataStore(IKeyValueStore store, string nodeName)
+        public DataStore(IProductStoreRetrieval store, string nodeName)
         {
             if (store == null) throw new ArgumentNullException("store");
 

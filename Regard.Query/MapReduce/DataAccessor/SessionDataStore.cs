@@ -13,16 +13,19 @@ namespace Regard.Query.MapReduce.DataAccessor
         /// <summary>
         /// The underlying data store
         /// </summary>
-        private IKeyValueStore m_RawSessionStore;
+        private IProductStoreRetrieval m_RawSessionStore;
 
-        public SessionDataStore(IKeyValueStore rawSesssionStore)
+        public SessionDataStore(IProductStoreRetrieval rawSesssionStore)
         {
             m_RawSessionStore = rawSesssionStore;
         }
 
-        public Task StoreSessionData(string organization, string product, Guid sessionId, JObject sessionData)
+        public async Task StoreSessionData(string organization, string product, Guid sessionId, JObject sessionData)
         {
-            return m_RawSessionStore.ChildStore(new JArray(organization, product)).SetValue(new JArray(sessionId.ToString()), sessionData);
+            var productStore = await m_RawSessionStore.GetStoreForProduct(organization, product);
+            var sessions = productStore.ChildStore(new JArray("sessions"));
+
+            await sessions.SetValue(new JArray(sessionId.ToString()), sessionData);
         }
     }
 }

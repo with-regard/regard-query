@@ -90,7 +90,7 @@ namespace Regard.Query.MapReduce
 
             // Write as a raw event
             // When the product executes a query, these events are read back in again in order to generate the results
-            var productStore    = m_RootDataStore.ProductDataStore.DataStoreForIndividualProduct(organization, product);
+            var productStore    = await m_RootDataStore.ProductDataStore.DataStoreForIndividualProduct(organization, product);
             var eventStore      = productStore.GetRawEventStore(m_NodeName);
 
             await eventStore.AppendValue(data);

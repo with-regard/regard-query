@@ -10,9 +10,9 @@ namespace Regard.Query.MapReduce.DataAccessor
     /// </summary>
     class ProductDataStore
     {
-        private readonly IKeyValueStore m_RawProductStore;
+        private readonly IProductStoreRetrieval m_RawProductStore;
 
-        public ProductDataStore(IKeyValueStore rawProductStore)
+        public ProductDataStore(IProductStoreRetrieval rawProductStore)
         {
             if (rawProductStore == null) throw new ArgumentNullException("rawProductStore");
             m_RawProductStore = rawProductStore;
@@ -28,7 +28,9 @@ namespace Regard.Query.MapReduce.DataAccessor
         /// </summary>
         public async Task<JObject> GetSettingsObjectForProduct(string organization, string product)
         {
-            return await m_RawProductStore.GetValue(KeyForProduct(organization, product));
+            var productStore = await m_RawProductStore.GetStoreForProduct(organization, product);
+
+            return await productStore.ChildStore(new JArray("settings")).GetValue(KeyForProduct(organization, product));
         }
 
         /// <summary>
@@ -36,15 +38,17 @@ namespace Regard.Query.MapReduce.DataAccessor
         /// </summary>
         public async Task SetSettingsObjectForProduct(string organization, string product, JObject productSettings)
         {
-            await m_RawProductStore.SetValue(KeyForProduct(organization, product), productSettings);
+            var productStore = await m_RawProductStore.GetStoreForProduct(organization, product);
+            await productStore.ChildStore(new JArray("settings")).SetValue(KeyForProduct(organization, product), productSettings);
         }
 
         /// <summary>
         /// Retrieves the data store object containing the data for a particular product
         /// </summary>
-        public IndividualProductDataStore DataStoreForIndividualProduct(string organization, string product)
+        public async Task<IndividualProductDataStore> DataStoreForIndividualProduct(string organization, string product)
         {
-            return new IndividualProductDataStore(m_RawProductStore.ChildStore(KeyForProduct(organization, product)));
+            var productStore = await m_RawProductStore.GetStoreForProduct(organization, product);
+            return new IndividualProductDataStore(productStore.ChildStore(new JArray("data")));
         }
     }
 }

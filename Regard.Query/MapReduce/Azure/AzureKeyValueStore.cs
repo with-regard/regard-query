@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -59,6 +60,14 @@ namespace Regard.Query.MapReduce.Azure
             m_Table.CreateIfNotExists();
 
             // The root partition is just the empty string
+            m_Partition = "";
+        }
+
+        public AzureKeyValueStore(CloudTable table)
+        {
+            if (table == null) throw new ArgumentNullException("table");
+
+            m_Table     = table;
             m_Partition = "";
         }
 

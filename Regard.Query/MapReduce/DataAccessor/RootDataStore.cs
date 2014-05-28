@@ -9,15 +9,15 @@ namespace Regard.Query.MapReduce.DataAccessor
     /// </summary>
     class RootDataStore
     {
-        private readonly IKeyValueStore m_RawRootStore;
+        private readonly IProductStoreRetrieval m_RawRootStore;
 
-        public RootDataStore(IKeyValueStore rawRootStore)
+        public RootDataStore(IProductStoreRetrieval rawRootStore)
         {
             if (rawRootStore == null) throw new ArgumentNullException("rawRootStore");
             m_RawRootStore = rawRootStore;
 
-            ProductDataStore = new ProductDataStore(m_RawRootStore.ChildStore(new JArray("products")));
-            SessionDataStore = new SessionDataStore(m_RawRootStore.ChildStore(new JArray("sessions")));
+            ProductDataStore = new ProductDataStore(m_RawRootStore);
+            SessionDataStore = new SessionDataStore(m_RawRootStore);
         }
 
         public ProductDataStore ProductDataStore { get; private set; }

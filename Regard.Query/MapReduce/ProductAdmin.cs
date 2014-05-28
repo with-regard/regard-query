@@ -58,7 +58,7 @@ namespace Regard.Query.MapReduce
             }
 
             // Create a new queryable store using a child store represented by the organization/product
-            return new QueryableProduct(m_DataStore.DataStoreForIndividualProduct(organization, product), m_NodeName);
+            return new QueryableProduct(await m_DataStore.DataStoreForIndividualProduct(organization, product), m_NodeName);
         }
     }
 }
