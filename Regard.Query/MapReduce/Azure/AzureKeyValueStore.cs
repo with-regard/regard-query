@@ -54,7 +54,12 @@ namespace Regard.Query.MapReduce.Azure
         /// <summary>
         /// Batched operations that are awaiting completion
         /// </summary>
-        private List<Task> m_InProgressOperations = new List<Task>();
+        private readonly List<Task> m_InProgressOperations = new List<Task>();
+
+        /// <summary>
+        /// Task that ensures that this object commits its data after a delay
+        /// </summary>
+        private Task m_DelayedCommitTask;
 
         /// <summary>
         /// Creates a new key value store using an Azure table
@@ -299,6 +304,45 @@ namespace Regard.Query.MapReduce.Azure
         }
 
         /// <summary>
+        /// Ensures that this key/value store periodically commits any data that is queued up
+        /// </summary>
+        private void QueueCommit()
+        {
+            // Time to commit from the first operation that requires a commit
+            const int queueCommitDelayMilliseconds = 30000;
+
+            lock (m_Sync)
+            {
+                if (m_DelayedCommitTask != null)
+                {
+                    // Create a new commit task
+                    Task newCommitTask = null;
+                    
+                    newCommitTask = Task.Run(async () =>
+                    {
+                        // Wait for a while
+                        await Task.Delay(TimeSpan.FromMilliseconds(queueCommitDelayMilliseconds));
+
+                        // This commit task is complete
+                        lock (m_Sync)
+                        {
+                            if (ReferenceEquals(newCommitTask, m_DelayedCommitTask))
+                            {
+                                m_DelayedCommitTask = null;
+                            }
+                        }
+
+                        // Force a commit
+                        await Commit();
+                    });
+
+                    // This becomes the active commit task
+                    m_DelayedCommitTask = newCommitTask;
+                }
+            }
+        }
+
+        /// <summary>
         /// Assigns a key that is unique to this child store and uses it as a key to store a value. The store guarantees that this will be unique within this process, but not 
         /// if the same child store is being accessed by multiple processes.
         /// </summary>
@@ -309,8 +353,6 @@ namespace Regard.Query.MapReduce.Azure
         /// </returns>
         public async Task<long> AppendValue(JObject value)
         {
-            var indexKey = CreateInternalKey("AppendIndex");
-
             long nextValue = -1;
             lock (m_Sync)
             {
@@ -359,6 +401,9 @@ namespace Regard.Query.MapReduce.Azure
                     FinishAppendBatch();
                 }
             }
+
+            // Ensure that the data is eventually committed to the database
+            QueueCommit();
 
             // Return the appended value
             return nextValue;
