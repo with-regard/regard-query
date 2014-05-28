@@ -101,7 +101,7 @@ task nupackage -depends compile,test-release {
 task test-release -depends compile {
     "Testing"
     
-    exec { & $base_dir\packages\NUnit.Runners.2.6.3\tools\nunit-console.exe $base_dir\Regard.Consumer.Tests\bin\release\Regard.Query.Tests.dll }
+    exec { & $base_dir\packages\NUnit.Runners.2.6.3\tools\nunit-console.exe /labels $base_dir\Regard.Query.Tests\bin\release\Regard.Query.Tests.dll }
 }
 
 task package -depends compile,test-release {
