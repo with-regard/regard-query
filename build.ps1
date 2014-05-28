@@ -79,7 +79,7 @@ task compile-debug -depends generate-build-files {
 
 task compile -depends compile-debug,compile-release
 
-task nupackage -depends compile {
+task nupackage -depends compile,test-release {
     "Packaging"
     "  Regard.Query.csproj"
 
@@ -98,7 +98,13 @@ task nupackage -depends compile {
     Set-Location ..
 }
 
-task package -depends compile {
+task test-release -depends compile {
+    "Testing"
+    
+    exec { & $base_dir\packages\NUnit.Runners.2.6.3\tools\nunit-console.exe $base_dir\Regard.Consumer.Tests\bin\release\Regard.Query.Tests.dll }
+}
+
+task package -depends compile,test-release {
     "Packaging"
     "   Regard.Query.Internal.Service.ccproj"
 

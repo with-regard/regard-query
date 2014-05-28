@@ -31,7 +31,21 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.WindowsAzure.Configuration, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.Data.Edm, Version=5.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.Data.Edm.5.2.0\lib\net40\Microsoft.Data.Edm.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.OData, Version=5.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.Data.OData.5.2.0\lib\net40\Microsoft.Data.OData.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Configuration, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.WindowsAzure.ConfigurationManager.2.0.3\lib\net40\Microsoft.WindowsAzure.Configuration.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Storage, Version=2.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\WindowsAzure.Storage.2.1.0.0\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -39,6 +53,11 @@
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.Services.Client" />
+    <Reference Include="System.Spatial, Version=5.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.Spatial.5.2.0\lib\net40\System.Spatial.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -51,7 +70,10 @@
     </Compile>
     <Compile Include="Api\FluentQuery.cs" />
     <Compile Include="Api\IEventRecorder.cs" />
+    <Compile Include="Api\IMapReduce.cs" />
+    <Compile Include="Api\IMapTarget.cs" />
     <Compile Include="Api\IProductAdmin.cs" />
+    <Compile Include="Api\IProductStoreRetrieval.cs" />
     <Compile Include="Api\IQueryableProduct.cs" />
     <Compile Include="Api\IQueryBuilder.cs" />
     <Compile Include="Api\IRegardDataStore.cs" />
@@ -60,6 +82,40 @@
     <Compile Include="Api\QueryResultLine.cs" />
     <Compile Include="Api\IRegardQuery.cs" />
     <Compile Include="Api\IResultEnumerator.cs" />
+    <Compile Include="Flat\AzureTableBatch.cs" />
+    <Compile Include="Flat\AzureFlatPipeline.cs" />
+    <Compile Include="Flat\AzureTableBatchOperation.cs" />
+    <Compile Include="Flat\CountFieldEntity.cs" />
+    <Compile Include="Flat\EntityKey.cs" />
+    <Compile Include="Flat\IPipelineAction.cs" />
+    <Compile Include="MapReduce\Azure\AppendIndexStatusEntity.cs" />
+    <Compile Include="MapReduce\Azure\AzureKeyValueStore.cs" />
+    <Compile Include="MapReduce\Azure\AzureStoreRetrieval.cs" />
+    <Compile Include="MapReduce\Azure\JsonTableEntity.cs" />
+    <Compile Include="MapReduce\Azure\SegmentedEnumerator.cs" />
+    <Compile Include="MapReduce\DataAccessor\IndividualProductDataStore.cs" />
+    <Compile Include="MapReduce\DataAccessor\ProductDataStore.cs" />
+    <Compile Include="MapReduce\DataAccessor\QueryDataStore.cs" />
+    <Compile Include="MapReduce\DataAccessor\SessionDataStore.cs" />
+    <Compile Include="MapReduce\DataAccessor\UserDataStore.cs" />
+    <Compile Include="MapReduce\DataIngestor.cs" />
+    <Compile Include="Api\IKeyValueStore.cs" />
+    <Compile Include="Api\IKvStoreEnumerator.cs" />
+    <Compile Include="MapReduce\DataAccessor\RootDataStore.cs" />
+    <Compile Include="MapReduce\IngestorMapTarget.cs" />
+    <Compile Include="MapReduce\KeySerializer.cs" />
+    <Compile Include="MapReduce\DataStore.cs" />
+    <Compile Include="MapReduce\MapReduceDataStoreFactory.cs" />
+    <Compile Include="MapReduce\EventRecorder.cs" />
+    <Compile Include="MapReduce\MemoryStoreRetrieval.cs" />
+    <Compile Include="MapReduce\ProductAdmin.cs" />
+    <Compile Include="MapReduce\MemoryKeyValueStore.cs" />
+    <Compile Include="MapReduce\QueryableProduct.cs" />
+    <Compile Include="MapReduce\QueryMapReduce.cs" />
+    <Compile Include="MapReduce\MapReduceQueryFactory.cs" />
+    <Compile Include="MapReduce\MapResult.cs" />
+    <Compile Include="MapReduce\QueryResultEnumerator.cs" />
+    <Compile Include="Util\StorageUtil.cs" />
     <Compile Include="DataStoreFactory.cs" />
     <Compile Include="Sql\SqlDataStore.cs" />
     <Compile Include="Sql\SqlEventRecorder.cs" />
@@ -83,6 +139,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
