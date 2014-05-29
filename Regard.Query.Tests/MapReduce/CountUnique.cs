@@ -212,10 +212,19 @@ namespace Regard.Query.Tests.MapReduce
                     switch (nextRecord.Item2["EventType"].Value<string>())
                     {
                         case "Click":
+                            // Two unique sessions have a click event
+                            Assert.AreEqual(2, nextRecord.Item2["NumSessions"].Value<long>());
+                            break;
+
                         case "Start":
                         case "Stop":
+                            // Three have a start or a stop
+                            Assert.AreEqual(3, nextRecord.Item2["NumSessions"].Value<long>());
+                            break;
+
                         case "NotClick":
-                            // OK
+                            // One has a NotClick event
+                            Assert.AreEqual(1, nextRecord.Item2["NumSessions"].Value<long>());
                             break;
 
                         default:
