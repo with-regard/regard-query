@@ -25,6 +25,16 @@
             return query.Builder.Mean(query, key, name);
         }
 
+        public static IRegardQuery Min(this IRegardQuery query, string key, string name)
+        {
+            return query.Builder.Min(query, key, name);
+        }
+
+        public static IRegardQuery Max(this IRegardQuery query, string key, string name)
+        {
+            return query.Builder.Max(query, key, name);
+        }
+
         public static IRegardQuery CountUniqueValues(this IRegardQuery query, string key, string name)
         {
             return query.Builder.CountUniqueValues(query, key, name);
