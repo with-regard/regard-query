@@ -40,12 +40,22 @@
         IRegardQuery Sum(IRegardQuery query, string key, string name);
 
         /// <summary>
-        /// Finds the average (mean) of a paticular field across all of the events matched by a particuila
+        /// Finds the average (mean) of a paticular field (parsed as a double) across all of the events matched by a query
         /// </summary>
         /// <param name="query">The query to add a new mean to</param>
         /// <param name="key">The field to average</param>
         /// <param name="name">The name to assign to the result</param>
         IRegardQuery Mean(IRegardQuery query, string key, string name);
+
+        /// <summary>
+        /// Finds the minimum value of a particular field (parsed as a double)
+        /// </summary>
+        IRegardQuery Min(IRegardQuery query, string key, string name);
+
+        /// <summary>
+        /// Finds the maximum value of a particular field (parsed as a double)
+        /// </summary>
+        IRegardQuery Max(IRegardQuery query, string key, string name);
 
         /// <summary>
         /// Creates a query that counts the number of unique values of a particular key
