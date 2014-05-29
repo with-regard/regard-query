@@ -200,9 +200,13 @@ namespace Regard.Query.Tests.MapReduce
                 Tuple<JArray, JObject> nextRecord;
                 while ((nextRecord = await reader.FetchNext()) != null)
                 {
-                    // Each record should have a 'EventType' and a 'NumSessions' field
+                    // Each record should have a 'EventType' and a 'NumSessions' field (as well as the standard 'Count' field)
                     Assert.IsNotNull(nextRecord.Item2["NumSessions"]);
                     Assert.IsNotNull(nextRecord.Item2["EventType"]);
+                    Assert.IsNotNull(nextRecord.Item2["Count"]);
+
+                    // These should be the only fields in the result
+                    Assert.AreEqual(3, nextRecord.Item2.Count);
 
                     // Event type should 'Click', 'Start', 'Stop' or 'NotClick'
                     switch (nextRecord.Item2["EventType"].Value<string>())
