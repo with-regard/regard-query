@@ -343,6 +343,12 @@ namespace Regard.Query.WebAPI
                 return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Query is not registered");
             }
 
+            if (queryResult == null)
+            {
+                // If the result is null, then the query could not be found
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Query is not registered");
+            }
+
             // Read the response lines
             // TODO: make it possible to read partial results in case there are a lot of queries
             var lines = new JArray();
