@@ -146,6 +146,20 @@ namespace Regard.Query.Serializable
                     }
                     return builder.Mean(appliesTo, GetString(json, "key", true), GetString(json, "name"));
 
+                case QueryVerbs.Min:
+                    if (appliesTo == null)
+                    {
+                        throw new InvalidOperationException("Min must be applied to an existing query");
+                    }
+                    return builder.Min(appliesTo, GetString(json, "key", true), GetString(json, "name"));
+
+                case QueryVerbs.Max:
+                    if (appliesTo == null)
+                    {
+                        throw new InvalidOperationException("Max must be applied to an existing query");
+                    }
+                    return builder.Max(appliesTo, GetString(json, "key", true), GetString(json, "name"));
+
                 case QueryVerbs.Only:
                     if (appliesTo == null)
                     {

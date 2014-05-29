@@ -288,6 +288,16 @@ namespace Regard.Query.Sql
             return Mean((SqlQuery) query, key, name);
         }
 
+        public IRegardQuery Min(IRegardQuery query, string key, string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IRegardQuery Max(IRegardQuery query, string key, string name)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
     }
 }

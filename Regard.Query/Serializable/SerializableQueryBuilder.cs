@@ -1,4 +1,5 @@
-﻿using Regard.Query.Api;
+﻿using System;
+using Regard.Query.Api;
 
 namespace Regard.Query.Serializable
 {
@@ -92,6 +93,16 @@ namespace Regard.Query.Serializable
             return new SerializableQuery(this) { AppliesTo = query, Verb = QueryVerbs.Mean, Key = key, Name = name };
         }
 
+        public SerializableQuery Min(SerializableQuery query, string key, string name)
+        {
+            return new SerializableQuery(this) { AppliesTo = query, Verb = QueryVerbs.Min, Key = key, Name = name};
+        }
+
+        public SerializableQuery Max(SerializableQuery query, string key, string name)
+        {
+            return new SerializableQuery(this) { AppliesTo = query, Verb = QueryVerbs.Max, Key = key, Name = name };
+        }
+
         /// <summary>
         /// Creates a query that counts all the events in the source
         /// </summary>
@@ -127,6 +138,16 @@ namespace Regard.Query.Serializable
         public IRegardQuery Mean(IRegardQuery query, string key, string name)
         {
             return Mean((SerializableQuery) query, key, name);
+        }
+
+        public IRegardQuery Min(IRegardQuery query, string key, string name)
+        {
+            return Min((SerializableQuery) query, key, name);
+        }
+
+        public IRegardQuery Max(IRegardQuery query, string key, string name)
+        {
+            return Max((SerializableQuery) query, key, name);
         }
     }
 }

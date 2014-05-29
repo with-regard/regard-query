@@ -73,6 +73,23 @@ namespace Regard.Query.Tests.Serialization
             Try((SerializableQuery)builder.AllEvents().Mean("Test1", "Test2"));
         }
 
+
+        [Test]
+        public static void Min()
+        {
+            // Create the query
+            var builder = new SerializableQueryBuilder(null);
+            Try((SerializableQuery)builder.AllEvents().Min("Test1", "Test2"));
+        }
+
+        [Test]
+        public static void Max()
+        {
+            // Create the query
+            var builder = new SerializableQueryBuilder(null);
+            Try((SerializableQuery)builder.AllEvents().Max("Test1", "Test2"));
+        }
+
         [Test]
         public static void AllComponents()
         {

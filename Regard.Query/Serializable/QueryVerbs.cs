@@ -10,6 +10,8 @@
         public const string BrokenDownBy        = "BrokenDownBy";
         public const string Sum                 = "Sum";
         public const string Mean                = "Mean";
+        public const string Min                 = "Min";
+        public const string Max                 = "Max";
         public const string CountUniqueValues   = "CountUniqueValues";
     }
 }
