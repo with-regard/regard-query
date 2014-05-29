@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure;
 using Regard.Query.Api;
+using Regard.Query.MapReduce;
 using Regard.Query.Sql;
 
 namespace Regard.Query
@@ -14,6 +15,16 @@ namespace Regard.Query
     /// </summary>
     public static class DataStoreFactory
     {
+        /// <summary>
+        /// The prefix used for the tables containing details about the organisations using Regard
+        /// </summary>
+        private const string c_TablePrefix = "UserData";
+
+        /// <summary>
+        /// The name of the test node (used while we don't have support for multi-node deployments)
+        /// </summary>
+        private const string c_TestNodeName = "TestNode";
+
         /// <summary>
         /// Creates the default data store for the current process
         /// </summary>
@@ -26,21 +37,20 @@ namespace Regard.Query
         /// </remarks>
         public static async Task<IRegardDataStore> CreateDefaultDataStore()
         {
-            // If we're running as an azure instance, the connection string will be availble from the cloud configuration manager
-            string sqlConnectionString = CloudConfigurationManager.GetSetting("Regard.Storage.SqlConnectionString");
-            if (!string.IsNullOrEmpty(sqlConnectionString))
+            // Get the connection string for the Azure storage that is configured for this instance
+            string storageConnectionString = CloudConfigurationManager.GetSetting("Regard.Storage.ConnectionString");
+
+            if (!string.IsNullOrEmpty(storageConnectionString))
             {
-                // Will be non-null if it's set up
-                Trace.WriteLine("Retrieving data from SQL server using cloud settings");
-                return await CreateSqlServerStore(sqlConnectionString);
+                Trace.WriteLine("Retrieving data from Azure cloud storage using cloud settings");
+                return await CreateAzureTableStore(storageConnectionString);
             }
 
-            // Also look in the application configuration for a connection string
-            sqlConnectionString = ConfigurationManager.AppSettings["Regard.SqlConnectionString"];
-            if (!string.IsNullOrEmpty(sqlConnectionString))
+            storageConnectionString = ConfigurationManager.AppSettings["Regard.StorageConnectionString"];
+            if (!string.IsNullOrEmpty(storageConnectionString))
             {
-                Trace.WriteLine("Retrieving data from SQL server using application settings");
-                return await CreateSqlServerStore(sqlConnectionString);
+                Trace.WriteLine("Retrieving data from Azure cloud storage using app settings");
+                return await CreateAzureTableStore(storageConnectionString);
             }
 
             // No application settings let us find a data store
@@ -57,6 +67,16 @@ namespace Regard.Query
             await connection.OpenAsync();
 
             return new SqlDataStore(connection);
+        }
+
+        /// <summary>
+        /// Creates a data store using Azure storage
+        /// </summary>
+        public static async Task<IRegardDataStore> CreateAzureTableStore(string connectionString)
+        {
+            // TODO: Currently we only support a single running node (actually a single ingestion node and a single query node)
+            // Eventually we should determine the node name by reading instance data
+            return MapReduceDataStoreFactory.CreateAzureTableDataStore(connectionString, c_TablePrefix, c_TestNodeName);
         }
     }
 }
