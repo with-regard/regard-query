@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
 using System.Diagnostics;
@@ -69,14 +70,30 @@ namespace Regard.Query
             return new SqlDataStore(connection);
         }
 
+        private static object s_Sync = new object();
+        private static Dictionary<string, IRegardDataStore> s_DataStoreForConnectionString = new Dictionary<string, IRegardDataStore>();
+
         /// <summary>
         /// Creates a data store using Azure storage
         /// </summary>
         public static async Task<IRegardDataStore> CreateAzureTableStore(string connectionString)
         {
-            // TODO: Currently we only support a single running node (actually a single ingestion node and a single query node)
-            // Eventually we should determine the node name by reading instance data
-            return MapReduceDataStoreFactory.CreateAzureTableDataStore(connectionString, c_TablePrefix, c_TestNodeName);
+            lock (s_Sync)
+            {
+                IRegardDataStore result;
+                if (s_DataStoreForConnectionString.TryGetValue(connectionString, out result))
+                {
+                    return result;
+                }
+                else
+                {
+
+                    // TODO: Currently we only support a single running node (actually a single ingestion node and a single query node)
+                    // Eventually we should determine the node name by reading instance data
+                    result = s_DataStoreForConnectionString[connectionString] = MapReduceDataStoreFactory.CreateAzureTableDataStore(connectionString, c_TablePrefix, c_TestNodeName);
+                    return result;
+                }
+            }
         }
     }
 }
