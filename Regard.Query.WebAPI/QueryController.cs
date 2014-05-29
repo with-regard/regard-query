@@ -173,7 +173,7 @@ namespace Regard.Query.WebAPI
                 string product      = productToken.Value<string>();
                 string organization = organizationToken.Value<string>();
 
-                Trace.WriteLine("Creating new product: " + product + "/" + organization);
+                Trace.WriteLine("Creating new product: " + organization + "/" + product);
 
                 if (string.IsNullOrEmpty(product) || string.IsNullOrEmpty(organization))
                 {
