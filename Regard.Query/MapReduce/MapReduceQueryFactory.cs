@@ -487,6 +487,18 @@ namespace Regard.Query.MapReduce
             {
                 var reductions = documents as IList<JObject> ?? documents.ToList();
 
+                // Copy keys from the first document into the result, if they aren't already present
+                foreach (var kvPair in reductions[0])
+                {
+                    JToken value;
+                    if (result.TryGetValue(kvPair.Key, out value))
+                    {
+                        continue;
+                    }
+
+                    result[kvPair.Key] = kvPair.Value;
+                }
+
                 // Re-reduce with a null key for now
                 // TODO: this won't work if any re-reduce operation ever actually uses the key
                 // TODO: this also won't work because it doesn't update the result
