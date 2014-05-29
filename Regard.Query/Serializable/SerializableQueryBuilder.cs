@@ -95,12 +95,12 @@ namespace Regard.Query.Serializable
 
         public SerializableQuery Min(SerializableQuery query, string key, string name)
         {
-            throw new NotImplementedException();
+            return new SerializableQuery(this) { AppliesTo = query, Verb = QueryVerbs.Min, Key = key, Name = name};
         }
 
         public SerializableQuery Max(SerializableQuery query, string key, string name)
         {
-            throw new NotImplementedException();
+            return new SerializableQuery(this) { AppliesTo = query, Verb = QueryVerbs.Max, Key = key, Name = name };
         }
 
         /// <summary>

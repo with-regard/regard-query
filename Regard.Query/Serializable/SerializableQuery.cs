@@ -66,6 +66,15 @@ namespace Regard.Query.Serializable
                 case QueryVerbs.Only:
                     return builder.Only(apply, Key, Value);
 
+                case QueryVerbs.Min:
+                    return builder.Min(apply, Key, Name);
+
+                case QueryVerbs.Max:
+                    return builder.Max(apply, Key, Name);
+
+                case QueryVerbs.Mean:
+                    return builder.Mean(apply, Key, Name);
+                    
                 default:
                     throw new InvalidOperationException("Unknown query verb:  " + Verb);
             }
