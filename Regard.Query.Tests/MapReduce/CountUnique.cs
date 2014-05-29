@@ -174,5 +174,59 @@ namespace Regard.Query.Tests.MapReduce
 
             task.Wait();
         }
+        [Test]
+        public void ShouldPreserveBrokenDownByFields()
+        {
+            var task = Task.Run(async () =>
+            {
+                // Create the 'only clicks' query
+                var queryBuilder = new SerializableQueryBuilder(null);
+                var uniqueSessions = (SerializableQuery)queryBuilder.AllEvents().BrokenDownBy("EventType", "EventType").CountUniqueValues("SessionId", "NumSessions");
+                var query = uniqueSessions.GenerateMapReduce();
+
+                // Generate a data store and an ingestor
+                var resultStore = new MemoryKeyValueStore();
+                var ingestor = new DataIngestor(query, resultStore);
+
+                // Run the standard set of docs through
+                // As the database is empty, it only needs to reduce the docs, not re-reduce
+                await TestDataGenerator.Ingest12BasicDocuments(ingestor);
+
+                // This should create a data store with one record indicating that there are 12 records 
+                var reader = resultStore.EnumerateAllValues();
+                int recordCount = 0;
+
+                Tuple<JArray, JObject> nextRecord;
+                while ((nextRecord = await reader.FetchNext()) != null)
+                {
+                    // Each record should have a 'EventType' and a 'NumSessions' field
+                    Assert.IsNotNull(nextRecord.Item2["NumSessions"]);
+                    Assert.IsNotNull(nextRecord.Item2["EventType"]);
+
+                    // Event type should 'Click', 'Start', 'Stop' or 'NotClick'
+                    switch (nextRecord.Item2["EventType"].Value<string>())
+                    {
+                        case "Click":
+                        case "Start":
+                        case "Stop":
+                        case "NotClick":
+                            // OK
+                            break;
+
+                        default:
+                            Assert.Fail();
+                            break;
+                    }
+
+                    recordCount++;
+                }
+
+                // There are 4 event types
+                Assert.AreEqual(4, recordCount);
+            });
+
+            task.Wait();
+        }
+
     }
 }
