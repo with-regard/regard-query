@@ -490,6 +490,13 @@ namespace Regard.Query.MapReduce
                 // Copy keys from the first document into the result, if they aren't already present
                 foreach (var kvPair in reductions[0])
                 {
+                    // Ignore the key index key
+                    if (kvPair.Key == keyIndexKey)
+                    {
+                        continue;
+                    }
+
+                    // Preserve the rest
                     JToken value;
                     if (result.TryGetValue(kvPair.Key, out value))
                     {
