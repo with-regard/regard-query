@@ -133,53 +133,68 @@ namespace Regard.Query.WebAPI
         [HttpPost, Route("admin/v1/product/create")]
         public async Task<HttpResponseMessage> CreateProduct()
         {
-            await EnsureDataStore();
-
-            // Read the payload from the message
-            var payloadString = await Request.Content.ReadAsStringAsync();
-
-            // Convert to JSON
-            JObject payload;
             try
             {
-                payload = JObject.Parse(payloadString);
+                Trace.WriteLine("Executing product/create");
+
+                // Make sure that the data store is available
+                await EnsureDataStore();
+
+                // Read the payload from the message
+                var payloadString = await Request.Content.ReadAsStringAsync();
+
+                // Convert to JSON
+                JObject payload;
+                try
+                {
+                    payload = JObject.Parse(payloadString);
+                }
+                catch (JsonException)
+                {
+                    // This is a bad request
+                    return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Could not understand payload");
+                }
+
+                // Should be a 'product' and 'organization' field to indicate what to create
+                JToken productToken, organizationToken;
+
+                if (!payload.TryGetValue("product", out productToken) ||
+                    !payload.TryGetValue("organization", out organizationToken))
+                {
+                    return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Fields missing from request");
+                }
+
+                // Sanity check what was passed in
+                if (productToken.Type != JTokenType.String || organizationToken.Type != JTokenType.String)
+                {
+                    return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Fields must be strings");
+                }
+
+                string product      = productToken.Value<string>();
+                string organization = organizationToken.Value<string>();
+
+                Trace.WriteLine("Creating new product: " + product + "/" + organization);
+
+                if (string.IsNullOrEmpty(product) || string.IsNullOrEmpty(organization))
+                {
+                    return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Fields cannot be empty");
+                }
+
+                if (product.Length > c_MaxLength || organization.Length > c_MaxLength)
+                {
+                    return Request.CreateErrorResponse(HttpStatusCode.BadRequest,
+                        "Fields cannot contain too many characters");
+                }
+
+                // Actually create the product
+                await m_DataStore.Products.CreateProduct(organization, product);
+                return Request.CreateResponse(HttpStatusCode.Created, new {});
             }
-            catch (JsonException)
+            catch (Exception e)
             {
-                // This is a bad request
-                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Could not understand payload");
+                Trace.TraceError("Error during product/create: {0}", e);
+                throw;
             }
-
-            // Should be a 'product' and 'organization' field to indicate what to create
-            JToken productToken, organizationToken;
-
-            if (!payload.TryGetValue("product", out productToken) || !payload.TryGetValue("organization", out organizationToken))
-            {
-                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Fields missing from request");
-            }
-
-            // Sanity check what was passed in
-            if (productToken.Type != JTokenType.String || organizationToken.Type != JTokenType.String)
-            {
-                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Fields must be strings");
-            }
-
-            string product = productToken.Value<string>();
-            string organization = organizationToken.Value<string>();
-
-            if (string.IsNullOrEmpty(product) || string.IsNullOrEmpty(organization))
-            {
-                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Fields cannot be empty");
-            }
-
-            if (product.Length > c_MaxLength || organization.Length > c_MaxLength)
-            {
-                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Fields cannot contain too many characters");
-            }
-
-            // Actually create the product
-            await m_DataStore.Products.CreateProduct(organization, product);
-            return Request.CreateResponse(HttpStatusCode.Created, new {});
         }
 
         /// <summary>
