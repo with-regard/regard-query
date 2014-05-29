@@ -174,6 +174,7 @@ namespace Regard.Query.Tests.MapReduce
 
             task.Wait();
         }
+
         [Test]
         public void ShouldPreserveBrokenDownByFields()
         {
