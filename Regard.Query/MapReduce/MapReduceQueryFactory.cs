@@ -77,6 +77,14 @@ namespace Regard.Query.MapReduce
                     query.Mean(component.Name, component.Key);
                     break;
 
+                case QueryVerbs.Min:
+                    query.Min(component.Name, component.Key);
+                    break;
+
+                case QueryVerbs.Max:
+                    query.Max(component.Name, component.Key);
+                    break;
+
                 default:
                     // Not implemented
                     throw new NotImplementedException("Unknown query verb");
@@ -173,6 +181,107 @@ namespace Regard.Query.MapReduce
             if (resultToken.Type != JTokenType.Object) return null;
 
             return resultToken.Value<JObject>();
+        }
+
+        /// <summary>
+        /// Composes a 'Min' query with an existing map/reduce query
+        /// </summary>
+        internal static void Min(this QueryMapReduce query, string name, string fieldName)
+        {
+            query.OnMap += (mapResult, document) =>
+            {
+                // Map the field value if it's an integer or a float
+                JToken fieldValue;
+                if (document.TryGetValue(fieldName, out fieldValue))
+                {
+                    if (fieldValue.Type == JTokenType.Integer || fieldValue.Type == JTokenType.Float)
+                    {
+                        mapResult.SetValue(name, fieldValue.Value<JValue>());
+                    }
+                }
+            };
+
+            query.ReduceAndRereduce((result, documents) =>
+            {
+                // Find the minimum value in all of the documents that specify the value
+                double? minValue = null;
+
+                foreach (var doc in documents)
+                {
+                    JToken docValue;
+                    if (doc.TryGetValue(name, out docValue))
+                    {
+                        if (docValue.Type == JTokenType.Integer || docValue.Type == JTokenType.Float)
+                        {
+                            var thisValue = docValue.Value<double>();
+                            if (!minValue.HasValue)
+                            {
+                                minValue = thisValue;
+                            }
+                            else if (thisValue < minValue)
+                            {
+                                minValue = thisValue;
+                            }
+                        }
+                    }
+                }
+
+                // The resulting value is the minimum of all of the values if it exists (there are no valid values otherwise)
+                if (minValue.HasValue)
+                {
+                    result[name] = minValue;
+                }
+            });
+        }
+
+        /// <summary>
+        /// Composes a 'Max' query with an existing map/reduce query
+        /// </summary>
+        internal static void Max(this QueryMapReduce query, string name, string fieldName)
+        {
+            query.OnMap += (mapResult, document) =>
+            {
+                // Map the field value if it's an integer or a float
+                JToken fieldValue;
+                if (document.TryGetValue(fieldName, out fieldValue))
+                {
+                    if (fieldValue.Type == JTokenType.Integer || fieldValue.Type == JTokenType.Float)
+                    {
+                        mapResult.SetValue(name, fieldValue.Value<JValue>());
+                    }
+                }
+            };
+
+            query.ReduceAndRereduce((result, documents) =>
+            {
+                // Find the maximum value in all of the documents that specify the value
+                double? maxValue = null;
+
+                foreach (var doc in documents)
+                {
+                    JToken docValue;
+                    if (doc.TryGetValue(name, out docValue))
+                    {
+                        if (docValue.Type == JTokenType.Integer || docValue.Type == JTokenType.Float)
+                        {
+                            var thisValue = docValue.Value<double>();
+                            if (!maxValue.HasValue)
+                            {
+                                maxValue = thisValue;
+                            }
+                            else if (thisValue > maxValue)
+                            {
+                                maxValue = thisValue;
+                            }
+                        }
+                    }
+                }
+
+                if (maxValue.HasValue)
+                {
+                    result[name] = maxValue;
+                }
+            });
         }
 
         /// <summary>
