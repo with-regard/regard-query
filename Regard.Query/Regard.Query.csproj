@@ -103,6 +103,7 @@
     <Compile Include="Api\IKvStoreEnumerator.cs" />
     <Compile Include="MapReduce\DataAccessor\RootDataStore.cs" />
     <Compile Include="MapReduce\Queries\ComposedMapReduce.cs" />
+    <Compile Include="MapReduce\Queries\Compositor.cs" />
     <Compile Include="MapReduce\Queries\IComposableMap.cs" />
     <Compile Include="MapReduce\Queries\IComposableMapReduce.cs" />
     <Compile Include="MapReduce\Queries\IComposableReduce.cs" />
