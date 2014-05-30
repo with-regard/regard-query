@@ -102,8 +102,10 @@
     <Compile Include="Api\IKeyValueStore.cs" />
     <Compile Include="Api\IKvStoreEnumerator.cs" />
     <Compile Include="MapReduce\DataAccessor\RootDataStore.cs" />
+    <Compile Include="MapReduce\Queries\BrokenDownBy.cs" />
     <Compile Include="MapReduce\Queries\ComposedMapReduce.cs" />
     <Compile Include="MapReduce\Queries\Compositor.cs" />
+    <Compile Include="MapReduce\Queries\CountDocuments.cs" />
     <Compile Include="MapReduce\Queries\IComposableMap.cs" />
     <Compile Include="MapReduce\Queries\IComposableMapReduce.cs" />
     <Compile Include="MapReduce\Queries\IComposableReduce.cs" />
@@ -115,7 +117,10 @@
     <Compile Include="MapReduce\MemoryStoreRetrieval.cs" />
     <Compile Include="MapReduce\ProductAdmin.cs" />
     <Compile Include="MapReduce\MemoryKeyValueStore.cs" />
+    <Compile Include="MapReduce\Queries\JObjectUtil.cs" />
+    <Compile Include="MapReduce\Queries\Mean.cs" />
     <Compile Include="MapReduce\Queries\Only.cs" />
+    <Compile Include="MapReduce\Queries\SimpleMathOp.cs" />
     <Compile Include="MapReduce\QueryableProduct.cs" />
     <Compile Include="MapReduce\QueryMapReduce.cs" />
     <Compile Include="MapReduce\MapReduceQueryFactory.cs" />
