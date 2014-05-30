@@ -106,6 +106,8 @@
     <Compile Include="MapReduce\Queries\ComposedMapReduce.cs" />
     <Compile Include="MapReduce\Queries\Compositor.cs" />
     <Compile Include="MapReduce\Queries\CountDocuments.cs" />
+    <Compile Include="MapReduce\Queries\CountUniqueValues.cs" />
+    <Compile Include="MapReduce\Queries\IComposableChain.cs" />
     <Compile Include="MapReduce\Queries\IComposableMap.cs" />
     <Compile Include="MapReduce\Queries\IComposableMapReduce.cs" />
     <Compile Include="MapReduce\Queries\IComposableReduce.cs" />
