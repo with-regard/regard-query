@@ -29,6 +29,6 @@ namespace Regard.Query.MapReduce.Queries
         /// <remarks>
         /// This is an extension to the traditional map/reduce scheme, required for supporting document deletion and query chaining
         /// </remarks>
-        void Unredeuce(JObject result, JObject[] documents);
+        void Unreduce(JObject result, JObject[] documents);
     }
 }
