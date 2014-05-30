@@ -157,6 +157,38 @@ namespace Regard.Query.MapReduce.Queries
         /// The documents passed to the chain will be the reduced result of this operation. Each document will have a '_key' field
         /// indicating the key that was reduced.
         /// </remarks>
-        public IMapReduce Chain { get; set; }
+        public ComposedMapReduce Chain { get; set; }
+
+        IMapReduce IMapReduce.Chain { get { return Chain; } }
+
+        /// <summary>
+        /// Creates a copy of this object
+        /// </summary>
+        public ComposedMapReduce Copy()
+        {
+            var result = new ComposedMapReduce(m_Maps, m_Reduces);
+            if (Chain != null)
+            {
+                result.Chain = Chain.Copy();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Appends an object to the end of the chained queries for this object
+        /// </summary>
+        public void AppendToChain(ComposedMapReduce newChain)
+        {
+            if (Chain == null)
+            {
+                Chain = newChain;
+                return;
+            }
+            else
+            {
+                Chain.AppendToChain(newChain);
+            }
+        }
     }
 }

@@ -25,7 +25,15 @@ namespace Regard.Query.MapReduce.Queries
                 return alreadyComposed;
             }
 
-            return new ComposedMapReduce(new[] { obj }, new[] { obj });
+            var result = new ComposedMapReduce(new[] { obj }, new[] { obj });
+
+            IComposableChain chain = obj as IComposableChain;
+            if (chain != null)
+            {
+                result.Chain = chain.ChainWith.ToComposed();
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -39,7 +47,15 @@ namespace Regard.Query.MapReduce.Queries
                 return alreadyComposed;
             }
 
-            return new ComposedMapReduce(new[] { obj }, new IComposableReduce[0]);
+            var result = new ComposedMapReduce(new[] { obj }, new IComposableReduce[0]);
+
+            IComposableChain chain = obj as IComposableChain;
+            if (chain != null)
+            {
+                result.Chain = chain.ChainWith.ToComposed();
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -53,7 +69,15 @@ namespace Regard.Query.MapReduce.Queries
                 return alreadyComposed;
             }
 
-            return new ComposedMapReduce(new IComposableMap[0], new[] { obj });
+            var result = new ComposedMapReduce(new IComposableMap[0], new[] { obj });
+
+            IComposableChain chain = obj as IComposableChain;
+            if (chain != null)
+            {
+                result.Chain = chain.ChainWith.ToComposed();
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -61,7 +85,24 @@ namespace Regard.Query.MapReduce.Queries
         /// </summary>
         public static ComposedMapReduce ComposeWith(this ComposedMapReduce first, ComposedMapReduce second)
         {
-            return new ComposedMapReduce(Combine(first.Maps, second.Maps), Combine(first.Reduces, second.Reduces));
+            var result = new ComposedMapReduce(Combine(first.Maps, second.Maps), Combine(first.Reduces, second.Reduces));
+
+            if (first.Chain != null)
+            {
+                result.Chain = first.Chain;
+            }
+
+            if (second.Chain != null)
+            {
+                if (result.Chain != null)
+                {
+                    result.Chain = result.Chain.Copy();
+                }
+
+                result.AppendToChain(second.Chain);
+            }
+
+            return result;
         }
 
         /// <summary>
