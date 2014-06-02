@@ -16,7 +16,7 @@ namespace Regard.Query.MapReduce.Queries
 
             m_KeyIndexKey   = "_keyIndex_" + name;
 
-            ChainWith = new ChainCountUniqueValues(fieldName, name, m_KeyIndexKey);
+            ChainWith = new CountDocuments().ComposeWith(new ChainCountUniqueValues(fieldName, name, m_KeyIndexKey));
         }
 
         public void Map(MapResult result, JObject document)
