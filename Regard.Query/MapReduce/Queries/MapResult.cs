@@ -2,7 +2,7 @@
 using Newtonsoft.Json.Linq;
 using Regard.Query.Api;
 
-namespace Regard.Query.MapReduce
+namespace Regard.Query.MapReduce.Queries
 {
     /// <summary>
     /// Class representing the result of a map action
