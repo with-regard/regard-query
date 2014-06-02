@@ -102,7 +102,7 @@ namespace Regard.Query.MapReduce.Queries
                 return;
             }
 
-            if (resultToken.Type != JTokenType.Integer || resultToken.Type != JTokenType.Float)
+            if (resultToken.Type != JTokenType.Integer && resultToken.Type != JTokenType.Float)
             {
                 // Result value is not a double
                 return;
@@ -124,7 +124,7 @@ namespace Regard.Query.MapReduce.Queries
                     continue;
                 }
 
-                    total = m_Undo(total, thisValToken.Value<double>());
+                total = m_Undo(total, thisValToken.Value<double>());
             }
 
             // Store the total
