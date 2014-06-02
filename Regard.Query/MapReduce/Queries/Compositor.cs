@@ -56,6 +56,12 @@ namespace Regard.Query.MapReduce.Queries
                 return alreadyComposed;
             }
 
+            var alreadyMapReduce = obj as IComposableMapReduce;
+            if (alreadyMapReduce != null)
+            {
+                return alreadyMapReduce.ToComposed();
+            }
+
             var result = new ComposedMapReduce(new[] { obj }, new IComposableReduce[0]);
 
             IComposableChain chain = obj as IComposableChain;
@@ -72,10 +78,16 @@ namespace Regard.Query.MapReduce.Queries
         /// </summary>
         public static ComposedMapReduce ToComposed(this IComposableReduce obj)
         {
-            ComposedMapReduce alreadyComposed = obj as ComposedMapReduce;
+            var alreadyComposed = obj as ComposedMapReduce;
             if (alreadyComposed != null)
             {
                 return alreadyComposed;
+            }
+
+            var alreadyMapReduce = obj as IComposableMapReduce;
+            if (alreadyMapReduce != null)
+            {
+                return alreadyMapReduce.ToComposed();
             }
 
             var result = new ComposedMapReduce(new IComposableMap[0], new[] { obj });
