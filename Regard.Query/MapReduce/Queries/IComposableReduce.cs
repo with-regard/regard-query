@@ -26,9 +26,13 @@ namespace Regard.Query.MapReduce.Queries
         /// <summary>
         /// Unreduces a series of documents from the result
         /// </summary>
+        /// <param name="result">Initially this is a copy of the document as it was. This call should modify this to reverse the effects of reducing the documents
+        /// array.</param>
+        /// <param name="documents">The documents to remove from the results (the output of the map function)</param>
+        /// <param name="delete">Initially set to false, can be set to true to indicate the result should be removed</param>
         /// <remarks>
         /// This is an extension to the traditional map/reduce scheme, required for supporting document deletion and query chaining
         /// </remarks>
-        void Unreduce(JObject result, JObject[] documents);
+        void Unreduce(JObject result, JObject[] documents, ref bool delete);
     }
 }

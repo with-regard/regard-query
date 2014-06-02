@@ -91,7 +91,7 @@ namespace Regard.Query.MapReduce.Queries
             Reduce(result, documents);
         }
 
-        public void Unreduce(JObject result, JObject[] documents)
+        public void Unreduce(JObject result, JObject[] documents, ref bool delete)
         {
             double total = 0;
 

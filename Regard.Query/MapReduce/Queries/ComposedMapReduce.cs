@@ -77,11 +77,11 @@ namespace Regard.Query.MapReduce.Queries
         /// <remarks>
         /// This is an extension to the traditional map/reduce scheme, required for supporting document deletion and query chaining
         /// </remarks>
-        public void Unreduce(JObject result, JObject[] documents)
+        public void Unreduce(JObject result, JObject[] documents, ref bool delete)
         {
             foreach (var reduce in m_Reduces)
             {
-                reduce.Unreduce(result, documents);
+                reduce.Unreduce(result, documents, ref delete);
             }
         }
 
@@ -141,12 +141,20 @@ namespace Regard.Query.MapReduce.Queries
         /// </remarks>
         public JObject Unreduce(JArray key, JObject reduced, IEnumerable<JObject> mappedDocuments)
         {
-            var mapList = mappedDocuments.ToArray();
-            JObject result = reduced.DeepClone().Value<JObject>();
+            var     mapList = mappedDocuments.ToArray();
+            JObject result  = reduced.DeepClone().Value<JObject>();
+            bool    delete  = false;
 
-            Unreduce(result, mapList);
+            Unreduce(result, mapList, ref delete);
 
-            return result;
+            if (delete)
+            {
+                return null;
+            }
+            else
+            {
+                return result;
+            }
         }
 
         /// <summary>

@@ -48,7 +48,7 @@ namespace Regard.Query.MapReduce.Queries
             Reduce(result, documents);
         }
 
-        public void Unreduce(JObject result, JObject[] documents)
+        public void Unreduce(JObject result, JObject[] documents, ref bool delete)
         {
             // Nothing to do
             // (Technically we should remove the name if the document count reaches 0)

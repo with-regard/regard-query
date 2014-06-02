@@ -60,7 +60,7 @@ namespace Regard.Query.MapReduce.Queries
             Reduce(result, documents);
         }
 
-        public void Unreduce(JObject result, JObject[] documents)
+        public void Unreduce(JObject result, JObject[] documents, ref bool delete)
         {
             // The count for this item falls to 0 if the count also falls to 0 (this assumes that this query is composed with a CountDocuments query)
             if (result["Count"].Value<long>() <= 0)
@@ -216,7 +216,7 @@ namespace Regard.Query.MapReduce.Queries
                 Reduce(result, documents);
             }
 
-            public void Unreduce(JObject result, JObject[] reductions)
+            public void Unreduce(JObject result, JObject[] reductions, ref bool delete)
             {
                 // Re-reduce with a null key for now
                 // We need to un-reduce the rest of the query

@@ -97,7 +97,7 @@ namespace Regard.Query.MapReduce.Queries
             Reduce(result, documents);
         }
 
-        public void Unreduce(JObject result, JObject[] documents)
+        public void Unreduce(JObject result, JObject[] documents, ref bool delete)
         {
             double sum = result["__intermediate__"][m_Name]["Value"].Value<double>();
             long count = result["__intermediate__"][m_Name]["Count"].Value<long>();

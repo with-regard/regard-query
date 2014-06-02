@@ -39,7 +39,7 @@ namespace Regard.Query.MapReduce.Queries
             result["Count"] = count;
         }
 
-        public void Unreduce(JObject result, JObject[] documents)
+        public void Unreduce(JObject result, JObject[] documents, ref bool delete)
         {
             long count = result["Count"].Value<long>();
             foreach (var doc in documents)
@@ -58,6 +58,12 @@ namespace Regard.Query.MapReduce.Queries
             }
 
             result["Count"] = count;
+
+            // Delete any document if the event count hits 0
+            if (count == 0)
+            {
+                delete = true;
+            }
         }
     }
 }
