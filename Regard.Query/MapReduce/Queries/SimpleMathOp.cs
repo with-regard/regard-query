@@ -6,6 +6,7 @@ namespace Regard.Query.MapReduce.Queries
     class SimpleMathOp : IComposableMapReduce
     {
         private readonly string m_FieldName;
+        private readonly string m_OutputName;
         private readonly Func<double, double, double> m_Do;
         private readonly Func<double, double, double> m_Undo;
 
@@ -13,13 +14,15 @@ namespace Regard.Query.MapReduce.Queries
         /// Creates a new map/reduce operation that combines values in a particular field through a mathematical operation
         /// </summary>
         /// <param name="fieldName">The field name in the input</param>
+        /// <param name="outputName">The name of the field where the output should be stored</param>
         /// <param name="do">A function that performs the operation</param>
         /// <param name="undo">A function that undoes the operation (returning the result of removing the second result from the first)</param>
-        public SimpleMathOp(string fieldName, Func<double, double, double> @do, Func<double, double, double> undo)
+        public SimpleMathOp(string fieldName, string outputName, Func<double, double, double> @do, Func<double, double, double> undo)
         {
-            m_FieldName = fieldName;
-            m_Do        = @do;
-            m_Undo      = undo;
+            m_FieldName     = fieldName;
+            m_OutputName    = outputName;
+            m_Do            = @do;
+            m_Undo          = undo;
         }
 
         public void Map(MapResult result, JObject input)
@@ -30,14 +33,14 @@ namespace Regard.Query.MapReduce.Queries
             {
                 if (value.Type == JTokenType.Integer || value.Type == JTokenType.Float)
                 {
-                    result.SetValue(m_FieldName, new JValue(value.Value<double>()));
+                    result.SetValue(m_OutputName, new JValue(value.Value<double>()));
                 }
                 else if (value.Type == JTokenType.String)
                 {
                     double doubleValue;
                     if (double.TryParse(value.Value<string>(), out doubleValue))
                     {
-                        result.SetValue(m_FieldName, new JValue(doubleValue));
+                        result.SetValue(m_OutputName, new JValue(doubleValue));
                     }
                 }
             }
@@ -52,7 +55,7 @@ namespace Regard.Query.MapReduce.Queries
             {
                 // Ignore documents that don't contain a valid value
                 JToken thisValToken;
-                if (!doc.TryGetValue(m_FieldName, out thisValToken))
+                if (!doc.TryGetValue(m_OutputName, out thisValToken))
                 {
                     continue;
                 }
@@ -78,7 +81,7 @@ namespace Regard.Query.MapReduce.Queries
             // Store the total
             if (!firstResult)
             {
-                result[m_FieldName] = total;
+                result[m_OutputName] = total;
             }
         }
 
@@ -93,7 +96,7 @@ namespace Regard.Query.MapReduce.Queries
             double total = 0;
 
             JToken resultToken;
-            if (!result.TryGetValue(m_FieldName, out resultToken))
+            if (!result.TryGetValue(m_OutputName, out resultToken))
             {
                 // There are no values in the result
                 return;
@@ -111,7 +114,7 @@ namespace Regard.Query.MapReduce.Queries
             {
                 // Ignore documents that don't contain a valid value
                 JToken thisValToken;
-                if (!doc.TryGetValue(m_FieldName, out thisValToken))
+                if (!doc.TryGetValue(m_OutputName, out thisValToken))
                 {
                     continue;
                 }
@@ -125,7 +128,7 @@ namespace Regard.Query.MapReduce.Queries
             }
 
             // Store the total
-            result[m_FieldName] = total;
+            result[m_OutputName] = total;
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Regard.Query.Api;
 
 namespace Regard.Query.MapReduce.Queries
 {
@@ -12,6 +13,14 @@ namespace Regard.Query.MapReduce.Queries
         {
             foreach (var obj in a) yield return obj;
             foreach (var obj in b) yield return obj;
+        }
+
+        /// <summary>
+        /// Converts an IComposableMapReduce object to an IMapReduce object
+        /// </summary>
+        public static IMapReduce ToMapReduce(this IComposableMapReduce obj)
+        {
+            return obj.ToComposed();
         }
 
         /// <summary>
