@@ -93,6 +93,93 @@ namespace Regard.Query.Tests.MapReduce
         }
 
         [Test]
+        public void QueriesLikeSumShouldStillWorkWhenCombinedWithCountUnique()
+        {
+            var task = Task.Run(async () =>
+            {
+                // Create the 'unique sessions' query
+                var queryBuilder = new SerializableQueryBuilder(null);
+                var uniqueSessions = (SerializableQuery)queryBuilder.AllEvents().CountUniqueValues("SessionId", "NumSessions").Sum("NumberValue", "SumOfAllTheNumberValue");
+                var query = uniqueSessions.GenerateMapReduce();
+
+                // Generate a data store and an ingestor
+                var resultStore = new MemoryKeyValueStore();
+                var ingestor = new DataIngestor(query, resultStore);
+
+                // Run the standard set of docs through twice
+                // This forces a re-reduce on the second run through
+                await TestDataGenerator.Ingest12BasicDocuments(ingestor);
+
+                // This should create a data store with one record indicating that there are 12 records 
+                var reader = resultStore.EnumerateAllValues();
+                int recordCount = 0;
+
+                Tuple<JArray, JObject> nextRecord;
+                while ((nextRecord = await reader.FetchNext()) != null)
+                {
+                    // There are 3 unique sessions
+                    Assert.AreEqual(3, nextRecord.Item2["NumSessions"].Value<int>());
+
+                    // There are 12 total events
+                    Assert.AreEqual(12, nextRecord.Item2["Count"].Value<int>());
+                    recordCount++;
+
+                    // The total of all the numbers is still 21
+                    Assert.AreEqual(21, nextRecord.Item2["SumOfAllTheNumberValue"].Value<double>());
+                }
+
+                // Should be only one record
+                Assert.AreEqual(1, recordCount);
+            });
+
+            task.Wait();
+        }
+
+        [Test]
+        public void QueriesLikeSumShouldStillWorkWhenCombinedWithCountUniqueOnRereduce()
+        {
+            var task = Task.Run(async () =>
+            {
+                // Create the 'unique sessions' query
+                var queryBuilder = new SerializableQueryBuilder(null);
+                var uniqueSessions = (SerializableQuery)queryBuilder.AllEvents().CountUniqueValues("SessionId", "NumSessions").Sum("NumberValue", "SumOfAllTheNumberValue");
+                var query = uniqueSessions.GenerateMapReduce();
+
+                // Generate a data store and an ingestor
+                var resultStore = new MemoryKeyValueStore();
+                var ingestor = new DataIngestor(query, resultStore);
+
+                // Run the standard set of docs through twice
+                // This forces a re-reduce on the second run through
+                await TestDataGenerator.Ingest12BasicDocuments(ingestor);
+                await TestDataGenerator.Ingest12BasicDocuments(ingestor);
+
+                // This should create a data store with one record indicating that there are 12 records 
+                var reader = resultStore.EnumerateAllValues();
+                int recordCount = 0;
+
+                Tuple<JArray, JObject> nextRecord;
+                while ((nextRecord = await reader.FetchNext()) != null)
+                {
+                    // There are 3 unique sessions even when re-reducing
+                    Assert.AreEqual(3, nextRecord.Item2["NumSessions"].Value<int>());
+
+                    // There are 24 total events
+                    Assert.AreEqual(24, nextRecord.Item2["Count"].Value<int>());
+                    recordCount++;
+
+                    // The total of all the numbers is 42 due to the re-reduce
+                    Assert.AreEqual(42, nextRecord.Item2["SumOfAllTheNumberValue"].Value<double>());
+                }
+
+                // Should be only one record
+                Assert.AreEqual(1, recordCount);
+            });
+
+            task.Wait();
+        }
+
+        [Test]
         public void ThereShouldBe4SessionsIfWeReReduceANewOne()
         {
             var task = Task.Run(async () =>
