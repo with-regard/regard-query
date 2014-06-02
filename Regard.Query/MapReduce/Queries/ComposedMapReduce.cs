@@ -142,7 +142,7 @@ namespace Regard.Query.MapReduce.Queries
         public JObject Unreduce(JArray key, JObject reduced, IEnumerable<JObject> mappedDocuments)
         {
             var mapList = mappedDocuments.ToArray();
-            JObject result = new JObject();
+            JObject result = reduced.DeepClone().Value<JObject>();
 
             Unreduce(result, mapList);
 

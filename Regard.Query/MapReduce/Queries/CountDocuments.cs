@@ -44,7 +44,17 @@ namespace Regard.Query.MapReduce.Queries
             long count = result["Count"].Value<long>();
             foreach (var doc in documents)
             {
-                count -= doc["Count"].Value<long>();
+                JToken countVal;
+                if (doc.TryGetValue("Count", out countVal))
+                {
+                    // A mapped document can manually specify the count if it wants
+                    count -= countVal.Value<long>();
+                }
+                else
+                {
+                    // If no count is specified, it counts for 1
+                    count -= 1;
+                }
             }
 
             result["Count"] = count;
