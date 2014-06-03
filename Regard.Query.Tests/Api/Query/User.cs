@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Regard.Query.Api;
 
@@ -60,6 +61,46 @@ namespace Regard.Query.Tests.Api.Query
                     int count = 0;
                     for (var nextEvent = await userEvents.FetchNext(); nextEvent != null; nextEvent = await userEvents.FetchNext())
                     {
+                        ++count;
+                    }
+
+                    Assert.AreEqual(12, count);
+                }
+            }).Wait();
+        }
+
+        [Test]
+        public void EventContentsLookRight()
+        {
+            Task.Run(async () =>
+            {
+                // Create the data store
+                var dataStore = await GenerateUserDataStore();
+                var product = await dataStore.Products.GetProduct("WithRegard", "Test");
+
+                // Should be 12 events for each user
+                foreach (var uid in c_UserIds)
+                {
+                    var userEvents = await product.RetrieveEventsForUser(uid);
+
+                    int count = 0;
+                    for (var nextEvent = await userEvents.FetchNext(); nextEvent != null; nextEvent = await userEvents.FetchNext())
+                    {
+                        // Should contain an event type with certain values
+                        switch (nextEvent["EventType"].Value<string>())
+                        {
+                            case "Start":
+                            case "Stop":
+                            case "Click":
+                            case "NotClick":
+                                // OK
+                                break;
+
+                            default:
+                                Assert.Fail();
+                                break;
+                        }
+
                         ++count;
                     }
 
