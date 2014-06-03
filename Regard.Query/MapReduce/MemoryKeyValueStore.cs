@@ -245,7 +245,38 @@ namespace Regard.Query.MapReduce
         /// </summary>
         public IKvStoreEnumerator EnumerateValuesBeginningWithKey(JArray initialItems)
         {
-            throw new NotImplementedException();
+            // Just use a dumb enumerator that runs through all of the values and returns the ones that match
+            var allValues = m_Objects.GetEnumerator();
+
+            return new AllValuesEnumerator(() =>
+            {
+                while (allValues.MoveNext())
+                {
+                    var nextKey = JArray.Parse(allValues.Current.Key);
+
+                    if (nextKey == null) continue;
+                    if (nextKey.Count < initialItems.Count) continue;
+
+                    // Check if this value has this item as the prefix
+                    bool isMatch = true;
+                    for (int x = 0; x < initialItems.Count; ++x)
+                    {
+                        if (!Equals(nextKey[x], initialItems[x]))
+                        {
+                            isMatch = false;
+                            break;
+                        }
+                    }
+
+                    if (!isMatch) continue;
+
+                    // Return this item
+                    return new Tuple<JArray, JObject>(nextKey, allValues.Current.Value);
+                }
+
+                // Hit the end of the list if we reach here
+                return null;
+            });
         }
 
         /// <summary>
