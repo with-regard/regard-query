@@ -11,6 +11,7 @@ namespace Regard.Query.MapReduce.DataAccessor
     class IndividualProductDataStore
     {
         private readonly IKeyValueStore m_RawDataStore;
+        private readonly IKeyValueStore m_UserEvents;
 
         public IndividualProductDataStore(IKeyValueStore rawDataStore)
         {
@@ -19,6 +20,8 @@ namespace Regard.Query.MapReduce.DataAccessor
 
             Users = new UserDataStore(m_RawDataStore.ChildStore(new JArray("users")));
             Queries = new QueryDataStore(m_RawDataStore.ChildStore(new JArray("queries")));
+
+            m_UserEvents = m_RawDataStore.ChildStore(new JArray("user-events"));
         }
 
         public UserDataStore Users { get; private set; }
@@ -56,6 +59,12 @@ namespace Regard.Query.MapReduce.DataAccessor
         public IKeyValueStore GetRawEventStore(string nodeName)
         {
             return m_RawDataStore.ChildStore(new JArray("raw-events", nodeName));            
+        }
+
+        public async Task AssociateEventWithUser(Guid user, long eventId)
+        {
+            // Can just query everything beginning with the user prefix to get the complete list of events
+            await m_UserEvents.SetValue(new JArray(user.ToString(), eventId), JObject.FromObject(new { EventId = eventId }));
         }
 
         public IKeyValueStore GetQueryResults(string queryName, string nodeName)

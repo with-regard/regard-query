@@ -9,6 +9,8 @@ namespace Regard.Query.Api
     /// </summary>
     public interface IEventRecorder
     {
+        // TODO
+
         /// <summary>
         /// Indicates that a new session has begun
         /// </summary>
