@@ -34,15 +34,43 @@ namespace Regard.Query.MapReduce.Queries
                 return alreadyComposed;
             }
 
-            var result = new ComposedMapReduce(new[] { obj }, new[] { obj });
+            var result = new ComposedMapReduce(new[] { obj }, new[] { obj }, new IComposableReduce[0]);
 
             IComposableChain chain = obj as IComposableChain;
             if (chain != null)
             {
                 result.Chain = chain.ChainWith.ToComposed();
+                SetChainedRereduces(result.Chain, result, chain);
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Sets the list of re-reduces to run on a chain for a composition
+        /// </summary>
+        private static void SetChainedRereduces(ComposedMapReduce chained, ComposedMapReduce source, IComposableChain original)
+        {
+            if (chained == null) return;
+            if (source == null) return;
+
+            // Everything that reduces - *except* the item that is causing the chain - should be copied into the result
+            List<IComposableReduce> rereduces = new List<IComposableReduce>();
+
+            foreach (var reduce in source.Reduces)
+            {
+                // Ignore the item in the chain
+                if (ReferenceEquals(original, reduce))
+                {
+                    continue;
+                }
+
+                // This reduce should be re-done in the chain
+                rereduces.Add(reduce);
+            }
+
+            // Store in the chained item
+            chained.SetRereduces(rereduces);
         }
 
         /// <summary>
@@ -62,12 +90,14 @@ namespace Regard.Query.MapReduce.Queries
                 return alreadyMapReduce.ToComposed();
             }
 
-            var result = new ComposedMapReduce(new[] { obj }, new IComposableReduce[0]);
+            var result = new ComposedMapReduce(new[] { obj }, new IComposableReduce[0], new IComposableReduce[0]);
 
             IComposableChain chain = obj as IComposableChain;
             if (chain != null)
             {
-                result.Chain = chain.ChainWith.ToComposed();
+                ComposedMapReduce newChain;
+                result.Chain = newChain = chain.ChainWith.ToComposed();
+                SetChainedRereduces(newChain, result, chain);
             }
 
             return result;
@@ -90,12 +120,14 @@ namespace Regard.Query.MapReduce.Queries
                 return alreadyMapReduce.ToComposed();
             }
 
-            var result = new ComposedMapReduce(new IComposableMap[0], new[] { obj });
+            var result = new ComposedMapReduce(new IComposableMap[0], new[] { obj }, new IComposableReduce[0]);
 
             IComposableChain chain = obj as IComposableChain;
             if (chain != null)
             {
-                result.Chain = chain.ChainWith.ToComposed();
+                ComposedMapReduce newChain;
+                result.Chain = newChain = chain.ChainWith.ToComposed();
+                SetChainedRereduces(newChain, result, chain);
             }
 
             return result;
@@ -106,21 +138,24 @@ namespace Regard.Query.MapReduce.Queries
         /// </summary>
         public static ComposedMapReduce ComposeWith(this ComposedMapReduce first, ComposedMapReduce second)
         {
-            var result = new ComposedMapReduce(Combine(first.Maps, second.Maps), Combine(first.Reduces, second.Reduces));
+            var result = new ComposedMapReduce(Combine(first.Maps, second.Maps), Combine(first.Reduces, second.Reduces), new IComposableReduce[0]);
 
+            // TODO: this chain composition is only really tested for the simplest cases
             if (first.Chain != null)
             {
-                result.Chain = first.Chain;
+                result.Chain = first.Chain.Copy();
+
+                // When chaining, make sure that this reduce is re-run
+                result.Chain.AppendRereduce(second);
             }
 
             if (second.Chain != null)
             {
-                if (result.Chain != null)
-                {
-                    result.Chain = result.Chain.Copy();
-                }
+                var secondChain = second.Chain.Copy();
 
-                result.AppendToChain(second.Chain);
+                // When chaining, make sure that this reduce is re-run
+                secondChain.AppendRereduce(first);
+                result.AppendToChain(secondChain);
             }
 
             return result;

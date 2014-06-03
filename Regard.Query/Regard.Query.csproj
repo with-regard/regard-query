@@ -124,7 +124,6 @@
     <Compile Include="MapReduce\Queries\Only.cs" />
     <Compile Include="MapReduce\Queries\SimpleMathOp.cs" />
     <Compile Include="MapReduce\QueryableProduct.cs" />
-    <Compile Include="MapReduce\QueryMapReduce.cs" />
     <Compile Include="MapReduce\MapReduceQueryFactory.cs" />
     <Compile Include="MapReduce\Queries\MapResult.cs" />
     <Compile Include="MapReduce\QueryResultEnumerator.cs" />
