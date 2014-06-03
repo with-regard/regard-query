@@ -67,6 +67,11 @@ namespace Regard.Query.MapReduce.DataAccessor
             await m_UserEvents.SetValue(new JArray(user.ToString(), eventId), eventData);
         }
 
+        public IKvStoreEnumerator GetEventEnumeratorForUser(Guid user)
+        {
+            return m_UserEvents.EnumerateValuesBeginningWithKey(new JArray(user.ToString()));
+        }
+
         public IKeyValueStore GetQueryResults(string queryName, string nodeName)
         {
             var results = m_RawDataStore.ChildStore(new JArray("query-results", queryName)).ChildStore(new JArray(nodeName));
