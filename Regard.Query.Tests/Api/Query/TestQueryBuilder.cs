@@ -37,5 +37,20 @@ namespace Regard.Query.Tests.Api.Query
                 await target.EventRecorder.RecordEvent(sessionId, "WithRegard", "Test", doc);
             }
         }
+
+        /// <summary>
+        /// Writes the 12 basic events for a particular user
+        /// </summary>
+        public static async Task IngestBasic12TestDocumentsForUser(IRegardDataStore target, Guid userId)
+        {
+            // We use a random session ID for these tests
+            var sessionId = Guid.NewGuid();
+            await target.EventRecorder.StartSession("WithRegard", "Test", userId, sessionId);
+
+            foreach (var doc in TestDataGenerator.Generate12BasicDocuments())
+            {
+                await target.EventRecorder.RecordEvent(sessionId, "WithRegard", "Test", doc);
+            }
+        }
     }
 }
