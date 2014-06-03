@@ -61,10 +61,10 @@ namespace Regard.Query.MapReduce.DataAccessor
             return m_RawDataStore.ChildStore(new JArray("raw-events", nodeName));            
         }
 
-        public async Task AssociateEventWithUser(Guid user, long eventId)
+        public async Task AssociateEventWithUser(Guid user, long eventId, JObject eventData)
         {
             // Can just query everything beginning with the user prefix to get the complete list of events
-            await m_UserEvents.SetValue(new JArray(user.ToString(), eventId), JObject.FromObject(new { EventId = eventId }));
+            await m_UserEvents.SetValue(new JArray(user.ToString(), eventId), eventData);
         }
 
         public IKeyValueStore GetQueryResults(string queryName, string nodeName)
