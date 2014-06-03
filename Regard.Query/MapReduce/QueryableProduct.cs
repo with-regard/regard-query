@@ -293,6 +293,20 @@ namespace Regard.Query.MapReduce
         }
 
         /// <summary>
+        /// Retrieves all of the raw events associated with a particular user ID
+        /// </summary>
+        /// <remarks>
+        /// This is intended to support the user page: the results of running this query are meant to be displayed only to that user.
+        /// <para/>
+        /// One thought about a future version is that we might only want to store aggregate data, which would make this call redundant as
+        /// we would no longer store data for a specific user.
+        /// </remarks>
+        public Task<IResultEnumerator<JObject>> RetrieveEventsForUser(Guid userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
         /// Marks a specific user ID as being opted out from data collection for a specific product
         /// </summary>
         /// <remarks>

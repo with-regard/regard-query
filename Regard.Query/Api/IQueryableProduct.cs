@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace Regard.Query.Api
 {
@@ -23,6 +25,17 @@ namespace Regard.Query.Api
         /// Runs the query with the specified name against the database
         /// </summary>
         Task<IResultEnumerator<QueryResultLine>> RunQuery(string queryName);
+
+        /// <summary>
+        /// Retrieves all of the raw events associated with a particular user ID
+        /// </summary>
+        /// <remarks>
+        /// This is intended to support the user page: the results of running this query are meant to be displayed only to that user.
+        /// <para/>
+        /// One thought about a future version is that we might only want to store aggregate data, which would make this call redundant as
+        /// we would no longer store data for a specific user.
+        /// </remarks>
+        Task<IResultEnumerator<JObject>> RetrieveEventsForUser(Guid userId); 
 
         /// <summary>
         /// Retrieves the object that can administer the users of this project
