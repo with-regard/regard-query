@@ -10,16 +10,51 @@ namespace Regard.Query.MapReduce.Queries
     /// </summary>
     internal sealed class ComposedMapReduce : IComposableMapReduce, IMapReduce
     {
+        /// <summary>
+        /// The map operations to perform in sequence
+        /// </summary>
         private readonly List<IComposableMap> m_Maps; 
+
+        /// <summary>
+        /// The reduce operations to perform in sequence
+        /// </summary>
         private readonly List<IComposableReduce> m_Reduces;
 
-        public ComposedMapReduce(IEnumerable<IComposableMap> maps, IEnumerable<IComposableReduce> reduces)
+        /// <summary>
+        /// The rereduces to perform before the reductions
+        /// </summary>
+        /// <remarks>
+        /// These are used when chaining map/reduce operations
+        /// </remarks>
+        private List<IComposableReduce> m_Rereduces; 
+
+        public ComposedMapReduce(IEnumerable<IComposableMap> maps, IEnumerable<IComposableReduce> reduces, IEnumerable<IComposableReduce> rereduces)
         {
             if (maps == null)       maps = new IComposableMap[0];
             if (reduces == null)    reduces = new IComposableReduce[0];
+            if (rereduces == null)  rereduces = new IComposableReduce[0];
 
             m_Maps      = new List<IComposableMap>(maps);
             m_Reduces   = new List<IComposableReduce>(reduces);
+            m_Rereduces = new List<IComposableReduce>(rereduces);
+        }
+
+        /// <summary>
+        /// Sets the set of initial re-reduces to perform
+        /// </summary>
+        /// <remarks>
+        /// Before the reductions in this object are performed, the *RE*reduce call for these items is made. This is used for building up chained operations.
+        /// For example, consider a map/reduce operation that computes a sum which is chained to another that further reduces the result. It's necessary to
+        /// recompute the sum if it's needed in the final result. 
+        /// </remarks>
+        public void SetRereduces(IEnumerable<IComposableReduce> newRereduces)
+        {
+            m_Rereduces = new List<IComposableReduce>(newRereduces);
+        }
+
+        public void AppendRereduce(IComposableReduce toAppend)
+        {
+            m_Rereduces.Add(toAppend);
         }
 
         public IEnumerable<IComposableMap> Maps
@@ -51,6 +86,11 @@ namespace Regard.Query.MapReduce.Queries
         /// </remarks>
         public void Reduce(JObject result, JObject[] documents)
         {
+            foreach (var rereduce in m_Rereduces)
+            {
+                rereduce.Rereduce(result, documents);
+            }
+
             foreach (var reduce in m_Reduces)
             {
                 reduce.Reduce(result, documents);
@@ -65,6 +105,11 @@ namespace Regard.Query.MapReduce.Queries
         /// </remarks>
         public void Rereduce(JObject result, JObject[] documents)
         {
+            foreach (var rereduce in m_Rereduces)
+            {
+                rereduce.Rereduce(result, documents);
+            }
+
             foreach (var reduce in m_Reduces)
             {
                 reduce.Rereduce(result, documents);
@@ -79,6 +124,11 @@ namespace Regard.Query.MapReduce.Queries
         /// </remarks>
         public void Unreduce(JObject result, JObject[] documents, ref bool delete)
         {
+            foreach (var reduce in m_Rereduces)
+            {
+                reduce.Unreduce(result, documents, ref delete);
+            }
+
             foreach (var reduce in m_Reduces)
             {
                 reduce.Unreduce(result, documents, ref delete);
@@ -174,7 +224,7 @@ namespace Regard.Query.MapReduce.Queries
         /// </summary>
         public ComposedMapReduce Copy()
         {
-            var result = new ComposedMapReduce(m_Maps, m_Reduces);
+            var result = new ComposedMapReduce(m_Maps, m_Reduces, m_Rereduces);
             if (Chain != null)
             {
                 result.Chain = Chain.Copy();
