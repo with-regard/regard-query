@@ -58,7 +58,7 @@ namespace Regard.Query.Tests.Api.Query
                     var userEvents = await product.RetrieveEventsForUser(uid);
 
                     int count = 0;
-                    for (var nextEvent = userEvents.FetchNext(); nextEvent != null; nextEvent = userEvents.FetchNext())
+                    for (var nextEvent = await userEvents.FetchNext(); nextEvent != null; nextEvent = await userEvents.FetchNext())
                     {
                         ++count;
                     }

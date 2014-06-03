@@ -528,5 +528,37 @@ namespace Regard.Query.Tests.MapReduce
                 Assert.AreNotEqual(one, two);
             }).Wait();
         }
+
+        [Test]
+        public void CanRetrieveValuesByPrefix()
+        {
+            Task.Run(async () =>
+            {
+                var initialStore = CreateStoreToTest();
+
+                // Append 12 values with a particular prefix, and 12 with a preceding and a following prefix
+                for (int x = 0; x < 12; ++x)
+                {
+                    await initialStore.SetValue(new JArray("prefix", x), JObject.FromObject(new { Val = x }));
+                    await initialStore.SetValue(new JArray("qrefix", x), JObject.FromObject(new { Following = x }));
+                    await initialStore.SetValue(new JArray("orefix", x), JObject.FromObject(new { Preceding = x }));
+                    await initialStore.SetValue(new JArray("prefix2", x), JObject.FromObject(new { Following2 = x }));
+                    await initialStore.SetValue(new JArray("prefix2-", x), JObject.FromObject(new { Following3 = x }));
+                }
+
+                // Commit values so we can retrieve them
+                await initialStore.Commit();
+
+                // Should be able to retrieve 12 values with this prefix
+                var prefixEnum = initialStore.EnumerateValuesBeginningWithKey(new JArray("prefix"));
+                int count = 0;
+                for (var obj = await prefixEnum.FetchNext(); obj != null; obj = await prefixEnum.FetchNext())
+                {
+                    ++count;
+                }
+
+                Assert.AreEqual(12, count);
+            }).Wait();
+        }
     }
 }
