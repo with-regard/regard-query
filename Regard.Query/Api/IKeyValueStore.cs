@@ -58,6 +58,11 @@ namespace Regard.Query.Api
         IKvStoreEnumerator EnumerateValuesAppendedSince(long appendKey);
 
         /// <summary>
+        /// Enumerates all of the values with a key starting with the specified items
+        /// </summary>
+        IKvStoreEnumerator EnumerateValuesBeginningWithKey(JArray initialItems);
+
+        /// <summary>
         /// Erases all of the values in a particular child store
         /// </summary>
         Task DeleteChildStore(JArray key);

@@ -241,6 +241,14 @@ namespace Regard.Query.MapReduce
         }
 
         /// <summary>
+        /// Enumerates all of the values with a key starting with the specified items
+        /// </summary>
+        public IKvStoreEnumerator EnumerateValuesBeginningWithKey(JArray initialItems)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
         /// Waits for all of the pending SetValue requests to complete (if they are cached or otherwise write-through)
         /// </summary>
         public async Task Commit()
