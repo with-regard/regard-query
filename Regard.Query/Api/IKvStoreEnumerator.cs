@@ -13,5 +13,10 @@ namespace Regard.Query.Api
         /// Retrieves the next object in the list
         /// </summary>
         Task<Tuple<JArray, JObject>> FetchNext();
+
+        /// <summary>
+        /// Retrieves the 'numberth' object in the list from a key-value store, or null if it doesn't exist
+        /// </summary>
+        Task<Tuple<JArray, JObject>> FastForward(int number);
     }
 }

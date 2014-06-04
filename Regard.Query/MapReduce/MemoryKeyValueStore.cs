@@ -102,6 +102,11 @@ namespace Regard.Query.MapReduce
             {
                 return m_FetchNext();
             }
+
+            public Task<Tuple<JArray, JObject>> FastForward(int number)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         /// <summary>
