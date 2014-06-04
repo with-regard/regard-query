@@ -446,7 +446,7 @@ namespace Regard.Query.Tests.MapReduce
                 await AppendData(store, 100, -1);
 
                 var enumeration = store.EnumerateAllValues();
-                await enumeration.FastForward(49);                          // Reads the 49th index, so the next FetchNext will get the 50th
+                await enumeration.FastForward(50);                          // Reads the 49th index, so the next FetchNext will get the 50th
                 await CheckEnumerationContainsAllIndexes(enumeration, 50, 100);
             }).Wait();
         }

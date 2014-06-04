@@ -15,7 +15,7 @@ namespace Regard.Query.Api
         Task<Tuple<JArray, JObject>> FetchNext();
 
         /// <summary>
-        /// Retrieves the 'numberth' object in the list from a key-value store, or null if it doesn't exist
+        /// Retrieves the 'numberth' object in the list from a key-value store, or null if it doesn't exist.
         /// </summary>
         Task<Tuple<JArray, JObject>> FastForward(int number);
     }
