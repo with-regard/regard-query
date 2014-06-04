@@ -55,6 +55,7 @@
     <Compile Include="Api\ProductAdmin\UserAdmin\TestUserAdminFactory.cs" />
     <Compile Include="Api\Query\Basic.cs" />
     <Compile Include="Api\Query\TestQueryBuilder.cs" />
+    <Compile Include="Api\Query\User.cs" />
     <Compile Include="Api\TestDataStoreFactory.cs" />
     <Compile Include="MapReduce\AllEvents.cs" />
     <Compile Include="MapReduce\BackingStore.cs" />

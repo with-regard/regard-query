@@ -590,6 +590,42 @@ namespace Regard.Query.MapReduce.Azure
         }
 
         /// <summary>
+        /// Enumerates all of the values with a key starting with the specified items
+        /// </summary>
+        public IKvStoreEnumerator EnumerateValuesBeginningWithKey(JArray initialItems)
+        {
+           // Sanity check
+            if (initialItems == null)       throw new ArgumentNullException("initialItems");
+            if (initialItems.Count == 0)    return EnumerateAllValues();
+
+            // Key will end with '-' so the prefix we'll look for in the real table is just the key
+            var keyPrefix = CreateKey(initialItems);
+
+            // The final element in the list will be one 'above' the key prefix (ie, the first element we should exclude when items are sorted alphabetically)
+            char[] nextKeyArray = keyPrefix.ToCharArray();
+            nextKeyArray[nextKeyArray.Length - 1]++;
+            var nextKey = new string(nextKeyArray);
+
+            // Generate a query to look for everything beginning with this key. Same trick as we use for deleting things
+            var prefixQuery = new TableQuery<JsonTableEntity>();
+
+            prefixQuery.Where(
+                TableQuery.CombineFilters(
+                    TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, m_Partition),
+                    TableOperators.And,
+                    TableQuery.CombineFilters(
+                        TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.GreaterThan, keyPrefix),
+                        TableOperators.And,
+                        TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.LessThan, nextKey)
+                    )
+                )
+            );
+
+            // Select all the items
+            return new SegmentedEnumerator(m_Table, prefixQuery, null);
+        }
+
+        /// <summary>
         /// Waits for all of the pending SetValue requests to complete (if they are cached or otherwise write-through)
         /// </summary>
         public async Task Commit()

@@ -27,7 +27,7 @@ namespace Regard.Query.Tests.Api.EventRecorder
                 var sessionId = await store.EventRecorder.StartSession("WithRegard", "Test", WellKnownUserIdentifier.TestUser, Guid.Empty);
                 foreach (var evt in TestDataGenerator.Generate12BasicDocuments())
                 {
-                    await store.EventRecorder.RecordEvent(sessionId, "WithRegard", "Test", evt);
+                    await store.EventRecorder.RecordEvent(WellKnownUserIdentifier.TestUser, sessionId, "WithRegard", "Test", evt);
                 }
             }).Wait();
         }

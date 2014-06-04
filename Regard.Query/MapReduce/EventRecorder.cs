@@ -79,11 +79,12 @@ namespace Regard.Query.MapReduce
         /// <summary>
         /// Schedules a single event to be recorded by this object
         /// </summary>
+        /// <param name="userId">The ID of the user that this event is for</param>
         /// <param name="sessionId">The ID of the session (as returned by StartSession)</param>
         /// <param name="organization">The name of the organization that the session is for</param>
         /// <param name="product">The name of the product that the session is for</param>
         /// <param name="data">JSON data indicating the properties for this event</param>
-        public async Task RecordEvent(Guid sessionId, string organization, string product, JObject data)
+        public async Task RecordEvent(Guid userId, Guid sessionId, string organization, string product, JObject data)
         {
             // TODO: do not record events for sessions that don't exist
             // TODO: in particular, do not record events for users who are not opted in
@@ -93,7 +94,8 @@ namespace Regard.Query.MapReduce
             var productStore    = await m_RootDataStore.ProductDataStore.DataStoreForIndividualProduct(organization, product);
             var eventStore      = productStore.GetRawEventStore(m_NodeName);
 
-            await eventStore.AppendValue(data);
+            long eventId = await eventStore.AppendValue(data);
+            await productStore.AssociateEventWithUser(userId, eventId, data);
         }
     }
 }

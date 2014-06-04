@@ -122,5 +122,10 @@ namespace Regard.Query.Sql
         /// Retrieves the object that can administer the users of this project
         /// </summary>
         public IUserAdmin Users { get; private set; }
+
+        public Task<IResultEnumerator<JObject>> RetrieveEventsForUser(Guid userId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
