@@ -395,6 +395,8 @@ namespace Regard.Query.WebAPI
         [HttpGet, Route("product/v1/{organization}/{product}/get-events-for-user/{uid}/{offset}")]
         public async Task<HttpResponseMessage> GetEventsForUser(string organization, string product, string uid, int offset)
         {
+            await EnsureDataStore();
+
             // Verify that the UID is a GUID
             Guid parsedUid;
             if (!Guid.TryParse(uid, out parsedUid))
@@ -433,7 +435,7 @@ namespace Regard.Query.WebAPI
         [HttpGet, Route("product/v1/{organization}/{product}/get-events-for-user/{uid}")]
         public async Task<HttpResponseMessage> GetEventsForUser(string organization, string product, string uid)
         {
-            return await GetEventsForUser(organization, product, uid);
+            return await GetEventsForUser(organization, product, uid, 0);
         }
 
         /// <summary>
