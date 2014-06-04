@@ -120,9 +120,17 @@ namespace Regard.Query.MapReduce.Azure
         /// <summary>
         /// Retrieves the 'numberth' object in the list from a key-value store, or null if it doesn't exist
         /// </summary>
-        public Task<Tuple<JArray, JObject>> FastForward(int number)
+        public async Task<Tuple<JArray, JObject>> FastForward(int number)
         {
-            throw new NotImplementedException();
+            // TODO: fixme - this is really incredibly slow
+            Tuple<JArray, JObject> result = null;
+            for (int x = 0; x < number; ++x)
+            {
+                result = await FetchNext();
+                if (result == null) return null;
+            }
+
+            return result;
         }
     }
 }
