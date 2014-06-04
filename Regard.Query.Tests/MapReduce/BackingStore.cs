@@ -336,7 +336,6 @@ namespace Regard.Query.Tests.MapReduce
             }).Wait();
         }
 
-
         [Test]
         public void CanAppendAResult()
         {
@@ -434,6 +433,21 @@ namespace Regard.Query.Tests.MapReduce
                 var store = CreateStoreToTest();
                 await AppendData(store, 200, -1);
                 await CheckEnumerationContainsAllIndexes(store.EnumerateAllValues(), 0, 200);
+            }).Wait();
+        }
+
+        [Test]
+        public void CanEnumerateOverHalfOf100Items()
+        {
+            // 100 happens to be a magic number for azure table storage, so try 200 too.
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+                await AppendData(store, 100, -1);
+
+                var enumeration = store.EnumerateAllValues();
+                await enumeration.FastForward(49);                          // Reads the 49th index, so the next FetchNext will get the 50th
+                await CheckEnumerationContainsAllIndexes(enumeration, 50, 100);
             }).Wait();
         }
 
