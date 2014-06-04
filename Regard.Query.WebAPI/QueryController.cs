@@ -387,6 +387,56 @@ namespace Regard.Query.WebAPI
         }
 
         /// <summary>
+        /// Retrieves the list of events for a particular user
+        /// </summary>
+        /// <remarks>
+        /// Offset indicates the event to begin at
+        /// </remarks>
+        [HttpGet, Route("product/v1/{organization}/{product}/get-events-for-user/{uid}/{offset}")]
+        public async Task<HttpResponseMessage> GetEventsForUser(string organization, string product, string uid, int offset)
+        {
+            // Verify that the UID is a GUID
+            Guid parsedUid;
+            if (!Guid.TryParse(uid, out parsedUid))
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "UID is not a GUID");
+            }
+
+            // Get the product, and ensure that it exists
+            var queryableProduct = await m_DataStore.Products.GetProduct(organization, product);
+            if (queryableProduct == null)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Could not find product");
+            }
+
+            // Retrieve the data for this UID
+            var userEvents = await queryableProduct.RetrieveEventsForUser(parsedUid);
+
+            // Put them into a JArray and return the results
+            // TODO: only return 100-200 results at a time?
+            JArray results = new JArray();
+
+            for (var nextEvent = await userEvents.FetchNext(); nextEvent != null; nextEvent = await userEvents.FetchNext())
+            {
+                results.Add(nextEvent);
+            }
+
+            return Request.CreateResponse(HttpStatusCode.OK, results);
+        }
+
+        /// <summary>
+        /// Retrieves the list of events for a particular user
+        /// </summary>
+        /// <remarks>
+        /// Off
+        /// </remarks>
+        [HttpGet, Route("product/v1/{organization}/{product}/get-events-for-user/{uid}")]
+        public async Task<HttpResponseMessage> GetEventsForUser(string organization, string product, string uid)
+        {
+            return await GetEventsForUser(organization, product, uid);
+        }
+
+        /// <summary>
         /// Opts in a particular user
         /// </summary>
         [HttpPost, Route("product/v1/{organization}/{product}/users/{uid}/opt-in")]
