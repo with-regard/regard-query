@@ -102,18 +102,6 @@ namespace Regard.Query.MapReduce
             {
                 return m_FetchNext();
             }
-
-            public async Task<Tuple<JArray, JObject>> FastForward(int number)
-            {
-                Tuple<JArray, JObject> result = null;
-                for (int x = 0; x < number; ++x)
-                {
-                    result = await FetchNext();
-                    if (result == null) return null;
-                }
-
-                return result;
-            }
         }
 
         /// <summary>

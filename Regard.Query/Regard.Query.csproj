@@ -72,7 +72,6 @@
     <Compile Include="Api\IEventRecorder.cs" />
     <Compile Include="Api\IMapReduce.cs" />
     <Compile Include="Api\IMapTarget.cs" />
-    <Compile Include="Api\IPagingResultEnumerator.cs" />
     <Compile Include="Api\IProductAdmin.cs" />
     <Compile Include="Api\IProductStoreRetrieval.cs" />
     <Compile Include="Api\IQueryableProduct.cs" />

@@ -437,21 +437,6 @@ namespace Regard.Query.Tests.MapReduce
         }
 
         [Test]
-        public void CanEnumerateOverHalfOf100Items()
-        {
-            // 100 happens to be a magic number for azure table storage, so try 200 too.
-            Task.Run(async () =>
-            {
-                var store = CreateStoreToTest();
-                await AppendData(store, 100, -1);
-
-                var enumeration = store.EnumerateAllValues();
-                await enumeration.FastForward(50);                          // Reads the 49th index, so the next FetchNext will get the 50th
-                await CheckEnumerationContainsAllIndexes(enumeration, 50, 100);
-            }).Wait();
-        }
-
-        [Test]
         public void CanEnumerateFromStartUsingAppendedSince()
         {
             Task.Run(async () =>
