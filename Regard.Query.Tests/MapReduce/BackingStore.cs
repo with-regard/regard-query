@@ -440,6 +440,9 @@ namespace Regard.Query.Tests.MapReduce
 
                     foundItems.Add(index);
                 }
+
+                // Reached the end if the next token is null
+                if (await page.GetNextPageToken() == null) break;
             }
 
             Assert.AreEqual(upperIndex - lowerIndex, foundItems.Count, "Expected " + (upperIndex - lowerIndex) + " items but found " + foundItems.Count);
