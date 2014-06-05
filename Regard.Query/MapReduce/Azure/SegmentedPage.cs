@@ -109,6 +109,12 @@ namespace Regard.Query.MapReduce.Azure
         {
             foreach (var nextResult in currentSegment.Results)
             {
+                // ??? Not sure why this happens ??? Azure storage bug?
+                if (nextResult.SerializedJson == null || nextResult.SerializedKey == null)
+                {
+                    continue;
+                }
+
                 // Parse this result
                 var nextResultObj = JObject.Parse(nextResult.SerializedJson);
                 var nextResultKey = JArray.Parse(nextResult.SerializedKey);
