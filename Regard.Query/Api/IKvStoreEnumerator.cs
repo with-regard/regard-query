@@ -13,5 +13,11 @@ namespace Regard.Query.Api
         /// Retrieves the next object in the list
         /// </summary>
         Task<Tuple<JArray, JObject>> FetchNext();
+
+        /// <summary>
+        /// Retrieves a page of objects from the list
+        /// </summary>
+        /// <param name="pageToken">null to retrieve the first page in the list, otherwise a value returned by IKeyValuePage.NextPageToken</param>
+        Task<IKeyValuePage> FetchPage(string pageToken);
     }
 }

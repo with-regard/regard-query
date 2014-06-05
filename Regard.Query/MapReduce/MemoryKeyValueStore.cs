@@ -102,6 +102,15 @@ namespace Regard.Query.MapReduce
             {
                 return m_FetchNext();
             }
+
+            /// <summary>
+            /// Retrieves a page of objects from the list
+            /// </summary>
+            /// <param name="pageToken">null to retrieve the first page in the list, otherwise a value returned by IKeyValuePage.NextPageToken</param>
+            public Task<IKeyValuePage> FetchPage(string pageToken)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         /// <summary>

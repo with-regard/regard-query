@@ -70,6 +70,7 @@
     </Compile>
     <Compile Include="Api\FluentQuery.cs" />
     <Compile Include="Api\IEventRecorder.cs" />
+    <Compile Include="Api\IKeyValuePage.cs" />
     <Compile Include="Api\IMapReduce.cs" />
     <Compile Include="Api\IMapTarget.cs" />
     <Compile Include="Api\IProductAdmin.cs" />
