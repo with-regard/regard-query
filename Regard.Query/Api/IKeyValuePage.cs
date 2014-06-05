@@ -20,8 +20,12 @@ namespace Regard.Query.Api
         IEnumerable<Tuple<JArray, JObject>> GetObjects();
 
         /// <summary>
-        /// A token that can be used to retrieve the page that follows this one, or null if this is the last page
+        /// A token that can be used to retrieve the page that follows this one, or null if this is the last page.
         /// </summary>
+        /// <remarks>
+        /// Page tokens are persistent, so you can re-run the same enumeration and use the old page token to resume it from where the
+        /// previous one left off.
+        /// </remarks>
         string NextPageToken { get; }
     }
 }
