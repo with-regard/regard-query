@@ -121,9 +121,10 @@ namespace Regard.Query.MapReduce.Azure
         /// Retrieves a page of objects from the list
         /// </summary>
         /// <param name="pageToken">null to retrieve the first page in the list, otherwise a value returned by IKeyValuePage.NextPageToken</param>
-        public Task<IKeyValuePage> FetchPage(string pageToken)
+        public async Task<IKeyValuePage> FetchPage(string pageToken)
         {
-            throw new NotImplementedException();
+            // TODO: can probably remove the 'Task' qualifier here...
+            return new SegmentedPage(m_Table, m_Query, pageToken, m_FilterFunc);
         }
     }
 }
