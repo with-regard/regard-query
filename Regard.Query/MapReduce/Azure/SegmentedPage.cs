@@ -53,10 +53,17 @@ namespace Regard.Query.MapReduce.Azure
 
             m_Table             = table;
             m_Query             = query;
-            m_ContinuationToken = new TableContinuationToken();
             m_FilterFunc        = filterFunc;
 
-            m_ContinuationToken.ReadXml(XmlReader.Create(new StringReader(segmentToken)));
+            if (segmentToken != null)
+            {
+                m_ContinuationToken = new TableContinuationToken();
+                m_ContinuationToken.ReadXml(XmlReader.Create(new StringReader(segmentToken)));
+            }
+            else
+            {
+                m_ContinuationToken = null;
+            }
         }
 
         private async Task<TableQuerySegment<JsonTableEntity>> GetCloudSegment()
