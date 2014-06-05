@@ -93,6 +93,8 @@ namespace Regard.Query.MapReduce
         {
             private readonly Func<Tuple<JArray, JObject>> m_FetchNext;
 
+            private Dictionary<string, AllValuesEnumPage> m_Pages;
+
             public AllValuesEnumerator(Func<Tuple<JArray, JObject>> fetchNext)
             {
                 m_FetchNext = fetchNext;
@@ -107,10 +109,72 @@ namespace Regard.Query.MapReduce
             /// Retrieves a page of objects from the list
             /// </summary>
             /// <param name="pageToken">null to retrieve the first page in the list, otherwise a value returned by IKeyValuePage.NextPageToken</param>
-            public Task<IKeyValuePage> FetchPage(string pageToken)
+            public async Task<IKeyValuePage> FetchPage(string pageToken)
             {
-                throw new NotImplementedException();
+                if (m_Pages == null)
+                {
+                    // Generate pages by fetching everything
+                    var         newPages = new Dictionary<string, AllValuesEnumPage>();
+                    const int   pageSize = 10;
+                    int         pageNum  = 0;
+
+                    List<Tuple<JArray, JObject>> currentPage = new List<Tuple<JArray, JObject>>();
+                    for (var obj = await FetchNext(); obj != null; obj = await FetchNext())
+                    {
+                        if (currentPage.Count >= pageSize)
+                        {
+                            newPages[pageNum.ToString()] = new AllValuesEnumPage((pageNum+1).ToString(), currentPage);
+                            currentPage = new List<Tuple<JArray, JObject>>();
+                            ++pageNum;
+                        }
+
+                        currentPage.Add(obj);
+                    }
+
+                    if (currentPage.Count > 0)
+                    {
+                        newPages[pageNum.ToString()] = new AllValuesEnumPage((pageNum + 1).ToString(), currentPage);
+                    }
+
+                    m_Pages = newPages;
+                }
+
+                AllValuesEnumPage page;
+                if (string.IsNullOrEmpty(pageToken))
+                {
+                    pageToken = 0.ToString();
+                }
+                
+                if (m_Pages.TryGetValue(pageToken, out page))
+                {
+                    return page;
+                }
+                else
+                {
+                    return null;
+                }
             }
+        }
+
+        /// <summary>
+        /// In-memory implementation of a page of objects
+        /// </summary>
+        class AllValuesEnumPage : IKeyValuePage
+        {
+            private readonly List<Tuple<JArray, JObject>> m_Objects;
+
+            public AllValuesEnumPage(string nextPageToken, IEnumerable<Tuple<JArray, JObject>> objects)
+            {
+                NextPageToken = nextPageToken;
+                m_Objects = new List<Tuple<JArray, JObject>>(objects);
+            }
+
+            public IEnumerable<Tuple<JArray, JObject>> GetObjects()
+            {
+                return m_Objects;
+            }
+
+            public string NextPageToken { get; private set; }
         }
 
         /// <summary>
