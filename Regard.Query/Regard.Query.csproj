@@ -92,6 +92,7 @@
     <Compile Include="MapReduce\Azure\AppendIndexStatusEntity.cs" />
     <Compile Include="MapReduce\Azure\AzureKeyValueStore.cs" />
     <Compile Include="MapReduce\Azure\AzureStoreRetrieval.cs" />
+    <Compile Include="MapReduce\Azure\SegmentedPage.cs" />
     <Compile Include="MapReduce\Azure\JsonTableEntity.cs" />
     <Compile Include="MapReduce\Azure\SegmentedEnumerator.cs" />
     <Compile Include="MapReduce\DataAccessor\IndividualProductDataStore.cs" />

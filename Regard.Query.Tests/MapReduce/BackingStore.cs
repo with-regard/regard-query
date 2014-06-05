@@ -425,9 +425,9 @@ namespace Regard.Query.Tests.MapReduce
         {
             var foundItems = new HashSet<int>();
 
-            for (var page = await enumeratorGenerator().FetchPage(null); page != null; page = await enumeratorGenerator().FetchPage(page.NextPageToken))
+            for (var page = await enumeratorGenerator().FetchPage(null); page != null; page = await enumeratorGenerator().FetchPage(await page.GetNextPageToken()))
             {
-                foreach (var value in page.GetObjects())
+                foreach (var value in await page.GetObjects())
                 {
                     // Every value must have an index
                     var index = value.Item2["Index"].Value<int>();

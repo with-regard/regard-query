@@ -169,9 +169,14 @@ namespace Regard.Query.MapReduce
                 m_Objects = new List<Tuple<JArray, JObject>>(objects);
             }
 
-            public IEnumerable<Tuple<JArray, JObject>> GetObjects()
+            public async Task<IEnumerable<Tuple<JArray, JObject>>> GetObjects()
             {
                 return m_Objects;
+            }
+
+            public async Task<string> GetNextPageToken()
+            {
+                return NextPageToken;
             }
 
             public string NextPageToken { get; private set; }

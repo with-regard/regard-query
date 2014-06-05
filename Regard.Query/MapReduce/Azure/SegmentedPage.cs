@@ -1,24 +1,23 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using Regard.Query.Api;
 
-namespace Regard.Query.Api
+namespace Regard.Query.MapReduce.Azure
 {
     /// <summary>
-    /// Represents a page of data from a Key-Value enumerator
+    /// A page from an Azure data store
     /// </summary>
-    /// <remarks>
-    /// Paging is stateless and its precise behaviour is defined by the underlying implementation. The design chosen here happens
-    /// to be easy to implement with Azure tables.
-    /// </remarks>
-    public interface IKeyValuePage
+    class SegmentedPage : IKeyValuePage
     {
         /// <summary>
         /// Retrieves the objects in this page
         /// </summary>
-        Task<IEnumerable<Tuple<JArray, JObject>>> GetObjects();
+        public Task<IEnumerable<Tuple<JArray, JObject>>> GetObjects()
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// A token that can be used to retrieve the page that follows this one, or null if this is the last page.
@@ -27,6 +26,9 @@ namespace Regard.Query.Api
         /// Page tokens are persistent, so you can re-run the same enumeration and use the old page token to resume it from where the
         /// previous one left off.
         /// </remarks>
-        Task<string> GetNextPageToken();
+        public Task<string> GetNextPageToken()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

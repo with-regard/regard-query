@@ -18,6 +18,9 @@ namespace Regard.Query.Api
         /// Retrieves a page of objects from the list
         /// </summary>
         /// <param name="pageToken">null to retrieve the first page in the list, otherwise a value returned by IKeyValuePage.NextPageToken</param>
+        /// <remarks>
+        /// The next item retrieved by FetchNext() is undefined once this call is made
+        /// </remarks>
         Task<IKeyValuePage> FetchPage(string pageToken);
     }
 }
