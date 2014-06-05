@@ -433,16 +433,16 @@ namespace Regard.Query.Tests.MapReduce
                     var index = value.Item2["Index"].Value<int>();
 
                     // Must be in the specified range
-                    Assert.That(index >= lowerIndex);
-                    Assert.That(index < upperIndex);
+                    Assert.That(index >= lowerIndex, index + " is lower than " + lowerIndex);
+                    Assert.That(index < upperIndex, index + " is greater than " + upperIndex);
 
-                    Assert.That(!foundItems.Contains(index));
+                    Assert.That(!foundItems.Contains(index), index + " was duplicated");
 
                     foundItems.Add(index);
                 }
             }
 
-            Assert.AreEqual(upperIndex - lowerIndex, foundItems.Count);
+            Assert.AreEqual(upperIndex - lowerIndex, foundItems.Count, "Expected " + (upperIndex - lowerIndex) + " items but found " + foundItems.Count);
         }
 
         [Test]
