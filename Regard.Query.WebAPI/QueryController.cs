@@ -412,10 +412,10 @@ namespace Regard.Query.WebAPI
             }
 
             // Retrieve the data for this UID
-            var userEvents = await queryableProduct.RetrieveEventsForUser(parsedUid);
+            var userEvents = await queryableProduct.RetrieveEventsForUser(parsedUid, null);
 
             // Put them into a JArray and return the results
-            // TODO: only return 100-200 results at a time?
+            // TODO: this will only return the first 1000 events
             JArray results = new JArray();
 
             for (var nextEvent = await userEvents.FetchNext(); nextEvent != null; nextEvent = await userEvents.FetchNext())

@@ -35,7 +35,7 @@ namespace Regard.Query.Api
         /// One thought about a future version is that we might only want to store aggregate data, which would make this call redundant as
         /// we would no longer store data for a specific user.
         /// </remarks>
-        Task<IResultEnumerator<JObject>> RetrieveEventsForUser(Guid userId); 
+        Task<IPagedResultEnumerator<JObject>> RetrieveEventsForUser(Guid userId, string pageToken); 
 
         /// <summary>
         /// Retrieves the object that can administer the users of this project

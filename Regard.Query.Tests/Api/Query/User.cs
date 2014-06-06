@@ -56,7 +56,7 @@ namespace Regard.Query.Tests.Api.Query
                 // Should be 12 events for each user
                 foreach (var uid in c_UserIds)
                 {
-                    var userEvents = await product.RetrieveEventsForUser(uid);
+                    var userEvents = await product.RetrieveEventsForUser(uid, null);
 
                     int count = 0;
                     for (var nextEvent = await userEvents.FetchNext(); nextEvent != null; nextEvent = await userEvents.FetchNext())
@@ -81,7 +81,7 @@ namespace Regard.Query.Tests.Api.Query
                 // Should be 12 events for each user
                 foreach (var uid in c_UserIds)
                 {
-                    var userEvents = await product.RetrieveEventsForUser(uid);
+                    var userEvents = await product.RetrieveEventsForUser(uid, null);
 
                     int count = 0;
                     for (var nextEvent = await userEvents.FetchNext(); nextEvent != null; nextEvent = await userEvents.FetchNext())

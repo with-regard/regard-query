@@ -123,7 +123,7 @@ namespace Regard.Query.Sql
         /// </summary>
         public IUserAdmin Users { get; private set; }
 
-        public Task<IResultEnumerator<JObject>> RetrieveEventsForUser(Guid userId)
+        public Task<IPagedResultEnumerator<JObject>> RetrieveEventsForUser(Guid userId, string page)
         {
             throw new NotImplementedException();
         }

@@ -301,9 +301,9 @@ namespace Regard.Query.MapReduce
         /// One thought about a future version is that we might only want to store aggregate data, which would make this call redundant as
         /// we would no longer store data for a specific user.
         /// </remarks>
-        public async Task<IResultEnumerator<JObject>> RetrieveEventsForUser(Guid userId)
+        public async Task<IPagedResultEnumerator<JObject>> RetrieveEventsForUser(Guid userId, string page)
         {
-            return new KvObjectEnumerator(m_ProductDataStore.GetEventEnumeratorForUser(userId));
+            return new KvObjectEnumerator(await m_ProductDataStore.GetEventEnumeratorForUser(userId).FetchPage(page));
         }
 
         /// <summary>

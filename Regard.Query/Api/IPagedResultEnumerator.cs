@@ -1,4 +1,6 @@
-﻿namespace Regard.Query.Api
+﻿using System.Threading.Tasks;
+
+namespace Regard.Query.Api
 {
     /// <summary>
     /// Interface implemented by objects that iterate through a partial set of results
@@ -8,6 +10,6 @@
         /// <summary>
         /// The token to pass to the generator call for the next page, or null if this is the last page
         /// </summary>
-        string NextPageToken { get; }
+        Task<string> GetNextPageToken();
     }
 }
