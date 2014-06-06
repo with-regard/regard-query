@@ -73,6 +73,7 @@
     <Compile Include="Api\IKeyValuePage.cs" />
     <Compile Include="Api\IMapReduce.cs" />
     <Compile Include="Api\IMapTarget.cs" />
+    <Compile Include="Api\IPagedResultEnumerator.cs" />
     <Compile Include="Api\IProductAdmin.cs" />
     <Compile Include="Api\IProductStoreRetrieval.cs" />
     <Compile Include="Api\IQueryableProduct.cs" />
