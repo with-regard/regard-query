@@ -133,7 +133,7 @@ namespace Regard.Query.MapReduce
 
                     if (currentPage.Count > 0)
                     {
-                        newPages[pageNum.ToString()] = new AllValuesEnumPage((pageNum + 1).ToString(), currentPage);
+                        newPages[pageNum.ToString()] = new AllValuesEnumPage(null, currentPage);
                     }
 
                     m_Pages = newPages;
