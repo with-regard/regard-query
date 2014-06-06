@@ -637,9 +637,22 @@ namespace Regard.Query.MapReduce.Azure
                 // Finish any append batch that was waiting
                 FinishAppendBatch();
 
+                if (m_InProgressOperations.Count > 2)
+                {
+                    Trace.WriteLine("AzureKeyValueStore Commit: Waiting for " + m_InProgressOperations.Count + " operations to commit");
+                }
+
+                DateTime start = DateTime.Now;
+
                 // Wait for any queued tasks to complete
                 waitingTasks = new List<Task>(m_InProgressOperations);
                 m_InProgressOperations.Clear();
+
+                TimeSpan timeTaken = DateTime.Now - start;
+                if (timeTaken > TimeSpan.FromMilliseconds(10000))
+                {
+                    Trace.WriteLine("AzureKeyValueStore Commit: time taken was " + timeTaken);
+                }
             }
 
             // Wait for everything to finish updating

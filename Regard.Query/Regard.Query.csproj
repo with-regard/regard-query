@@ -70,8 +70,10 @@
     </Compile>
     <Compile Include="Api\FluentQuery.cs" />
     <Compile Include="Api\IEventRecorder.cs" />
+    <Compile Include="Api\IKeyValuePage.cs" />
     <Compile Include="Api\IMapReduce.cs" />
     <Compile Include="Api\IMapTarget.cs" />
+    <Compile Include="Api\IPagedResultEnumerator.cs" />
     <Compile Include="Api\IProductAdmin.cs" />
     <Compile Include="Api\IProductStoreRetrieval.cs" />
     <Compile Include="Api\IQueryableProduct.cs" />
@@ -91,6 +93,7 @@
     <Compile Include="MapReduce\Azure\AppendIndexStatusEntity.cs" />
     <Compile Include="MapReduce\Azure\AzureKeyValueStore.cs" />
     <Compile Include="MapReduce\Azure\AzureStoreRetrieval.cs" />
+    <Compile Include="MapReduce\Azure\SegmentedPage.cs" />
     <Compile Include="MapReduce\Azure\JsonTableEntity.cs" />
     <Compile Include="MapReduce\Azure\SegmentedEnumerator.cs" />
     <Compile Include="MapReduce\DataAccessor\IndividualProductDataStore.cs" />

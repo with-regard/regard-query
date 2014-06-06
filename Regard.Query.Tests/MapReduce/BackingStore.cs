@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -336,7 +337,6 @@ namespace Regard.Query.Tests.MapReduce
             }).Wait();
         }
 
-
         [Test]
         public void CanAppendAResult()
         {
@@ -414,6 +414,40 @@ namespace Regard.Query.Tests.MapReduce
             Assert.AreEqual(upperIndex - lowerIndex, foundItems.Count);
         }
 
+        /// <summary>
+        /// Checks that an enumeration contains all the elements between lowerIndex (inclusive) and upperIndex (exclusive)
+        /// </summary>
+        /// <param name="enumerator"></param>
+        /// <param name="lowerIndex"></param>
+        /// <param name="upperIndex"></param>
+        /// <returns></returns>
+        private static async Task CheckEnumerationContainsAllIndexesUsingPages(Func<IKvStoreEnumerator> enumeratorGenerator, int lowerIndex, int upperIndex)
+        {
+            var foundItems = new HashSet<int>();
+
+            for (var page = await enumeratorGenerator().FetchPage(null); page != null; page = await enumeratorGenerator().FetchPage(await page.GetNextPageToken()))
+            {
+                foreach (var value in await page.GetObjects())
+                {
+                    // Every value must have an index
+                    var index = value.Item2["Index"].Value<int>();
+
+                    // Must be in the specified range
+                    Assert.That(index >= lowerIndex, index + " is lower than " + lowerIndex);
+                    Assert.That(index < upperIndex, index + " is greater than " + upperIndex);
+
+                    Assert.That(!foundItems.Contains(index), index + " was duplicated");
+
+                    foundItems.Add(index);
+                }
+
+                // Reached the end if the next token is null
+                if (await page.GetNextPageToken() == null) break;
+            }
+
+            Assert.AreEqual(upperIndex - lowerIndex, foundItems.Count, "Expected " + (upperIndex - lowerIndex) + " items but found " + foundItems.Count);
+        }
+
         [Test]
         public void CanEnumerateOver100Items()
         {
@@ -434,6 +468,20 @@ namespace Regard.Query.Tests.MapReduce
                 var store = CreateStoreToTest();
                 await AppendData(store, 200, -1);
                 await CheckEnumerationContainsAllIndexes(store.EnumerateAllValues(), 0, 200);
+            }).Wait();
+        }
+
+        [Test]
+        public void CanEnumerateOver2000ItemsUsingPaging()
+        {
+            // 1000 is a magic number for Azure pages.
+            // The test data set is fairly annoying and time-consuming in an Azure table to generate, though :-(
+            // (MS claim 20k transactions per second, which should mean this takes 100ms. It actaully takes several minutes even using query batches :-/)
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+                await AppendData(store, 2000, -1);
+                await CheckEnumerationContainsAllIndexesUsingPages(store.EnumerateAllValues, 0, 2000);
             }).Wait();
         }
 

@@ -412,16 +412,22 @@ namespace Regard.Query.WebAPI
             }
 
             // Retrieve the data for this UID
-            var userEvents = await queryableProduct.RetrieveEventsForUser(parsedUid);
-
-            // Put them into a JArray and return the results
-            // TODO: only return 100-200 results at a time?
+            string nextPage = null;
             JArray results = new JArray();
 
-            for (var nextEvent = await userEvents.FetchNext(); nextEvent != null; nextEvent = await userEvents.FetchNext())
+            // TODO: return only one page at a time
+            do
             {
-                results.Add(nextEvent);
-            }
+                var userEvents = await queryableProduct.RetrieveEventsForUser(parsedUid, nextPage);
+
+                // Copy to a JArray for later returning
+                for (var nextEvent = await userEvents.FetchNext(); nextEvent != null; nextEvent = await userEvents.FetchNext())
+                {
+                    results.Add(nextEvent);
+                }
+
+                nextPage = await userEvents.GetNextPageToken();
+            } while (nextPage != null);
 
             return Request.CreateResponse(HttpStatusCode.OK, results);
         }

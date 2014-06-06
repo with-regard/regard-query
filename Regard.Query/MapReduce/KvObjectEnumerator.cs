@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Regard.Query.Api;
@@ -8,14 +9,16 @@ namespace Regard.Query.MapReduce
     /// <summary>
     /// Enumerator class that returns the contents of an IKvStoreEnumerator
     /// </summary>
-    class KvObjectEnumerator : IResultEnumerator<JObject>
+    class KvObjectEnumerator : IPagedResultEnumerator<JObject>
     {
-        private IKvStoreEnumerator m_Enumerator;
+        private readonly IKeyValuePage m_CurrentPage;
+        private IEnumerator<Tuple<JArray, JObject>> m_Enumerator;
 
-        public KvObjectEnumerator(IKvStoreEnumerator enumerator)
+        public KvObjectEnumerator(IKeyValuePage page)
         {
-            if (enumerator == null) throw new ArgumentNullException("enumerator");
-            m_Enumerator = enumerator;
+            if (page == null) throw new ArgumentNullException("page");
+
+            m_CurrentPage = page;
         }
 
         public void Dispose()
@@ -27,13 +30,26 @@ namespace Regard.Query.MapReduce
         /// </summary>
         public async Task<JObject> FetchNext()
         {
-            var nextPair = await m_Enumerator.FetchNext();
-            if (nextPair == null)
+            if (m_Enumerator == null)
+            {
+                var enumerable = await m_CurrentPage.GetObjects();
+                m_Enumerator = enumerable.GetEnumerator();
+            }
+
+            if (!m_Enumerator.MoveNext())
             {
                 return null;
             }
 
-            return nextPair.Item2;
+            return m_Enumerator.Current.Item2;
+        }
+
+        /// <summary>
+        /// The token to pass to the generator call for the next page, or null if this is the last page
+        /// </summary>
+        public async Task<string> GetNextPageToken()
+        {
+            return await m_CurrentPage.GetNextPageToken();
         }
     }
 }
