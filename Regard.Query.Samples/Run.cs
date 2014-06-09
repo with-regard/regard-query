@@ -7,7 +7,6 @@ using Newtonsoft.Json.Linq;
 using Regard.Query.Api;
 using Regard.Query.Flat;
 using Regard.Query.MapReduce;
-using Regard.Query.Sql;
 
 namespace Regard.Query.Samples
 {

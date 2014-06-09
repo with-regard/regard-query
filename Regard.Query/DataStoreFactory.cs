@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure;
 using Regard.Query.Api;
 using Regard.Query.MapReduce;
-using Regard.Query.Sql;
 
 namespace Regard.Query
 {
@@ -57,17 +56,6 @@ namespace Regard.Query
             // No application settings let us find a data store
             // TODO: use a flat file or in-memory or something similar?
             throw new InvalidOperationException("No data store is available for this application");
-        }
-
-        /// <summary>
-        /// Creates a SQL server data store
-        /// </summary>
-        public static async Task<IRegardDataStore> CreateSqlServerStore(string connectionString)
-        {
-            var connection = new SqlConnection(connectionString);
-            await connection.OpenAsync();
-
-            return new SqlDataStore(connection);
         }
 
         private static object s_Sync = new object();
