@@ -403,15 +403,15 @@ namespace Regard.Query.Tests.MapReduce
                 var index = value.Item2["Index"].Value<int>();
 
                 // Must be in the specified range
-                Assert.That(index >= lowerIndex);
-                Assert.That(index < upperIndex);
+                Assert.That(index >= lowerIndex, index + " < " + lowerIndex);
+                Assert.That(index < upperIndex, index + " >= " + upperIndex);
 
-                Assert.That(!foundItems.Contains(index));
+                Assert.That(!foundItems.Contains(index), index + " duplicated");
 
                 foundItems.Add(index);
             }
 
-            Assert.AreEqual(upperIndex - lowerIndex, foundItems.Count);
+            Assert.AreEqual(upperIndex - lowerIndex, foundItems.Count, "Only found " + foundItems + " keys");
         }
 
         /// <summary>
@@ -609,23 +609,47 @@ namespace Regard.Query.Tests.MapReduce
             }).Wait();
         }
 
-        private static IEnumerable<JArray> KeysFrom0To49()
+        private static IEnumerable<JArray> KeysFrom(int lower, int upper)
         {
-            for (long x = 0; x < 50; ++x)
+            for (long x = lower; x <= upper; ++x)
             {
                 yield return new JArray(x);
             }
         }
 
         [Test]
-        public void CanDeleteASetOfKeys()
+        public void CanDeleteTheLowerSetOfKeys()
         {
             Task.Run(async () =>
             {
                 var store = CreateStoreToTest();
                 await AppendData(store, 100, -1);
-                await store.DeleteKeys(KeysFrom0To49());
+                await store.DeleteKeys(KeysFrom(0, 49));
                 await CheckEnumerationContainsAllIndexes(store.EnumerateAllValues(), 50, 100);
+            }).Wait();
+        }
+
+        [Test]
+        public void CanDeleteTheUpperSetOfKeys()
+        {
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+                await AppendData(store, 99, -1);
+                await store.DeleteKeys(KeysFrom(50, 99));
+                await CheckEnumerationContainsAllIndexes(store.EnumerateAllValues(), 0, 50);
+            }).Wait();
+        }
+
+        [Test]
+        public void DeletingNonExistentKeysIsNotAnError()
+        {
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+                await AppendData(store, 50, -1);
+                await store.DeleteKeys(KeysFrom(25, 99));
+                await CheckEnumerationContainsAllIndexes(store.EnumerateAllValues(), 0, 25);
             }).Wait();
         }
     }
