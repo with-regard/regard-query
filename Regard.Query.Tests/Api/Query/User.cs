@@ -78,6 +78,50 @@ namespace Regard.Query.Tests.Api.Query
         }
 
         [Test]
+        public void CanDeleteEventsForAUser()
+        {
+            Task.Run(async () =>
+            {
+                // Create the data store
+                var dataStore = await GenerateUserDataStore();
+                var product = await dataStore.Products.GetProduct("WithRegard", "Test");
+
+                // Delete the first user ID
+                var deleteUserId = c_UserIds[0];
+                await product.Users.DeleteData(deleteUserId);
+
+                // Should be 12 events for each user
+                foreach (var uid in c_UserIds)
+                {
+                    string nextPageToken = null;
+                    int count = 0;
+
+                    do
+                    {
+                        var userEvents = await product.RetrieveEventsForUser(uid, nextPageToken);
+
+                        for (var nextEvent = await userEvents.FetchNext(); nextEvent != null; nextEvent = await userEvents.FetchNext())
+                        {
+                            ++count;
+                        }
+
+                        nextPageToken = await userEvents.GetNextPageToken();
+                    }
+                    while (nextPageToken != null);
+
+                    if (Equals(deleteUserId, uid))
+                    {
+                        Assert.AreEqual(0, count);
+                    }
+                    else
+                    {
+                        Assert.AreEqual(12, count);
+                    }
+                }
+            }).Wait();
+        }
+
+        [Test]
         public void EventContentsLookRight()
         {
             Task.Run(async () =>
