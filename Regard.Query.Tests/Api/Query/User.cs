@@ -78,6 +78,53 @@ namespace Regard.Query.Tests.Api.Query
         }
 
         [Test]
+        public void EventContentsLookRight()
+        {
+            Task.Run(async () =>
+            {
+                // Create the data store
+                var dataStore = await GenerateUserDataStore();
+                var product = await dataStore.Products.GetProduct("WithRegard", "Test");
+
+                // Should be 12 events for each user
+                foreach (var uid in c_UserIds)
+                {
+                    string nextPageToken = null;
+                    int count = 0;
+
+                    do
+                    {
+                        var userEvents = await product.RetrieveEventsForUser(uid, nextPageToken);
+
+                        for (var nextEvent = await userEvents.FetchNext(); nextEvent != null; nextEvent = await userEvents.FetchNext())
+                        {
+                            // Should contain an event type with certain values
+                            switch (nextEvent["EventType"].Value<string>())
+                            {
+                                case "Start":
+                                case "Stop":
+                                case "Click":
+                                case "NotClick":
+                                    // OK
+                                    break;
+
+                                default:
+                                    Assert.Fail();
+                                    break;
+                            }
+
+                            ++count;
+                        }
+
+                        nextPageToken = await userEvents.GetNextPageToken();
+                    } while (nextPageToken != null);
+
+                    Assert.AreEqual(12, count);
+                }
+            }).Wait();
+        }
+
+        [Test]
         public void CanDeleteEventsForAUser()
         {
             Task.Run(async () =>
@@ -122,7 +169,7 @@ namespace Regard.Query.Tests.Api.Query
         }
 
         [Test]
-        public void EventContentsLookRight()
+        public void DeletingUserEventAlsoDeletesQueryData()
         {
             Task.Run(async () =>
             {
@@ -130,41 +177,24 @@ namespace Regard.Query.Tests.Api.Query
                 var dataStore = await GenerateUserDataStore();
                 var product = await dataStore.Products.GetProduct("WithRegard", "Test");
 
-                // Should be 12 events for each user
-                foreach (var uid in c_UserIds)
-                {
-                    string nextPageToken = null;
-                    int count = 0;
+                // Use an all events query to test this
+                var query = product.CreateQueryBuilder().AllEvents();
+                await product.RegisterQuery("Test", query);
 
-                    do
-                    {
-                        var userEvents = await product.RetrieveEventsForUser(uid, nextPageToken);
+                // Should initially be 12 * number of UIDs events
+                var queryResult = await product.RunQuery("Test");
+                var numProducts = await queryResult.FetchNext();
 
-                        for (var nextEvent = await userEvents.FetchNext(); nextEvent != null; nextEvent = await userEvents.FetchNext())
-                        {
-                            // Should contain an event type with certain values
-                            switch (nextEvent["EventType"].Value<string>())
-                            {
-                                case "Start":
-                                case "Stop":
-                                case "Click":
-                                case "NotClick":
-                                    // OK
-                                    break;
+                Assert.AreEqual(12 * c_UserIds.Length, numProducts.EventCount);
 
-                                default:
-                                    Assert.Fail();
-                                    break;
-                            }
+                // Delete one user ID
+                await product.Users.DeleteData(c_UserIds[0]);
 
-                            ++count;
-                        }
+                // Should be 12 less events in the query
+                queryResult = await product.RunQuery("Test");
+                numProducts = await queryResult.FetchNext();
 
-                        nextPageToken = await userEvents.GetNextPageToken();
-                    } while (nextPageToken != null);
-
-                    Assert.AreEqual(12, count);
-                }
+                Assert.AreEqual(12 * (c_UserIds.Length - 1), numProducts.EventCount);
             }).Wait();
         }
     }
