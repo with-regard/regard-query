@@ -72,6 +72,11 @@ namespace Regard.Query.MapReduce.DataAccessor
             return m_UserEvents.EnumerateValuesBeginningWithKey(new JArray(user.ToString()));
         }
 
+        public Task DeleteEventStoreForUser(Guid userId)
+        {
+            throw new NotImplementedException();
+        }
+
         public IKeyValueStore GetQueryResults(string queryName, string nodeName)
         {
             var results = m_RawDataStore.ChildStore(new JArray("query-results", queryName)).ChildStore(new JArray(nodeName));

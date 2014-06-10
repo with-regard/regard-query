@@ -324,7 +324,9 @@ namespace Regard.Query.MapReduce
             }
 
             // TODO: delete the events from the main event store
-            // TODO: delete the events from the user event store
+
+            // Delete the events from the user event store
+            await m_ProductDataStore.DeleteEventStoreForUser(userId);
         }
 
         // TODO: factor user admin functions out into a separate class
