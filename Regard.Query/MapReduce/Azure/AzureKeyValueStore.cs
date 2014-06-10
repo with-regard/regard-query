@@ -626,12 +626,8 @@ namespace Regard.Query.MapReduce.Azure
                         }
                         catch (StorageException e)
                         {
-                            // 404s just indicate some records weren't found
-                            if (e.RequestInformation.HttpStatusCode != 404)
-                            {
-                                Trace.WriteLine(e);
-                                throw;
-                            }
+                            Trace.WriteLine(e);
+                            throw;
                         }
                         deletionTasks.Clear();
                     }
@@ -650,12 +646,8 @@ namespace Regard.Query.MapReduce.Azure
             }
             catch (StorageException e)
             {
-                // 404s just indicate some records weren't found
-                if (e.RequestInformation.HttpStatusCode != 404)
-                {
-                    Trace.WriteLine(e);
-                    throw;
-                }
+                Trace.WriteLine(e);
+                throw;
             }
         }
 
