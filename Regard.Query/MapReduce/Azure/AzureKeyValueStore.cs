@@ -593,9 +593,62 @@ namespace Regard.Query.MapReduce.Azure
         /// <summary>
         /// Erases all of the values with a particular set of keys
         /// </summary>
-        public Task DeleteKeys(IEnumerable<JArray> keys)
+        public async Task DeleteKeys(IEnumerable<JArray> keys)
         {
-            throw new NotImplementedException();
+            if (keys == null) return;
+
+            // Batch up the deletes
+            var currentBatch = new TableBatchOperation();
+            List<Task> deletionTasks = new List<Task>();
+
+            foreach (var keyToDelete in keys)
+            {
+                // Delete this key
+                var deleteEntity = new DynamicTableEntity();
+                deleteEntity.PartitionKey  = m_Partition;
+                deleteEntity.ETag          = "*";
+                deleteEntity.RowKey        = CreateKey(keyToDelete);
+
+                currentBatch.Add(TableOperation.Delete(deleteEntity));
+
+                // Once we get 100 entities in a batch, force the deletion
+                if (currentBatch.Count >= 100)
+                {
+                    deletionTasks.Add(m_Table.ExecuteBatchAsync(currentBatch));
+                    currentBatch = new TableBatchOperation();
+
+                    // Every 10,000 entities, wait for the deletion to catch up
+                    if (deletionTasks.Count >= 100)
+                    {
+                        try
+                        {
+                            await Task.WhenAll(deletionTasks);
+                        }
+                        catch (StorageException e)
+                        {
+                            Trace.WriteLine(e);
+                            throw;
+                        }
+                        deletionTasks.Clear();
+                    }
+                }
+            }
+
+            // Run the final batch
+            if (currentBatch.Count > 0)
+            {
+                deletionTasks.Add(m_Table.ExecuteBatchAsync(currentBatch));
+            }
+
+            try
+            {
+                await Task.WhenAll(deletionTasks);
+            }
+            catch (StorageException e)
+            {
+                Trace.WriteLine(e);
+                throw;
+            }
         }
 
         /// <summary>
