@@ -72,7 +72,7 @@ namespace Regard.Query.Api
         /// <summary>
         /// Erases all of the values with a particular set of keys
         /// </summary>
-        Task DeleteKeys(IEnumerator<JArray> keys);
+        Task DeleteKeys(IEnumerable<JArray> keys);
 
         /// <summary>
         /// Waits for all of the pending SetValue requests to complete (if they are cached or otherwise write-through)

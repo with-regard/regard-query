@@ -242,7 +242,7 @@ namespace Regard.Query.MapReduce
         /// <summary>
         /// Erases all of the values with a particular set of keys
         /// </summary>
-        public Task DeleteKeys(IEnumerator<JArray> keys)
+        public Task DeleteKeys(IEnumerable<JArray> keys)
         {
             throw new NotImplementedException();
         }

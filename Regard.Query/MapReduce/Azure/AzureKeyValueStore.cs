@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -592,7 +593,7 @@ namespace Regard.Query.MapReduce.Azure
         /// <summary>
         /// Erases all of the values with a particular set of keys
         /// </summary>
-        public Task DeleteKeys(IEnumerator<JArray> keys)
+        public Task DeleteKeys(IEnumerable<JArray> keys)
         {
             throw new NotImplementedException();
         }

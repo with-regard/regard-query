@@ -608,5 +608,25 @@ namespace Regard.Query.Tests.MapReduce
                 Assert.AreEqual(12, count);
             }).Wait();
         }
+
+        private static IEnumerable<JArray> KeysFrom0To49()
+        {
+            for (long x = 0; x < 50; ++x)
+            {
+                yield return new JArray(x);
+            }
+        }
+
+        [Test]
+        public void CanDeleteASetOfKeys()
+        {
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+                await AppendData(store, 100, -1);
+                await store.DeleteKeys(KeysFrom0To49());
+                await CheckEnumerationContainsAllIndexes(store.EnumerateAllValues(), 50, 100);
+            }).Wait();
+        }
     }
 }
