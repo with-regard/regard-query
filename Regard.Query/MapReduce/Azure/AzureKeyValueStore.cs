@@ -598,7 +598,8 @@ namespace Regard.Query.MapReduce.Azure
             if (keys == null) return;
 
             // Batch up the deletes
-            var currentBatch = new TableBatchOperation();
+            var currentDeletionBatch = new TableBatchOperation();
+            var currentInsertionBatch = new TableBatchOperation();
             List<Task> deletionTasks = new List<Task>();
 
             foreach (var keyToDelete in keys)
@@ -609,13 +610,29 @@ namespace Regard.Query.MapReduce.Azure
                 deleteEntity.ETag          = "*";
                 deleteEntity.RowKey        = CreateKey(keyToDelete);
 
-                currentBatch.Add(TableOperation.Delete(deleteEntity));
+                // So, the insertion looks weird, but it's to work around Azure's inconsistent API. You get a 404 from Delete if the key doesn't exist, a condition that's
+                // actually not documented by MS. This aborts the entire batch so no records are deleted. There's no way to suppress this as there is for the documented
+                // 412 code that occurs when a record is modified.
+                //
+                // To prevent the 404 from occuring we insert blank records first. You can't batch up insertions and deletions, so we perform them one after the other.
+                // This is insane, but Azure rejects the batch as a whole if any records are missing. The alternative is to retrieve all of the records first, which is
+                // really even more insane.
+                currentInsertionBatch.Add(TableOperation.InsertOrReplace(deleteEntity));
+                currentDeletionBatch.Add(TableOperation.Delete(deleteEntity));
 
                 // Once we get 100 entities in a batch, force the deletion
-                if (currentBatch.Count >= 100)
+                if (currentDeletionBatch.Count >= 100)
                 {
-                    deletionTasks.Add(m_Table.ExecuteBatchAsync(currentBatch));
-                    currentBatch = new TableBatchOperation();
+                    var toDelete = currentDeletionBatch;
+                    var toInsert = currentInsertionBatch;
+
+                    deletionTasks.Add(Task.Run(async () =>
+                    {
+                        await m_Table.ExecuteBatchAsync(toInsert);
+                        await m_Table.ExecuteBatchAsync(toDelete);
+                    }));
+                    currentDeletionBatch = new TableBatchOperation();
+                    currentInsertionBatch = new TableBatchOperation();
 
                     // Every 10,000 entities, wait for the deletion to catch up
                     if (deletionTasks.Count >= 100)
@@ -635,9 +652,16 @@ namespace Regard.Query.MapReduce.Azure
             }
 
             // Run the final batch
-            if (currentBatch.Count > 0)
+            if (currentDeletionBatch.Count > 0)
             {
-                deletionTasks.Add(m_Table.ExecuteBatchAsync(currentBatch));
+                var toDelete = currentDeletionBatch;
+                var toInsert = currentInsertionBatch;
+
+                deletionTasks.Add(Task.Run(async () =>
+                {
+                    await m_Table.ExecuteBatchAsync(toInsert);
+                    await m_Table.ExecuteBatchAsync(toDelete);
+                }));
             }
 
             try
