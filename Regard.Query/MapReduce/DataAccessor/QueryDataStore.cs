@@ -66,5 +66,34 @@ namespace Regard.Query.MapReduce.DataAccessor
 
             return queryDefinition;
         }
+
+        /// <summary>
+        /// Retrieves all the queries for a product, as query names mapped to definitions
+        /// </summary>
+        public async Task<JObject> GetAllQueries()
+        {
+            JObject result = new JObject();
+
+            var projectQueries = m_RawDataStore.EnumerateAllValues();
+            for (var query = await projectQueries.FetchNext(); query != null; query = await projectQueries.FetchNext())
+            {
+                JToken queryListToken;
+
+                // Should contain a 'queries' element with this list of queries in it
+                if (query.Item2.TryGetValue("Queries", out queryListToken))
+                {
+                    JObject queryList = queryListToken.Value<JObject>();
+
+                    // The query exists if we can find the name in this object
+                    foreach (var singleQuery in queryList)
+                    {
+                        // TODO: if the query exists in multiple nodes, pick the one that is 'current'
+                        result[singleQuery.Key] = singleQuery.Value["Query"];
+                    }
+                }
+            }
+
+            return result;
+        }
     }
 }
