@@ -590,6 +590,14 @@ namespace Regard.Query.MapReduce.Azure
         }
 
         /// <summary>
+        /// Erases all of the values with a particular set of keys
+        /// </summary>
+        public Task DeleteKeys(IEnumerator<JArray> keys)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
         /// Enumerates all of the values with a key starting with the specified items
         /// </summary>
         public IKvStoreEnumerator EnumerateValuesBeginningWithKey(JArray initialItems)
