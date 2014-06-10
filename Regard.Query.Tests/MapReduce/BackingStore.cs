@@ -636,7 +636,7 @@ namespace Regard.Query.Tests.MapReduce
             {
                 var store = CreateStoreToTest();
                 await AppendData(store, 99, -1);
-                await store.DeleteKeys(KeysFrom(50, 99));
+                await store.DeleteKeys(KeysFrom(50, 98));
                 await CheckEnumerationContainsAllIndexes(store.EnumerateAllValues(), 0, 50);
             }).Wait();
         }
