@@ -320,5 +320,16 @@ namespace Regard.Query.MapReduce
 
             await m_UserDataStore.SetUserData(userId, userData);
         }
+
+        /// <summary>
+        /// Removes all of the data for a user with a particular ID from the data store
+        /// </summary>
+        /// <remarks>
+        /// This is permanent, there is no way to retrieve the data. The user is effectively opted-out after this call.
+        /// </remarks>
+        public Task DeleteData(Guid userId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
