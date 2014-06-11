@@ -88,7 +88,7 @@ namespace Regard.Query.MapReduce.DataAccessor
                 if (userEventKeys.Count >= 100)
                 {
                     await m_UserEvents.DeleteKeys(userEventKeys);
-                    userEventKeys = new List<JArray>(100);
+                    userEventKeys = new List<JArray>();
                 }
             }
 
@@ -96,6 +96,34 @@ namespace Regard.Query.MapReduce.DataAccessor
             if (userEventKeys.Count > 0)
             {
                 await m_UserEvents.DeleteKeys(userEventKeys);
+            }
+        }
+
+        public async Task DeleteRawEventsForUser(Guid userId, string nodeName)
+        {
+            var eventStore = m_RawDataStore.ChildStore(new JArray("raw-events", nodeName));
+
+            // Send the events 100 at a time to be deleted
+            List<JArray> userEventKeys = new List<JArray>(100);
+            var eventEnum = GetEventEnumeratorForUser(userId);
+
+            for (var userEvent = await eventEnum.FetchNext(); userEvent != null; userEvent = await eventEnum.FetchNext())
+            {
+                // Add the key for this event
+                userEventKeys.Add(new JArray(userEvent.Item1[1].Value<long>()));
+
+                // Delete an event set once we have enough
+                if (userEventKeys.Count >= 100)
+                {
+                    await eventStore.DeleteKeys(userEventKeys);
+                    userEventKeys = new List<JArray>();
+                }
+            }
+
+            // Delete any remaining events
+            if (userEventKeys.Count > 0)
+            {
+                await eventStore.DeleteKeys(userEventKeys);
             }
         }
 

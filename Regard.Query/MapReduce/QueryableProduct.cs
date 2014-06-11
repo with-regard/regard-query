@@ -329,7 +329,8 @@ namespace Regard.Query.MapReduce
                 await ingestor.Commit();
             }
 
-            // TODO: delete the events from the main event store
+            // Delete the events from the main event store
+            await m_ProductDataStore.DeleteRawEventsForUser(userId, m_NodeName);
 
             // Delete the events from the user event store
             await m_ProductDataStore.DeleteEventStoreForUser(userId);
