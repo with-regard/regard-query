@@ -138,7 +138,7 @@ namespace Regard.Query.MapReduce.DataAccessor
             for (var userEvent = await eventEnum.FetchNext(); userEvent != null; userEvent = await eventEnum.FetchNext())
             {
                 // Treat each node individually when generating delete requests
-                string eventNodeName = "";
+                string eventNodeName = nodeName;
                 if (userEvent.Item1.Count > 2)
                 {
                     eventNodeName = userEvent.Item1[2].Value<string>();
