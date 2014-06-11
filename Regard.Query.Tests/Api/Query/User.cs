@@ -197,5 +197,32 @@ namespace Regard.Query.Tests.Api.Query
                 Assert.AreEqual(12 * (c_UserIds.Length - 1), numProducts.EventCount);
             }).Wait();
         }
+
+        [Test]
+        public void DeletingUserEventAlsoDeletesQueryDataIfQueryIsNotRunFirst()
+        {
+            // This can make a difference: if events aren't processed immediately, then any events that are still waiting to be processed
+            // should be deleted before the query is executed
+
+            Task.Run(async () =>
+            {
+                // Create the data store
+                var dataStore = await GenerateUserDataStore();
+                var product = await dataStore.Products.GetProduct("WithRegard", "Test");
+
+                // Use an all events query to test this
+                var query = product.CreateQueryBuilder().AllEvents();
+                await product.RegisterQuery("Test", query);
+
+                // Delete one user ID
+                await product.Users.DeleteData(c_UserIds[0]);
+
+                // Should be 12 less events in the query
+                var queryResult = await product.RunQuery("Test");
+                var numProducts = await queryResult.FetchNext();
+
+                Assert.AreEqual(12 * (c_UserIds.Length - 1), numProducts.EventCount);
+            }).Wait();
+        }
     }
 }
