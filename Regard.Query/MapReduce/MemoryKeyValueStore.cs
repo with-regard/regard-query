@@ -240,6 +240,20 @@ namespace Regard.Query.MapReduce
         }
 
         /// <summary>
+        /// Erases all of the values with a particular set of keys
+        /// </summary>
+        public async Task DeleteKeys(IEnumerable<JArray> keys)
+        {
+            lock (m_Sync)
+            {
+                foreach (var key in keys)
+                {
+                    m_Objects.Remove(key.ToString(Formatting.None));
+                }
+            }
+        }
+
+        /// <summary>
         /// Assigns a key that is unique to this child store and uses it as a key to store a value. The store guarantees that this will be unique within this process, but not 
         /// if the same child store is being accessed by multiple processes.
         /// </summary>

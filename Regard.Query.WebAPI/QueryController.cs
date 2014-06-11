@@ -525,5 +525,45 @@ namespace Regard.Query.WebAPI
 
             return Request.CreateResponse(HttpStatusCode.OK);
         }
+
+        /// <summary>
+        /// Request to delete the data associated with a particualr user ID
+        /// </summary>
+        [HttpPost, Route("product/v1/{organization}/{product}/users/{uid}/delete-data")]
+        public async Task<HttpResponseMessage> Delete(string organization, string product, string uid)
+        {
+            await EnsureDataStore();
+
+            // Validate the URL
+            if (string.IsNullOrEmpty(product) || string.IsNullOrEmpty(organization) || string.IsNullOrEmpty(uid))
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Fields cannot be empty");
+            }
+            if (product.Length > c_MaxLength || organization.Length > c_MaxLength || uid.Length > c_MaxLength)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Fields cannot contain too many characters");
+            }
+
+            // Check that the org/product exsits
+            var queryableProduct = await m_DataStore.Products.GetProduct(organization, product);
+            if (queryableProduct == null)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Could not find product");
+            }
+
+            // UID should be a GUID
+            Guid uidGuid;
+
+            if (!Guid.TryParse(uid, out uidGuid))
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "UID must be a GUID");
+            }
+
+            // Delete the data for this user; also opt-out in case there's an error
+            await queryableProduct.Users.OptOut(uidGuid);
+            await queryableProduct.Users.DeleteData(uidGuid);
+
+            return Request.CreateResponse(HttpStatusCode.OK);
+        }
     }
 }

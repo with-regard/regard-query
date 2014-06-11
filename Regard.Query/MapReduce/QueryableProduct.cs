@@ -273,6 +273,72 @@ namespace Regard.Query.MapReduce
             return new QueryResultEnumerator(nodeEnumerator);
         }
 
+        /// <summary>
+        /// Retrieves all of the raw events associated with a particular user ID
+        /// </summary>
+        /// <remarks>
+        /// This is intended to support the user page: the results of running this query are meant to be displayed only to that user.
+        /// <para/>
+        /// One thought about a future version is that we might only want to store aggregate data, which would make this call redundant as
+        /// we would no longer store data for a specific user.
+        /// </remarks>
+        public async Task<IPagedResultEnumerator<JObject>> RetrieveEventsForUser(Guid userId, string page)
+        {
+            var pageData = await m_ProductDataStore.GetEventEnumeratorForUser(userId).FetchPage(page);
+            if (pageData == null)
+            {
+                return null;
+            }
+
+            return new KvObjectEnumerator(pageData);
+        }
+
+        /// <summary>
+        /// Removes all of the data for a user with a particular ID from the data store
+        /// </summary>
+        /// <remarks>
+        /// This is permanent, there is no way to retrieve the data. The user is effectively opted-out after this call.
+        /// </remarks>
+        public async Task DeleteData(Guid userId)
+        {
+            // Fetch the queries for this product
+            var allQueries = await m_QueryDataStore.GetAllQueries();
+
+            // Turn them into map/reduce ingestors
+            var ingestors = new List<DataIngestor>();
+            foreach (var query in allQueries)
+            {
+                var mapReduce = MapReduceQueryFactory.GenerateMapReduce(query.Value.Value<JObject>());
+                ingestors.Add(m_ProductDataStore.CreateIngestorForQuery(query.Key, m_NodeName, mapReduce));
+            }
+
+            // Uningest the set of events for this user
+            var userEvents = m_ProductDataStore.GetEventEnumeratorForUser(userId);
+
+            for (var evt = await userEvents.FetchNext(); evt != null; evt = await userEvents.FetchNext())
+            {
+                foreach (var ingestor in ingestors)
+                {
+                    ingestor.Uningest(evt.Item2);
+                }
+            }
+
+            // Commit the results
+            foreach (var ingestor in ingestors)
+            {
+                await ingestor.Commit();
+            }
+
+            // Delete the events from the main event store
+            await m_ProductDataStore.DeleteRawEventsForUser(userId, m_NodeName);
+
+            // Delete the events from the user event store
+            await m_ProductDataStore.DeleteEventStoreForUser(userId);
+
+            // Delete the user data
+            await m_UserDataStore.SetUserData(userId, null);
+        }
+
         // TODO: factor user admin functions out into a separate class
 
         /// <summary>
@@ -290,20 +356,6 @@ namespace Regard.Query.MapReduce
             userData["OptInState"] = "opt-in";
 
             await m_UserDataStore.SetUserData(userId, userData);
-        }
-
-        /// <summary>
-        /// Retrieves all of the raw events associated with a particular user ID
-        /// </summary>
-        /// <remarks>
-        /// This is intended to support the user page: the results of running this query are meant to be displayed only to that user.
-        /// <para/>
-        /// One thought about a future version is that we might only want to store aggregate data, which would make this call redundant as
-        /// we would no longer store data for a specific user.
-        /// </remarks>
-        public async Task<IPagedResultEnumerator<JObject>> RetrieveEventsForUser(Guid userId, string page)
-        {
-            return new KvObjectEnumerator(await m_ProductDataStore.GetEventEnumeratorForUser(userId).FetchPage(page));
         }
 
         /// <summary>

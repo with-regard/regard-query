@@ -20,5 +20,13 @@ namespace Regard.Query.Api
         /// This only opts out for future data collection. Any existing data will be retained.
         /// </remarks>
         Task OptOut(Guid userId);
+
+        /// <summary>
+        /// Removes all of the data for a user with a particular ID from the data store
+        /// </summary>
+        /// <remarks>
+        /// This is permanent, there is no way to retrieve the data. The user is effectively opted-out after this call.
+        /// </remarks>
+        Task DeleteData(Guid userId);
     }
 }

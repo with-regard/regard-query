@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
 namespace Regard.Query.Api
@@ -66,6 +68,11 @@ namespace Regard.Query.Api
         /// Erases all of the values in a particular child store
         /// </summary>
         Task DeleteChildStore(JArray key);
+
+        /// <summary>
+        /// Erases all of the values with a particular set of keys
+        /// </summary>
+        Task DeleteKeys(IEnumerable<JArray> keys);
 
         /// <summary>
         /// Waits for all of the pending SetValue requests to complete (if they are cached or otherwise write-through)
