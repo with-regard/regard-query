@@ -28,6 +28,9 @@ namespace Regard.Query.MapReduce.DataAccessor
         public UserDataStore Users { get; private set; }
         public QueryDataStore Queries { get; private set; }
 
+        /// <summary>
+        /// Removes the current results for a particular query (on a particular node)
+        /// </summary>
         public async Task DeleteQueryResults(string queryName, string nodeName)
         {
             await m_RawDataStore.DeleteChildStore(new JArray("query-results", queryName));
@@ -35,6 +38,9 @@ namespace Regard.Query.MapReduce.DataAccessor
             await queryStatusStore.SetValue(new JArray(queryName), null);
         }
 
+        /// <summary>
+        /// Given a query as an IMapReduce implementation, returns a suitable data ingestor for a particular node
+        /// </summary>
         public DataIngestor CreateIngestorForQuery(string queryName, string nodeName, IMapReduce mapReduceAlgorithm)
         {
             var thisQueryStore = m_RawDataStore.ChildStore(new JArray("query-results", queryName)).ChildStore(new JArray(nodeName));
@@ -43,6 +49,9 @@ namespace Regard.Query.MapReduce.DataAccessor
             return ingestor;
         }
 
+        /// <summary>
+        /// Returns the currently set status of a particular query on a particular node
+        /// </summary>
         public async Task<JObject> GetQueryStatus(string queryName, string nodeName)
         {
             var queryStatusStore    = m_RawDataStore.ChildStore(new JArray("query-status", nodeName));
@@ -51,23 +60,35 @@ namespace Regard.Query.MapReduce.DataAccessor
             return status;
         }
 
+        /// <summary>
+        /// Sets the status of a particular query on a particular node
+        /// </summary>
         public async Task SetQueryStatus(string queryName, string nodeName, JObject newStatus)
         {
             var queryStatusStore = m_RawDataStore.ChildStore(new JArray("query-status", nodeName));
             await queryStatusStore.SetValue(new JArray(queryName), newStatus);
         }
 
+        /// <summary>
+        /// Retrieves the raw event store (where incoming events are appended) for a particular node
+        /// </summary>
         public IKeyValueStore GetRawEventStore(string nodeName)
         {
             return m_RawDataStore.ChildStore(new JArray("raw-events", nodeName));            
         }
 
+        /// <summary>
+        /// Marks that a particular user has received a particualr event
+        /// </summary>
         public async Task AssociateEventWithUser(Guid user, long eventId, JObject eventData)
         {
             // Can just query everything beginning with the user prefix to get the complete list of events
             await m_UserEvents.SetValue(new JArray(user.ToString(), eventId), eventData);
         }
 
+        /// <summary>
+        /// Returns an enumerator that loads the events for a particular user 
+        /// </summary>
         public IKvStoreEnumerator GetEventEnumeratorForUser(Guid user)
         {
             return m_UserEvents.EnumerateValuesBeginningWithKey(new JArray(user.ToString()));
@@ -75,6 +96,9 @@ namespace Regard.Query.MapReduce.DataAccessor
 
         private const int c_DeleteBlockSize = 100;
 
+        /// <summary>
+        /// Deletes the store where an individual users events are kept
+        /// </summary>
         public async Task DeleteEventStoreForUser(Guid userId)
         {
             // Send the events 100 at a time to be deleted
@@ -101,6 +125,9 @@ namespace Regard.Query.MapReduce.DataAccessor
             }
         }
 
+        /// <summary>
+        /// Iterates through a user's event store and deletes any events found from the raw list for a particular node
+        /// </summary>
         public async Task DeleteRawEventsForUser(Guid userId, string nodeName)
         {
             var eventStore = m_RawDataStore.ChildStore(new JArray("raw-events", nodeName));
@@ -129,15 +156,22 @@ namespace Regard.Query.MapReduce.DataAccessor
             }
         }
 
+        /// <summary>
+        /// Retrieves the currently calculated set of results for a particular query on a particular node
+        /// </summary>
         public IKeyValueStore GetQueryResults(string queryName, string nodeName)
         {
             var results = m_RawDataStore.ChildStore(new JArray("query-results", queryName)).ChildStore(new JArray(nodeName));
             return results;
         }
 
+        /// <summary>
+        /// Ensures that data is committed for a particular node
+        /// </summary>
         public async Task Commit(string nodeName)
         {
             await GetRawEventStore(nodeName).Commit();
+            await m_UserEvents.Commit();
         }
     }
 }
