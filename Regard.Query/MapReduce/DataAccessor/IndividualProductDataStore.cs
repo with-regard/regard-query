@@ -73,6 +73,8 @@ namespace Regard.Query.MapReduce.DataAccessor
             return m_UserEvents.EnumerateValuesBeginningWithKey(new JArray(user.ToString()));
         }
 
+        private const int c_DeleteBlockSize = 100;
+
         public async Task DeleteEventStoreForUser(Guid userId)
         {
             // Send the events 100 at a time to be deleted
@@ -85,7 +87,7 @@ namespace Regard.Query.MapReduce.DataAccessor
                 userEventKeys.Add(userEvent.Item1);
 
                 // Delete an event set once we have enough
-                if (userEventKeys.Count >= 100)
+                if (userEventKeys.Count >= c_DeleteBlockSize)
                 {
                     await m_UserEvents.DeleteKeys(userEventKeys);
                     userEventKeys = new List<JArray>();
@@ -113,7 +115,7 @@ namespace Regard.Query.MapReduce.DataAccessor
                 userEventKeys.Add(new JArray(userEvent.Item1[1].Value<long>()));
 
                 // Delete an event set once we have enough
-                if (userEventKeys.Count >= 100)
+                if (userEventKeys.Count >= c_DeleteBlockSize)
                 {
                     await eventStore.DeleteKeys(userEventKeys);
                     userEventKeys = new List<JArray>();
