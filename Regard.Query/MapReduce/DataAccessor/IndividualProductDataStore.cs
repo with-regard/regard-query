@@ -80,10 +80,10 @@ namespace Regard.Query.MapReduce.DataAccessor
         /// <summary>
         /// Marks that a particular user has received a particualr event
         /// </summary>
-        public async Task AssociateEventWithUser(Guid user, long eventId, JObject eventData)
+        public async Task AssociateEventWithUser(Guid user, long eventId, string nodeName, JObject eventData)
         {
             // Can just query everything beginning with the user prefix to get the complete list of events
-            await m_UserEvents.SetValue(new JArray(user.ToString(), eventId), eventData);
+            await m_UserEvents.SetValue(new JArray(user.ToString(), eventId, nodeName), eventData);
         }
 
         /// <summary>
@@ -130,29 +130,46 @@ namespace Regard.Query.MapReduce.DataAccessor
         /// </summary>
         public async Task DeleteRawEventsForUser(Guid userId, string nodeName)
         {
-            var eventStore = m_RawDataStore.ChildStore(new JArray("raw-events", nodeName));
-
             // Send the events 100 at a time to be deleted
-            List<JArray> userEventKeys = new List<JArray>(100);
+            Dictionary<string, List<JArray>> eventsForNode = new Dictionary<string, List<JArray>>();
             var eventEnum = GetEventEnumeratorForUser(userId);
 
+            // Iterate across all the user events
             for (var userEvent = await eventEnum.FetchNext(); userEvent != null; userEvent = await eventEnum.FetchNext())
             {
+                // Treat each node individually when generating delete requests
+                string eventNodeName = "";
+                if (userEvent.Item1.Count > 2)
+                {
+                    eventNodeName = userEvent.Item1[2].Value<string>();
+                }
+
+                List<JArray> userEventKeys;
+                if (!eventsForNode.TryGetValue(eventNodeName, out userEventKeys))
+                {
+                    eventsForNode[eventNodeName] = userEventKeys = new List<JArray>();
+                }
+
                 // Add the key for this event
                 userEventKeys.Add(new JArray(userEvent.Item1[1].Value<long>()));
 
                 // Delete an event set once we have enough
                 if (userEventKeys.Count >= c_DeleteBlockSize)
                 {
+                    var eventStore = m_RawDataStore.ChildStore(new JArray("raw-events", eventNodeName));
                     await eventStore.DeleteKeys(userEventKeys);
-                    userEventKeys = new List<JArray>();
+                    eventsForNode[eventNodeName] = new List<JArray>();
                 }
             }
 
             // Delete any remaining events
-            if (userEventKeys.Count > 0)
+            foreach (var nodeEvents in eventsForNode)
             {
-                await eventStore.DeleteKeys(userEventKeys);
+                if (nodeEvents.Value.Count > 0)
+                {
+                    var eventStore = m_RawDataStore.ChildStore(new JArray("raw-events", nodeEvents.Key));
+                    await eventStore.DeleteKeys(nodeEvents.Value);
+                }
             }
         }
 

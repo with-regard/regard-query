@@ -95,7 +95,7 @@ namespace Regard.Query.MapReduce
             var eventStore      = productStore.GetRawEventStore(m_NodeName);
 
             long eventId = await eventStore.AppendValue(data);
-            await productStore.AssociateEventWithUser(userId, eventId, data);
+            await productStore.AssociateEventWithUser(userId, eventId, m_NodeName, data);
         }
     }
 }
