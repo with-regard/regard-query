@@ -284,7 +284,13 @@ namespace Regard.Query.MapReduce
         /// </remarks>
         public async Task<IPagedResultEnumerator<JObject>> RetrieveEventsForUser(Guid userId, string page)
         {
-            return new KvObjectEnumerator(await m_ProductDataStore.GetEventEnumeratorForUser(userId).FetchPage(page));
+            var pageData = await m_ProductDataStore.GetEventEnumeratorForUser(userId).FetchPage(page);
+            if (pageData == null)
+            {
+                return null;
+            }
+
+            return new KvObjectEnumerator(pageData);
         }
 
         /// <summary>

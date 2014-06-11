@@ -137,7 +137,7 @@ namespace Regard.Query.Tests.Api.Query
                 var deleteUserId = c_UserIds[0];
                 await product.Users.DeleteData(deleteUserId);
 
-                // Should be 12 events for each user
+                // Should be 12 events for each user, except the one that has been deleted
                 foreach (var uid in c_UserIds)
                 {
                     string nextPageToken = null;
@@ -146,6 +146,7 @@ namespace Regard.Query.Tests.Api.Query
                     do
                     {
                         var userEvents = await product.RetrieveEventsForUser(uid, nextPageToken);
+                        if (userEvents == null) break;
 
                         for (var nextEvent = await userEvents.FetchNext(); nextEvent != null; nextEvent = await userEvents.FetchNext())
                         {
