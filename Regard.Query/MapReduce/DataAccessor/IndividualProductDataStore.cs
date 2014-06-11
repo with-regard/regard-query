@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Regard.Query.Api;
@@ -72,9 +73,30 @@ namespace Regard.Query.MapReduce.DataAccessor
             return m_UserEvents.EnumerateValuesBeginningWithKey(new JArray(user.ToString()));
         }
 
-        public Task DeleteEventStoreForUser(Guid userId)
+        public async Task DeleteEventStoreForUser(Guid userId)
         {
-            throw new NotImplementedException();
+            // Send the events 100 at a time to be deleted
+            List<JArray> userEventKeys = new List<JArray>(100);
+            var eventEnum = GetEventEnumeratorForUser(userId);
+
+            for (var userEvent = await eventEnum.FetchNext(); userEvent != null; userEvent = await eventEnum.FetchNext())
+            {
+                // Add the key for this event
+                userEventKeys.Add(userEvent.Item1);
+
+                // Delete an event set once we have enough
+                if (userEventKeys.Count >= 100)
+                {
+                    await m_UserEvents.DeleteKeys(userEventKeys);
+                    userEventKeys = new List<JArray>(100);
+                }
+            }
+
+            // Delete any remaining events
+            if (userEventKeys.Count > 0)
+            {
+                await m_UserEvents.DeleteKeys(userEventKeys);
+            }
         }
 
         public IKeyValueStore GetQueryResults(string queryName, string nodeName)
