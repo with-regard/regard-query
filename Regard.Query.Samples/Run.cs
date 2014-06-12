@@ -17,6 +17,8 @@ namespace Regard.Query.Samples
         /// </summary>
         public static async Task GenerateData(IEventRecorder recorder, Guid userId, int numSessions, int numEvents, int randomSeed)
         {
+            Console.WriteLine("Generating {0} sessions of {1} events ({2} total)", numSessions, numEvents, numSessions*numEvents);
+
             Random rng = new Random(randomSeed);
 
             // Repetition makes certain events more likely
@@ -67,6 +69,8 @@ namespace Regard.Query.Samples
                 }
             }
 
+            Console.WriteLine("Finishing up...");
+            await recorder.CommitEvents("WithRegard", "Test");
             Console.WriteLine("Total: {0} seconds", (DateTime.Now - start).TotalSeconds);
         }
 
