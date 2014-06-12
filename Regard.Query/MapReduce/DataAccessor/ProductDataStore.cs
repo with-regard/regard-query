@@ -39,7 +39,9 @@ namespace Regard.Query.MapReduce.DataAccessor
         public async Task SetSettingsObjectForProduct(string organization, string product, JObject productSettings)
         {
             var productStore = await m_RawProductStore.GetStoreForProduct(organization, product);
-            await productStore.ChildStore(new JArray("settings")).SetValue(KeyForProduct(organization, product), productSettings);
+            var settingsStore = productStore.ChildStore(new JArray("settings"));
+            await settingsStore.SetValue(KeyForProduct(organization, product), productSettings);
+            await settingsStore.Commit();
         }
 
         /// <summary>

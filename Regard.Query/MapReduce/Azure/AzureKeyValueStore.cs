@@ -213,6 +213,11 @@ namespace Regard.Query.MapReduce.Azure
                     currentOp = new TableBatchOperation();
                 }
             }
+
+            if (currentOp.Count > 0)
+            {
+                await m_Table.ExecuteBatchAsync(currentOp);
+            }
         }
 
         /// <summary>
@@ -249,8 +254,7 @@ namespace Regard.Query.MapReduce.Azure
             }
             else
             {
-                var rowKeyString                                = CreateKey(key);
-                Dictionary<string, JsonTableEntity> toCommit    = null;
+                var rowKeyString = CreateKey(key);
 
                 lock (m_Sync)
                 {
@@ -264,6 +268,9 @@ namespace Regard.Query.MapReduce.Azure
                         m_WaitingSetValues = new Dictionary<string, JsonTableEntity>();
                     }
                 }
+
+                // Ensure that the data is eventually committed
+                QueueCommit();
             }
         }
 
@@ -776,6 +783,10 @@ namespace Regard.Query.MapReduce.Azure
 
                 DateTime start = DateTime.Now;
 
+                // Ensure that any waiting set value operations are queued up
+                m_InProgressOperations.Add(CommitSetValues(m_WaitingSetValues));
+                m_WaitingSetValues = new Dictionary<string, JsonTableEntity>();
+                
                 // Wait for any queued tasks to complete
                 waitingTasks = new List<Task>(m_InProgressOperations);
                 m_InProgressOperations.Clear();

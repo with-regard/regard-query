@@ -164,11 +164,13 @@ namespace Regard.Query.Tests.MapReduce
                 var storeValue = JObject.FromObject(new { SomeValue = "hello" });
 
                 await store.SetValue(key, storeValue);
+                await store.Commit();
                 var value = await store.GetValue(key);
 
                 Assert.IsNotNull(value);
 
                 await store.SetValue(key, null);
+                await store.Commit();
                 value = await store.GetValue(key);
 
                 Assert.IsNull(value);
@@ -247,6 +249,9 @@ namespace Regard.Query.Tests.MapReduce
                 await store.SetValue(documentKey, JObject.FromObject(new { SomeValue = "MainStore" }));
                 await child.SetValue(documentKey, JObject.FromObject(new { SomeValue = "ChildStore" }));
 
+                await store.Commit();
+                await child.Commit();
+
                 var mainValue = await store.GetValue(documentKey);
                 var childValue = await child.GetValue(documentKey);
 
@@ -272,6 +277,7 @@ namespace Regard.Query.Tests.MapReduce
                 Assert.IsNull(await store.ChildStore(childStoreKey).GetValue(documentKey));
 
                 await store.ChildStore(childStoreKey).SetValue(documentKey, JObject.FromObject(new { Something = "Hello" }));
+                await store.ChildStore(childStoreKey).Commit();
 
                 Assert.IsNull(await store.GetValue(documentKey));
                 Assert.IsNotNull(await store.ChildStore(childStoreKey).GetValue(documentKey));
