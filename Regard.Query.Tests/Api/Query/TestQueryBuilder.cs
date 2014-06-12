@@ -36,6 +36,8 @@ namespace Regard.Query.Tests.Api.Query
             {
                 await target.EventRecorder.RecordEvent(WellKnownUserIdentifier.TestUser, sessionId, "WithRegard", "Test", doc);
             }
+
+            await target.EventRecorder.CommitEvents("WithRegard", "Test");
         }
 
         /// <summary>
@@ -51,6 +53,8 @@ namespace Regard.Query.Tests.Api.Query
             {
                 await target.EventRecorder.RecordEvent(userId, sessionId, "WithRegard", "Test", doc);
             }
+
+            await target.EventRecorder.CommitEvents("WithRegard", "Test");
         }
     }
 }

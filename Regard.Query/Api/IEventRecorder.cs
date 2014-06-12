@@ -31,5 +31,10 @@ namespace Regard.Query.Api
         /// <param name="product">The name of the product that the session is for</param>
         /// <param name="data">JSON data indicating the properties for this event</param>
         Task RecordEvent(Guid userId, Guid sessionId, string organization, string product, JObject data);
+
+        /// <summary>
+        /// Ensures that all events previously scheduled via RecordEvent are committed for a particular organization/product
+        /// </summary>
+        Task CommitEvents(string organization, string product);
     }
 }
