@@ -48,9 +48,14 @@ namespace Regard.Query.MapReduce.Azure
         private readonly Dictionary<string, AzureKeyValueStore> m_KnownChildStores = new Dictionary<string, AzureKeyValueStore>();
 
         /// <summary>
-        /// Batched up append operations, or null if there are none
+        /// Batched up AppendValue operations, or null if there are none
         /// </summary>
         private TableBatchOperation m_AppendBatch;
+
+        /// <summary>
+        /// Values waiting to be written due to SetValue being called
+        /// </summary>
+        private Dictionary<string, JsonTableEntity> m_WaitingSetValues = new Dictionary<string, JsonTableEntity>();
 
         /// <summary>
         /// Batched operations that are awaiting completion
@@ -185,6 +190,37 @@ namespace Regard.Query.MapReduce.Azure
         }
 
         /// <summary>
+        /// Writes the values in the specified dictionary to the data store
+        /// </summary>
+        private async Task CommitSetValues(Dictionary<string, JsonTableEntity> values)
+        {
+            // Sanity check
+            if (values == null)     return;
+            if (values.Count <= 0)  return;
+
+            // Send the values as batch operations
+            var currentOp = new TableBatchOperation();
+
+            foreach (var commitValue in values)
+            {
+                var entity = commitValue.Value;
+                var insert = TableOperation.InsertOrReplace(entity);
+                currentOp.Add(insert);
+
+                if (currentOp.Count >= 100)
+                {
+                    await m_Table.ExecuteBatchAsync(currentOp);
+                    currentOp = new TableBatchOperation();
+                }
+            }
+
+            if (currentOp.Count > 0)
+            {
+                await m_Table.ExecuteBatchAsync(currentOp);
+            }
+        }
+
+        /// <summary>
         /// Stores a value in the database, indexed by a particular key
         /// </summary>
         public async Task SetValue(JArray key, JObject value)
@@ -192,6 +228,11 @@ namespace Regard.Query.MapReduce.Azure
             if (value == null)
             {
                 var rowKeyString = CreateKey(key);
+
+                lock (m_Sync)
+                {
+                    m_WaitingSetValues.Remove(rowKeyString);
+                }
 
                 // Delete the existing entity
                 // Azure Table Storage only actually uses the row/partition key with Delete but takes an entire entity anyway :-/
@@ -213,11 +254,23 @@ namespace Regard.Query.MapReduce.Azure
             }
             else
             {
-                // Create a table entity
-                var newEntity               = CreateEntity(key, value);
+                var rowKeyString = CreateKey(key);
 
-                var insertCommand = TableOperation.InsertOrReplace(newEntity);
-                await m_Table.ExecuteAsync(insertCommand);
+                lock (m_Sync)
+                {
+                    // Cache this value
+                    m_WaitingSetValues[rowKeyString] = CreateEntity(key, value);
+
+                    // Start a commit operation if the dictionary becomes larges enough
+                    if (m_WaitingSetValues.Count >= 100)
+                    {
+                        m_InProgressOperations.Add(CommitSetValues(m_WaitingSetValues));
+                        m_WaitingSetValues = new Dictionary<string, JsonTableEntity>();
+                    }
+                }
+
+                // Ensure that the data is eventually committed
+                QueueCommit();
             }
         }
 
@@ -500,6 +553,12 @@ namespace Regard.Query.MapReduce.Azure
         /// </summary>
         public async Task DeleteChildStore(JArray key)
         {
+            // Delete the child store cache
+            lock (m_Sync)
+            {
+                m_KnownChildStores.Remove(CreateKey(key));
+            }
+
             // Ugh, here's where the limitations of Azure's query language really show themselves
             // There's no 'startswith' query for strings, even though that ought to be really easy to implement if you can do greater-than.
             // There's no way to just delete the results of a query. You need to read the records then batch up a deletion operation
@@ -720,6 +779,12 @@ namespace Regard.Query.MapReduce.Azure
 
             lock (m_Sync)
             {
+                // Commit recursively
+                foreach (var store in m_KnownChildStores)
+                {
+                    m_InProgressOperations.Add(store.Value.Commit());
+                }
+
                 // Finish any append batch that was waiting
                 FinishAppendBatch();
 
@@ -730,6 +795,10 @@ namespace Regard.Query.MapReduce.Azure
 
                 DateTime start = DateTime.Now;
 
+                // Ensure that any waiting set value operations are queued up
+                m_InProgressOperations.Add(CommitSetValues(m_WaitingSetValues));
+                m_WaitingSetValues = new Dictionary<string, JsonTableEntity>();
+                
                 // Wait for any queued tasks to complete
                 waitingTasks = new List<Task>(m_InProgressOperations);
                 m_InProgressOperations.Clear();

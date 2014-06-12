@@ -17,6 +17,8 @@ namespace Regard.Query.Samples
         /// </summary>
         public static async Task GenerateData(IEventRecorder recorder, Guid userId, int numSessions, int numEvents, int randomSeed)
         {
+            Console.WriteLine("Generating {0} sessions of {1} events ({2} total)", numSessions, numEvents, numSessions*numEvents);
+
             Random rng = new Random(randomSeed);
 
             // Repetition makes certain events more likely
@@ -29,6 +31,11 @@ namespace Regard.Query.Samples
             for (int session = 0; session < numSessions; ++session)
             {
                 var sessionId = await recorder.StartSession("WithRegard", "Test", userId, Guid.Empty);
+
+                if ((session%10) == 0)
+                {
+                    await recorder.CommitEvents("WithRegard", "Test");
+                }
 
                 var day = rng.Next(256);
 
@@ -67,6 +74,8 @@ namespace Regard.Query.Samples
                 }
             }
 
+            Console.WriteLine("Finishing up...");
+            await recorder.CommitEvents("WithRegard", "Test");
             Console.WriteLine("Total: {0} seconds", (DateTime.Now - start).TotalSeconds);
         }
 
@@ -182,7 +191,7 @@ namespace Regard.Query.Samples
                 // 100 sessions of 100 events each.
                 // 10000 sessions is likely from a medium-sized open-source project
                 // 100 events per session is on the high side but not necessarily unreasonable
-                await GenerateData(recorder, WellKnownUserIdentifier.TestUser, 10, 100, 1);
+                await GenerateData(recorder, WellKnownUserIdentifier.TestUser, 100, 100, 1);
 
                 var builder = testWithRegard.CreateQueryBuilder();
                 IRegardQuery result = builder.AllEvents();

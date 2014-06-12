@@ -97,5 +97,18 @@ namespace Regard.Query.MapReduce
             long eventId = await eventStore.AppendValue(data);
             await productStore.AssociateEventWithUser(userId, eventId, m_NodeName, data);
         }
+
+        /// <summary>
+        /// Ensures that all events previously scheduled via RecordEvent are committed for a particular organization/product
+        /// </summary>
+        public async Task CommitEvents(string organization, string product)
+        {
+            // Get the stores for this product
+            var productStore    = await m_RootDataStore.ProductDataStore.DataStoreForIndividualProduct(organization, product);
+            var eventStore      = productStore.GetRawEventStore(m_NodeName);
+
+            // Wait for the events to commit
+            await Task.WhenAll(productStore.Commit(m_NodeName), eventStore.Commit());
+        }
     }
 }

@@ -67,6 +67,7 @@ namespace Regard.Query.MapReduce.DataAccessor
         {
             var queryStatusStore = m_RawDataStore.ChildStore(new JArray("query-status", nodeName));
             await queryStatusStore.SetValue(new JArray(queryName), newStatus);
+            await queryStatusStore.Commit();
         }
 
         /// <summary>

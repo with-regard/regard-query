@@ -32,6 +32,7 @@ namespace Regard.Query.MapReduce.DataAccessor
         public async Task SetRegisteredQueries(string nodeName, JObject existingQuery)
         {
             await m_RawDataStore.SetValue(new JArray(nodeName), existingQuery);
+            await m_RawDataStore.Commit();
         }
 
         /// <summary>
