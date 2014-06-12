@@ -17,9 +17,10 @@ namespace Regard.Query.MapReduce.DataAccessor
             m_RawDataStore = rawDataStore;
         }
 
-        public Task SetUserData(Guid userId, JObject userData)
+        public async Task SetUserData(Guid userId, JObject userData)
         {
-            return m_RawDataStore.SetValue(new JArray(userId.ToString()), userData);
+            await m_RawDataStore.SetValue(new JArray(userId.ToString()), userData);
+            await m_RawDataStore.Commit();
         }
     }
 }
