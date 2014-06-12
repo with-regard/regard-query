@@ -126,6 +126,7 @@ namespace Regard.Query.Tests.MapReduce
                 var storeValue = JObject.FromObject(new {SomeValue = "hello" });
 
                 await store.SetValue(key, storeValue);
+                await store.Commit();
                 var value = await store.GetValue(key);
 
                 Assert.IsNotNull(value);
@@ -144,6 +145,7 @@ namespace Regard.Query.Tests.MapReduce
                 var storeValue = JObject.FromObject(new { SomeValue = "hello" });
 
                 await store.SetValue(key, storeValue);
+                await store.Commit();
 
                 var enumerator = store.EnumerateAllValues();
                 var value = await enumerator.FetchNext();
@@ -204,11 +206,13 @@ namespace Regard.Query.Tests.MapReduce
                 var storeValue = JObject.FromObject(new { SomeValue = "hello" });
 
                 await store.SetValue(key, storeValue);
+                await store.Commit();
                 var value = await store.GetValue(key);
 
                 Assert.IsNotNull(value);
 
                 await store.SetValue(key, null);
+                await store.Commit();
 
                 var enumerator = store.EnumerateAllValues();
                 for (var shouldNotBeNull = await enumerator.FetchNext(); shouldNotBeNull != null; shouldNotBeNull = await enumerator.FetchNext())
@@ -296,6 +300,7 @@ namespace Regard.Query.Tests.MapReduce
 
                 Assert.IsNull(await store.ChildStore(childStoreKey).GetValue(documentKey));
                 await store.ChildStore(childStoreKey).SetValue(documentKey, JObject.FromObject(new { Something = "Hello" }));
+                await store.ChildStore(childStoreKey).Commit();
                 Assert.IsNotNull(await store.ChildStore(childStoreKey).GetValue(documentKey));
 
                 await store.DeleteChildStore(childStoreKey);
@@ -316,6 +321,8 @@ namespace Regard.Query.Tests.MapReduce
                 Assert.IsNull(await store.ChildStore(childStoreKey).GetValue(documentKey));
                 await store.ChildStore(childStoreKey).SetValue(documentKey, JObject.FromObject(new { Something = "Hello" }));
                 await store.ChildStore(childStoreKey).ChildStore(childStoreKey).SetValue(documentKey, JObject.FromObject(new { Something = "Hello" }));
+                await store.ChildStore(childStoreKey).Commit();
+                await store.ChildStore(childStoreKey).ChildStore(childStoreKey).Commit();
                 Assert.IsNotNull(await store.ChildStore(childStoreKey).GetValue(documentKey));
                 Assert.IsNotNull(await store.ChildStore(childStoreKey).ChildStore(childStoreKey).GetValue(documentKey));
 
