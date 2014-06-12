@@ -333,6 +333,29 @@ namespace Regard.Query.Tests.MapReduce
         }
 
         [Test]
+        public void DeletingAChildStoreDeletesUncommittedValues()
+        {
+            Task.Run(async () =>
+            {
+                var store = CreateStoreToTest();
+
+                var childStoreKey = new JArray("child-store");
+                var documentKey = new JArray("document");
+
+                Assert.IsNull(await store.ChildStore(childStoreKey).GetValue(documentKey));
+                await store.ChildStore(childStoreKey).SetValue(documentKey, JObject.FromObject(new { Something = "Hello" }));
+                await store.ChildStore(childStoreKey).ChildStore(childStoreKey).SetValue(documentKey, JObject.FromObject(new { Something = "Hello" }));
+
+                await store.DeleteChildStore(childStoreKey);
+                await store.ChildStore(childStoreKey).Commit();
+                await store.ChildStore(childStoreKey).ChildStore(childStoreKey).Commit();
+
+                Assert.IsNull(await store.ChildStore(childStoreKey).GetValue(documentKey));
+                Assert.IsNull(await store.ChildStore(childStoreKey).ChildStore(childStoreKey).GetValue(documentKey));
+            }).Wait();
+        }
+
+        [Test]
         public void DeletingAChildStoreRemoves200Keys()
         {
             Task.Run(async () =>
