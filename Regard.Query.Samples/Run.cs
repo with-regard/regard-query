@@ -186,7 +186,7 @@ namespace Regard.Query.Samples
                 // 100 sessions of 100 events each.
                 // 10000 sessions is likely from a medium-sized open-source project
                 // 100 events per session is on the high side but not necessarily unreasonable
-                await GenerateData(recorder, WellKnownUserIdentifier.TestUser, 10, 100, 1);
+                await GenerateData(recorder, WellKnownUserIdentifier.TestUser, 100, 100, 1);
 
                 var builder = testWithRegard.CreateQueryBuilder();
                 IRegardQuery result = builder.AllEvents();
