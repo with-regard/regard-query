@@ -32,6 +32,11 @@ namespace Regard.Query.Samples
             {
                 var sessionId = await recorder.StartSession("WithRegard", "Test", userId, Guid.Empty);
 
+                if ((session%10) == 0)
+                {
+                    await recorder.CommitEvents("WithRegard", "Test");
+                }
+
                 var day = rng.Next(256);
 
                 await recorder.RecordEvent(userId, sessionId, "WithRegard", "Test",
