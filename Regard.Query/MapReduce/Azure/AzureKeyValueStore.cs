@@ -553,6 +553,12 @@ namespace Regard.Query.MapReduce.Azure
         /// </summary>
         public async Task DeleteChildStore(JArray key)
         {
+            // Delete the child store cache
+            lock (m_Sync)
+            {
+                m_KnownChildStores.Remove(CreateKey(key));
+            }
+
             // Ugh, here's where the limitations of Azure's query language really show themselves
             // There's no 'startswith' query for strings, even though that ought to be really easy to implement if you can do greater-than.
             // There's no way to just delete the results of a query. You need to read the records then batch up a deletion operation
@@ -773,6 +779,12 @@ namespace Regard.Query.MapReduce.Azure
 
             lock (m_Sync)
             {
+                // Commit recursively
+                foreach (var store in m_KnownChildStores)
+                {
+                    m_InProgressOperations.Add(store.Value.Commit());
+                }
+
                 // Finish any append batch that was waiting
                 FinishAppendBatch();
 
