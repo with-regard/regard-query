@@ -124,7 +124,6 @@ namespace Regard.Query.WebAPI
             return Request.CreateResponse(HttpStatusCode.OK, new { version = Assembly.GetExecutingAssembly().GetName().Version.ToString() });
         }
 
-#if false
         /// <summary>
         /// Request to create a new product
         /// </summary>
@@ -197,9 +196,7 @@ namespace Regard.Query.WebAPI
                 throw;
             }
         }
-#endif
 
-#if false
         /// <summary>
         /// Registers a query for a particular product
         /// </summary>
@@ -312,7 +309,6 @@ namespace Regard.Query.WebAPI
             // OK
             return Request.CreateResponse(HttpStatusCode.Created, new {});
         }
-#endif
 
         /// <summary>
         /// Runs a query previously created by register-query and returns all of the results
@@ -448,7 +444,6 @@ namespace Regard.Query.WebAPI
             return await GetEventsForUser(organization, product, uid, 0);
         }
 
-#if false
         /// <summary>
         /// Opts in a particular user
         /// </summary>
@@ -530,7 +525,6 @@ namespace Regard.Query.WebAPI
 
             return Request.CreateResponse(HttpStatusCode.OK);
         }
-#endif
 
         /// <summary>
         /// Request to delete the data associated with a particualr user ID
