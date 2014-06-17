@@ -10,6 +10,8 @@
       <Setting name="Regard.Storage.CustomerTable" />
       <Setting name="Regard.Storage.SqlConnectionString" />
       <Setting name="Regard.HealthCheck.SharedSecret" />
+      <Setting name="Regard.JsonAPI.UserId"/>
+      <Setting name="Regard.JsonAPI.Password"/>
     </ConfigurationSettings>
     <Sites>
       <Site name="Web">
