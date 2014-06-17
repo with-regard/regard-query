@@ -1,18 +1,31 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ServiceDefinition name="Regard.Query.Internal.Service" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2013-10.2.2">
   <WebRole name="Regard.Query.BasicEndpoint" vmsize="Small">
+    <ConfigurationSettings>
+      <Setting name="Regard.ServiceBus.ConnectionString" />
+      <Setting name="Regard.ServiceBus.EventTopic" />
+      <Setting name="Regard.ServiceBus.SubscriptionName" />
+      <Setting name="Regard.Storage.ConnectionString" />
+      <Setting name="Regard.Storage.EventTable" />
+      <Setting name="Regard.Storage.CustomerTable" />
+      <Setting name="Regard.Storage.SqlConnectionString" />
+      <Setting name="Regard.HealthCheck.SharedSecret" />
+    </ConfigurationSettings>
     <Sites>
       <Site name="Web">
         <Bindings>
-          <Binding name="Endpoint1" endpointName="Regard.Query.WebAPI" />
+          <Binding name="Endpoint1" endpointName="Regard.Query.WebAPI.SSL" />
         </Bindings>
       </Site>
     </Sites>
     <Imports>
       <Import moduleName="Diagnostics" />
     </Imports>
+    <Certificates>
+      <Certificate name="RegardSSL" storeLocation="LocalMachine" storeName="My" />
+    </Certificates>
     <Endpoints>
-      <InternalEndpoint name="Regard.Query.WebAPI" protocol="http" port="8080" />
+      <InputEndpoint name="Regard.Query.WebAPI.SSL" protocol="https" port="8888" localPort="8080" certificate="RegardSSL" />
     </Endpoints>
   </WebRole>
 </ServiceDefinition>

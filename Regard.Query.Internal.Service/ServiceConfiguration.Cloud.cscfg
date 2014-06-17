@@ -4,6 +4,17 @@
     <Instances count="1" />
     <ConfigurationSettings>
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
+      <Setting name="Regard.ServiceBus.ConnectionString" value="Endpoint=sb://[your namespace].servicebus.windows.net;SharedSecretIssuer=owner;SharedSecretValue=[your secret]" />
+      <Setting name="Regard.ServiceBus.EventTopic" value="analytics-topic" />
+      <Setting name="Regard.ServiceBus.SubscriptionName" value="regard-event-consumer" />
+      <Setting name="Regard.Storage.ConnectionString" value="UseDevelopmentStorage=true" />
+      <Setting name="Regard.Storage.EventTable" value="flateventstorage" />
+      <Setting name="Regard.Storage.CustomerTable" value="customers" />
+      <Setting name="Regard.Storage.SqlConnectionString" value="" />
+      <Setting name="Regard.HealthCheck.SharedSecret" value="[Secure random string]" />
     </ConfigurationSettings>
+    <Certificates>
+      <Certificate name="RegardSSL" thumbprint="8420C0773626D5137A820156EB5BD9D6FDB9BEE9" thumbprintAlgorithm="sha1" />
+    </Certificates>
   </Role>
 </ServiceConfiguration>
