@@ -117,6 +117,7 @@ namespace Regard.Query.WebAPI
         /// Just indicates the version of this assembly
         /// </summary>
         [HttpGet, Route("version")]
+        [QueryAuthentication]
         public async Task<HttpResponseMessage> Version()
         {
             await EnsureDataStore();
@@ -124,7 +125,6 @@ namespace Regard.Query.WebAPI
             return Request.CreateResponse(HttpStatusCode.OK, new { version = Assembly.GetExecutingAssembly().GetName().Version.ToString() });
         }
 
-#if false
         /// <summary>
         /// Request to create a new product
         /// </summary>
@@ -132,6 +132,7 @@ namespace Regard.Query.WebAPI
         /// POST to admin/v1/product/create a JSON message with the fields 'product' and 'organization' indicating the product and organization to create
         /// </remarks>
         [HttpPost, Route("admin/v1/product/create")]
+        [QueryAuthentication]
         public async Task<HttpResponseMessage> CreateProduct()
         {
             try
@@ -197,9 +198,7 @@ namespace Regard.Query.WebAPI
                 throw;
             }
         }
-#endif
 
-#if false
         /// <summary>
         /// Registers a query for a particular product
         /// </summary>
@@ -211,6 +210,7 @@ namespace Regard.Query.WebAPI
         /// serialization format that we use internally (see <see cref="Regard.Query.Serializable.JsonQuery"/> for details)
         /// </remarks>
         [HttpPost, Route("product/v1/{organization}/{product}/register-query")]
+        [QueryAuthentication]
         public async Task<HttpResponseMessage> RegisterQuery(string organization, string product)
         {
             await EnsureDataStore();
@@ -312,12 +312,12 @@ namespace Regard.Query.WebAPI
             // OK
             return Request.CreateResponse(HttpStatusCode.Created, new {});
         }
-#endif
 
         /// <summary>
         /// Runs a query previously created by register-query and returns all of the results
         /// </summary>
         [HttpGet, Route("product/v1/{organization}/{product}/run-query/{queryname}")]
+        [QueryAuthentication]
         public async Task<HttpResponseMessage> RunQuery(string organization, string product, string queryname)
         {
             await EnsureDataStore();
@@ -397,6 +397,7 @@ namespace Regard.Query.WebAPI
         /// Offset indicates the event to begin at
         /// </remarks>
         [HttpGet, Route("product/v1/{organization}/{product}/get-events-for-user/{uid}/{offset}")]
+        [QueryAuthentication]
         public async Task<HttpResponseMessage> GetEventsForUser(string organization, string product, string uid, int offset)
         {
             await EnsureDataStore();
@@ -443,16 +444,17 @@ namespace Regard.Query.WebAPI
         /// Off
         /// </remarks>
         [HttpGet, Route("product/v1/{organization}/{product}/get-events-for-user/{uid}")]
+        [QueryAuthentication]
         public async Task<HttpResponseMessage> GetEventsForUser(string organization, string product, string uid)
         {
             return await GetEventsForUser(organization, product, uid, 0);
         }
 
-#if false
         /// <summary>
         /// Opts in a particular user
         /// </summary>
         [HttpPost, Route("product/v1/{organization}/{product}/users/{uid}/opt-in")]
+        [QueryAuthentication]
         public async Task<HttpResponseMessage> OptIn(string organization, string product, string uid)
         {
             await EnsureDataStore();
@@ -496,6 +498,7 @@ namespace Regard.Query.WebAPI
         /// It's expected that the application will not send data for an opted out user. If it does, new data will be stored but won't be used in a query.
         /// </remarks>
         [HttpPost, Route("product/v1/{organization}/{product}/users/{uid}/opt-out")]
+        [QueryAuthentication]
         public async Task<HttpResponseMessage> OptOut(string organization, string product, string uid)
         {
             await EnsureDataStore();
@@ -530,12 +533,12 @@ namespace Regard.Query.WebAPI
 
             return Request.CreateResponse(HttpStatusCode.OK);
         }
-#endif
 
         /// <summary>
         /// Request to delete the data associated with a particualr user ID
         /// </summary>
         [HttpPost, Route("product/v1/{organization}/{product}/users/{uid}/delete-data")]
+        [QueryAuthentication]
         public async Task<HttpResponseMessage> Delete(string organization, string product, string uid)
         {
             await EnsureDataStore();
