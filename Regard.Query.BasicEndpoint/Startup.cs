@@ -1,4 +1,5 @@
-﻿using System.Web.Http;
+﻿using System.Threading;
+using System.Web.Http;
 using Owin;
 
 namespace Regard.Query.BasicEndpoint
@@ -10,6 +11,9 @@ namespace Regard.Query.BasicEndpoint
     {
         public void Configuration(IAppBuilder app)
         {
+            // We need some completion threads for finishing data writes
+            ThreadPool.SetMaxThreads(40, 100);
+
             // Configure for attribute routes
             var httpConfiguration = new HttpConfiguration();
             httpConfiguration.MapHttpAttributeRoutes();
