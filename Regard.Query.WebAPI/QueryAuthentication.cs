@@ -70,7 +70,7 @@ namespace Regard.Query.WebAPI
             if (authenticationFailed)
             {
                 // Return an unauthorized result
-                context.ErrorResult = new UnauthorizedResult(new AuthenticationHeaderValue[0], context.Request);
+                context.ErrorResult = new UnauthorizedResult(new[] { new AuthenticationHeaderValue("basic") }, context.Request);
             }
 
             return Task.FromResult(0);
