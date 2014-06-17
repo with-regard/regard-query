@@ -58,6 +58,7 @@
     </Compile>
     <Compile Include="IQueryController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QueryAuthentication.cs" />
     <Compile Include="QueryController.cs" />
     <Compile Include="QueryResponseModel.cs" />
   </ItemGroup>
