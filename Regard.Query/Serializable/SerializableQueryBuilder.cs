@@ -118,7 +118,7 @@ namespace Regard.Query.Serializable
         /// </remarks>
         public SerializableQuery IndexedBy(SerializableQuery query, string key, string name)
         {
-            throw new NotImplementedException();
+            return new SerializableQuery(this) { AppliesTo = query, Verb = QueryVerbs.IndexedBy, Key = key, Name = name };
         }
 
         /// <summary>
@@ -170,7 +170,7 @@ namespace Regard.Query.Serializable
 
         public IRegardQuery IndexedBy(IRegardQuery query, string key, string name)
         {
-            throw new NotImplementedException();
+            return IndexedBy((SerializableQuery) query, key, name);
         }
     }
 }
