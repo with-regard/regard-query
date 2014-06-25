@@ -95,6 +95,7 @@ namespace Regard.Query.MapReduce.Queries
 
             public void Reduce(JObject result, JObject[] reductions)
             {
+                /*
                 // Copy keys from the first document into the result, if they aren't already present
                 foreach (var kvPair in reductions[0])
                 {
@@ -107,6 +108,7 @@ namespace Regard.Query.MapReduce.Queries
 
                     result[kvPair.Key] = kvPair.Value;
                 }
+                 */
 
                 // Sum the values from the original query
                 // (Note that the previous stage will have written '1' in here, but this shouldn't matter)
