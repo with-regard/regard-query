@@ -28,6 +28,11 @@ namespace Regard.Query.MapReduce.Queries
         private readonly JObject m_EmitDoc = new JObject();
 
         /// <summary>
+        /// The current index position
+        /// </summary>
+        private int m_IndexPos = 0;
+
+        /// <summary>
         /// Rejects this docuument, so nothing will be emitted
         /// </summary>
         public void Reject()
@@ -38,14 +43,20 @@ namespace Regard.Query.MapReduce.Queries
         /// <summary>
         /// Adds a value to the key for this item
         /// </summary>
-        /// <returns>
-        /// The index in the key array of the added value
-        /// </returns>
-        public int AddKey(JValue value)
+        public void AddKey(JValue value)
         {
-            int index = m_Key.Count;
+            // Normal keys go on the end of the key
             m_Key.Add(value);
-            return index;
+        }
+
+        /// <summary>
+        /// Adds an indexing key to the key for this item
+        /// </summary>
+        public void AddIndexKey(JValue value)
+        {
+            // Indexes form the start of the key
+            m_Key.Insert(m_IndexPos, value);
+            ++m_IndexPos;
         }
 
         /// <summary>
@@ -91,11 +102,45 @@ namespace Regard.Query.MapReduce.Queries
         }
 
         /// <summary>
+        /// Removes the index keys from this value
+        /// </summary>
+        public void RemoveIndexKeys()
+        {
+            if (m_IndexPos <= 0)
+            {
+                return;
+            }
+
+            // Create a new key without the index
+            JArray newKey = new JArray();
+            for (int pos = m_IndexPos; pos < m_Key.Count; ++pos)
+            {
+                newKey.Add(m_Key[pos]);
+            }
+
+            // Replace the key with the non-indexed version
+            m_Key = newKey;
+            m_IndexPos = 0;
+
+        }
+
+        /// <summary>
         /// Sets a new key value, replacing the old one
         /// </summary>
-        public void SetKey(JArray newKey)
+        /// <param name="newKey">The new key value</param>
+        /// <param name="preserveIndex"></param>
+        public void SetKey(JArray newKey, bool preserveIndex)
         {
+            // Record a copy of the key
             m_Key = (JArray) newKey.DeepClone();
+
+            // If the key is supposed to contain an index, restore it
+            if (preserveIndex)
+            {
+                var indexValue = m_Key.Last.Value<int>();
+                m_IndexPos = indexValue;
+                m_Key.RemoveAt(m_Key.Count-1);
+            }
         }
 
         /// <summary>
@@ -116,8 +161,18 @@ namespace Regard.Query.MapReduce.Queries
                 return;
             }
 
+            var key = m_Key;
+
+            // If there's an index, then encode it at the end of the key
+            if (m_IndexPos > 0)
+            {
+                key = (JArray) key.DeepClone();
+                key.Add(new JValue(m_IndexPos));
+            }
+
+
             // Send to the target
-            target.Emit(m_Key, m_EmitDoc);
+            target.Emit(key, m_EmitDoc);
         }
     }
 }
