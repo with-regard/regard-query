@@ -13,5 +13,6 @@
         public const string Min                 = "Min";
         public const string Max                 = "Max";
         public const string CountUniqueValues   = "CountUniqueValues";
+        public const string IndexedBy           = "IndexedBy";
     }
 }
