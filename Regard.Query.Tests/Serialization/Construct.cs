@@ -66,7 +66,6 @@ namespace Regard.Query.Tests.Serialization
 
             Assert.AreEqual(QueryVerbs.IndexedBy, countUnique.Verb);
             Assert.AreEqual("Test1", countUnique.Key);
-            Assert.AreEqual("Test2", countUnique.Name);
             Assert.IsNull(countUnique.Value);
             Assert.IsNotNull(countUnique.AppliesTo);
         }

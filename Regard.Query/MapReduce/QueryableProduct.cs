@@ -280,9 +280,40 @@ namespace Regard.Query.MapReduce
         /// For example, if a query is created as 'IndexedBy("user-id")', then the user ID can be specified in the indexValues parameters to get the
         /// query as it would appear only to that user.
         /// </remarks>
-        public Task<IResultEnumerator<QueryResultLine>> RunIndexedQuery(string queryName, params string[] indexValues)
+        public async Task<IResultEnumerator<QueryResultLine>> RunIndexedQuery(string queryName, params string[] indexValues)
         {
-            throw new NotImplementedException();
+            // Run a standard query if the indexes are empty
+            if (indexValues == null || indexValues.Length == 0)
+            {
+                return await RunQuery(queryName);
+            }
+
+            // Check if the query exists
+            // TODO: performance would be improved considerably by some sort of caching scheme
+            JObject queryDefinition = await m_QueryDataStore.GetJsonQueryDefinition(queryName);
+
+            // Result is null if no node has created this query
+            // The KV data store is actually forgiving enough that we could return a result instead here
+            if (queryDefinition == null)
+            {
+                return null;
+            }
+
+            // Ensure that the query results are up to date
+            await UpdateQuery(queryName, queryDefinition);
+
+            // Return the results
+            // Currently, this will process the data for this node only (the initial version of the product only has a single consumer node so this is fine)
+            // TODO: handle other nodes
+
+            // The event recorder runs the query and puts the results in a child store
+            IKeyValueStore results = m_ProductDataStore.GetQueryResults(queryName, m_NodeName);
+
+            // Fetch the entire set of results from the query
+            var chain = results.ChildStore(new JArray("chain"));
+            var nodeEnumerator = chain.EnumerateValuesBeginningWithKey(new JArray(indexValues));
+
+            return new QueryResultEnumerator(nodeEnumerator);
         }
 
         /// <summary>
