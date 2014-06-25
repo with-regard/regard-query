@@ -161,6 +161,41 @@ namespace Regard.Query.Tests.Api.Query
             }).Wait();
         }
 
+        [Test]
+        public void CanCount12ClicksByIndexing()
+        {
+            Task.Run(async () =>
+            {
+                // Register the query, as before
+                var store = await TestQueryBuilder.CreateEmptyDataStore(m_DataStoreType);
+                var testProduct = await store.Products.GetProduct("WithRegard", "Test");
+
+                // Create a query indexed by event type
+                var builder = testProduct.CreateQueryBuilder();
+                var allEventsQuery = builder.AllEvents().IndexedBy("EventType", "EventType");
+                await testProduct.RegisterQuery("test", allEventsQuery);
+
+                // Run the events through
+                await TestQueryBuilder.IngestBasic12TestDocuments(store);
+
+                // Request the contents of the 'Click' index
+                var queryResult = await testProduct.RunIndexedQuery("test", "Click");
+
+                Assert.IsNotNull(queryResult);
+
+                // All the results should have an event count of 5
+                int resultCount = 0;
+                for (var result = await queryResult.FetchNext(); result != null; result = await queryResult.FetchNext())
+                {
+                    resultCount++;
+
+                    Assert.AreEqual(5, result.EventCount);
+                }
+
+                // And there should only be one of them
+                Assert.AreEqual(1, resultCount);
+            }).Wait();
+        }
 
         [Test]
         public void UpdatingAQueryRemovesOldResults()
