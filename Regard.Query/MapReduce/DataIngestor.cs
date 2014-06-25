@@ -213,6 +213,21 @@ namespace Regard.Query.MapReduce
 
                 // Store the resulting value
                 storeValues.Add(m_Store.SetValue(key, unreduced));
+
+                if (m_ChainIngestor != null)
+                {
+                    m_ChainIngestor.Uningest(KeySerializer.CopyAndAddKey(previousValue, key));
+
+                    if (unreduced != null)
+                    {
+                        m_ChainIngestor.Ingest(KeySerializer.CopyAndAddKey(unreduced, key));
+                    }
+                }
+            }
+
+            if (m_ChainIngestor != null)
+            {
+                storeValues.Add(m_ChainIngestor.Commit());
             }
 
             await Task.WhenAll(storeValues);
