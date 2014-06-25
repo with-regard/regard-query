@@ -172,7 +172,7 @@ namespace Regard.Query.Serializable
                     {
                         throw new InvalidOperationException("IndexedBy must be applied to an existing query");
                     }
-                    return builder.IndexedBy(appliesTo, GetString(json, "key", true), GetString(json, "name"));
+                    return builder.IndexedBy(appliesTo, GetString(json, "key", true));
 
                 default:
                     throw new InvalidOperationException("Unknown JSON verb: " + verb);

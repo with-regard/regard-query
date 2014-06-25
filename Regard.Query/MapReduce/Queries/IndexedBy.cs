@@ -6,12 +6,10 @@ namespace Regard.Query.MapReduce.Queries
     class IndexedBy : IComposableMapReduce, IComposableChain
     {
         private readonly string m_FieldName;
-        private readonly string m_OutputName;
 
-        public IndexedBy(string fieldName, string outputName)
+        public IndexedBy(string fieldName)
         {
             m_FieldName     = fieldName;
-            m_OutputName    = outputName;
 
             ChainWith       = new IndexChain();
         }
@@ -38,17 +36,14 @@ namespace Regard.Query.MapReduce.Queries
 
             // The field value becomes part of the key and the value
             result.AddIndexKey(keyValue);
-            result.SetValue(m_OutputName, keyValue);
         }
 
         public void Reduce(JObject result, JObject[] documents)
         {
-            result[m_OutputName] = documents.First()[m_OutputName];
         }
 
         public void Rereduce(JObject result, JObject[] documents)
         {
-            result[m_OutputName] = documents.First()[m_OutputName];
         }
 
         public void Unreduce(JObject result, JObject[] documents, ref bool delete)

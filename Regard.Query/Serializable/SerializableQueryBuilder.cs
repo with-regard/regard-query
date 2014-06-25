@@ -116,9 +116,9 @@ namespace Regard.Query.Serializable
         /// by user ID makes it possible to ask the query engine to return the results for a single user ID as well as for the
         /// entire data set.
         /// </remarks>
-        public SerializableQuery IndexedBy(SerializableQuery query, string key, string name)
+        public SerializableQuery IndexedBy(SerializableQuery query, string key)
         {
-            return new SerializableQuery(this) { AppliesTo = query, Verb = QueryVerbs.IndexedBy, Key = key, Name = name };
+            return new SerializableQuery(this) { AppliesTo = query, Verb = QueryVerbs.IndexedBy, Key = key };
         }
 
         /// <summary>
@@ -168,9 +168,9 @@ namespace Regard.Query.Serializable
             return Max((SerializableQuery) query, key, name);
         }
 
-        public IRegardQuery IndexedBy(IRegardQuery query, string key, string name)
+        public IRegardQuery IndexedBy(IRegardQuery query, string key)
         {
-            return IndexedBy((SerializableQuery) query, key, name);
+            return IndexedBy((SerializableQuery) query, key);
         }
     }
 }

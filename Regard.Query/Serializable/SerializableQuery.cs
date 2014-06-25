@@ -76,7 +76,7 @@ namespace Regard.Query.Serializable
                     return builder.Mean(apply, Key, Name);
 
                 case QueryVerbs.IndexedBy:
-                    return builder.IndexedBy(apply, Key, Name);
+                    return builder.IndexedBy(apply, Key);
                     
                 default:
                     throw new InvalidOperationException("Unknown query verb:  " + Verb);

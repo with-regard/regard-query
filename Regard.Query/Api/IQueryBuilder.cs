@@ -36,7 +36,6 @@
         /// </summary>
         /// <param name="query">The query to index</param>
         /// <param name="key">The key to index by</param>
-        /// <param name="name">The name of the field where the indexed value is stored</param>
         /// <remarks>
         /// It's possible that the name of this method needs to be changed to something more sensible.
         /// <para/>
@@ -44,7 +43,7 @@
         /// by user ID makes it possible to ask the query engine to return the results for a single user ID as well as for the
         /// entire data set.
         /// </remarks>
-        IRegardQuery IndexedBy(IRegardQuery query, string key, string name);
+        IRegardQuery IndexedBy(IRegardQuery query, string key);
 
         /// <summary>
         /// Given a key that exists in the database, sums the total of all its values (in each partition if there is more than one)

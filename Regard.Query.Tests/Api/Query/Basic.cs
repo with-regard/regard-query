@@ -172,7 +172,7 @@ namespace Regard.Query.Tests.Api.Query
 
                 // Create a query indexed by event type
                 var builder = testProduct.CreateQueryBuilder();
-                var allEventsQuery = builder.AllEvents().IndexedBy("EventType", "EventType");
+                var allEventsQuery = builder.AllEvents().IndexedBy("EventType");
                 await testProduct.RegisterQuery("test", allEventsQuery);
 
                 // Run the events through

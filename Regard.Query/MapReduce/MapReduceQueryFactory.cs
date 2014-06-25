@@ -92,7 +92,7 @@ namespace Regard.Query.MapReduce
                     break;
 
                 case QueryVerbs.IndexedBy:
-                    result = result.ComposeWith(new IndexedBy(component.Key, component.Name));
+                    result = result.ComposeWith(new IndexedBy(component.Key));
                     break;
 
                 default:

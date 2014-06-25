@@ -62,7 +62,7 @@ namespace Regard.Query.Tests.Serialization
         public void IndexedBy()
         {
             var builder = new SerializableQueryBuilder(null);
-            var countUnique = builder.IndexedBy(builder.AllEvents(), "Test1", "Test2");
+            var countUnique = builder.IndexedBy(builder.AllEvents(), "Test1");
 
             Assert.AreEqual(QueryVerbs.IndexedBy, countUnique.Verb);
             Assert.AreEqual("Test1", countUnique.Key);

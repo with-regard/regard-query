@@ -21,7 +21,7 @@ namespace Regard.Query.Tests.MapReduce
             {
                 // Create the 'only clicks' query
                 var queryBuilder = new SerializableQueryBuilder(null);
-                var brokenDownByDay = (SerializableQuery)queryBuilder.AllEvents().BrokenDownBy("SessionId", "WhichSession").IndexedBy("EventType", "event-type");
+                var brokenDownByDay = (SerializableQuery)queryBuilder.AllEvents().BrokenDownBy("SessionId", "WhichSession").IndexedBy("EventType");
                 var query = brokenDownByDay.GenerateMapReduce();
 
                 // Generate a data store and an ingestor
@@ -81,7 +81,7 @@ namespace Regard.Query.Tests.MapReduce
             {
                 // Create the 'only clicks' query
                 var queryBuilder = new SerializableQueryBuilder(null);
-                var brokenDownByDay = (SerializableQuery)queryBuilder.AllEvents().BrokenDownBy("SessionId", "WhichSession").IndexedBy("EventType", "event-type");
+                var brokenDownByDay = (SerializableQuery)queryBuilder.AllEvents().BrokenDownBy("SessionId", "WhichSession").IndexedBy("EventType");
                 var query = brokenDownByDay.GenerateMapReduce();
 
                 // Generate a data store and an ingestor
@@ -141,7 +141,7 @@ namespace Regard.Query.Tests.MapReduce
             {
                 // Create the 'only clicks' query
                 var queryBuilder = new SerializableQueryBuilder(null);
-                var brokenDownByDay = (SerializableQuery)queryBuilder.AllEvents().BrokenDownBy("SessionId", "WhichSession").IndexedBy("EventType", "event-type");
+                var brokenDownByDay = (SerializableQuery)queryBuilder.AllEvents().BrokenDownBy("SessionId", "WhichSession").IndexedBy("EventType");
                 var query = brokenDownByDay.GenerateMapReduce();
 
                 // Generate a data store and an ingestor

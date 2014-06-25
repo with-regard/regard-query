@@ -62,7 +62,7 @@ namespace Regard.Query.Tests.Serialization
         {
             // Create the query
             var builder = new SerializableQueryBuilder(null);
-            Try((SerializableQuery)builder.AllEvents().IndexedBy("Test1", "Test2"));
+            Try((SerializableQuery)builder.AllEvents().IndexedBy("Test1"));
         }
 
         [Test]
