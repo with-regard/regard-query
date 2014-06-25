@@ -42,6 +42,9 @@
         /// Indexing has no effect on the top-level results, but makes it possible to break them down further. For example, indexing
         /// by user ID makes it possible to ask the query engine to return the results for a single user ID as well as for the
         /// entire data set.
+        /// <para/>
+        /// A limitation of the current design means that only one of these is permitted by query: the results of using one are
+        /// presently considered 'undefined'.
         /// </remarks>
         IRegardQuery IndexedBy(IRegardQuery query, string key);
 
