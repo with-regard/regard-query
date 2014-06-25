@@ -225,7 +225,7 @@ namespace Regard.Query.Tests.MapReduce
         [Test]
         public void CanRetrieveAChildStore()
         {
-            Task.Run(async () =>
+            Task.Run(() =>
             {
                 var store = CreateStoreToTest();
 
