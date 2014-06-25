@@ -75,7 +75,6 @@ namespace Regard.Query
                 }
                 else
                 {
-
                     // TODO: Currently we only support a single running node (actually a single ingestion node and a single query node)
                     // Eventually we should determine the node name by reading instance data
                     result = s_DataStoreForConnectionString[connectionString] = MapReduceDataStoreFactory.CreateAzureTableDataStore(connectionString, c_TablePrefix, c_TestNodeName);
