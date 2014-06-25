@@ -274,6 +274,18 @@ namespace Regard.Query.MapReduce
         }
 
         /// <summary>
+        /// Given an indexed query, retuns the values matching the specified index(es)
+        /// </summary>
+        /// <remarks>
+        /// For example, if a query is created as 'IndexedBy("user-id")', then the user ID can be specified in the indexValues parameters to get the
+        /// query as it would appear only to that user.
+        /// </remarks>
+        public Task<IResultEnumerator<QueryResultLine>> RunIndexedQuery(string queryName, params string[] indexValues)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
         /// Retrieves all of the raw events associated with a particular user ID
         /// </summary>
         /// <remarks>

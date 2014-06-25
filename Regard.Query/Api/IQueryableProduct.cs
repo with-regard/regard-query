@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
@@ -25,6 +27,15 @@ namespace Regard.Query.Api
         /// Runs the query with the specified name against the database
         /// </summary>
         Task<IResultEnumerator<QueryResultLine>> RunQuery(string queryName);
+
+        /// <summary>
+        /// Given an indexed query, retuns the values matching the specified index(es)
+        /// </summary>
+        /// <remarks>
+        /// For example, if a query is created as 'IndexedBy("user-id")', then the user ID can be specified in the indexValues parameters to get the
+        /// query as it would appear only to that user.
+        /// </remarks>
+        Task<IResultEnumerator<QueryResultLine>> RunIndexedQuery(string queryName, params string[] indexValues);
 
         /// <summary>
         /// Retrieves all of the raw events associated with a particular user ID
