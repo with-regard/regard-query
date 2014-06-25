@@ -108,11 +108,6 @@ namespace Regard.Query.MapReduce.Queries
                     result[kvPair.Key] = kvPair.Value;
                 }
 
-                // Re-reduce with a null key for now
-                // TODO: this won't work if any re-reduce operation ever actually uses the key
-                // TODO: this also won't work because it doesn't update the result
-                // query.Rereduce(null, reductions);
-
                 // Sum the values from the original query
                 // (Note that the previous stage will have written '1' in here, but this shouldn't matter)
                 int count = 0;
