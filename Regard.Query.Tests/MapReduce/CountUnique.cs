@@ -142,7 +142,7 @@ namespace Regard.Query.Tests.MapReduce
             {
                 // Create the 'unique sessions' query
                 var queryBuilder = new SerializableQueryBuilder(null);
-                var uniqueSessions = (SerializableQuery)queryBuilder.AllEvents().CountUniqueValues("SessionId", "NumSessions").Sum("NumberValue", "SumOfAllTheNumberValue");
+                var uniqueSessions = (SerializableQuery)queryBuilder.AllEvents().Sum("NumberValue", "SumOfAllTheNumberValue").CountUniqueValues("SessionId", "NumSessions");
                 var query = uniqueSessions.GenerateMapReduce();
 
                 // Generate a data store and an ingestor
