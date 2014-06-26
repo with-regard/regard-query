@@ -264,6 +264,48 @@ namespace Regard.Query.Tests.MapReduce
         }
 
         [Test]
+        public void ThereShouldBe3SessionsIfWeReduceTwiceThenUnreduceOnce()
+        {
+            var task = Task.Run(async () =>
+            {
+                // Create the 'unique sessions' query
+                var queryBuilder = new SerializableQueryBuilder(null);
+                var uniqueSessions = (SerializableQuery)queryBuilder.AllEvents().CountUniqueValues("SessionId", "NumSessions");
+                var query = uniqueSessions.GenerateMapReduce();
+
+                // Generate a data store and an ingestor
+                var resultStore = new MemoryKeyValueStore();
+                var ingestor = new DataIngestor(query, resultStore);
+
+                // Run the standard set of docs through twice
+                await TestDataGenerator.Ingest12BasicDocuments(ingestor);
+                await TestDataGenerator.Ingest12BasicDocuments(ingestor);
+                await TestDataGenerator.Uningest12BasicDocuments(ingestor);
+
+                // This should leave us with an empty data store
+                var reader = resultStore.EnumerateAllValues();
+                int recordCount = 0;
+
+                Tuple<JArray, JObject> nextRecord;
+                while ((nextRecord = await reader.FetchNext()) != null)
+                {
+                    // There are 3 unique sessions even when re-reducing
+                    Assert.AreEqual(3, nextRecord.Item2["NumSessions"].Value<int>());
+
+                    // There are 12 total events
+                    Assert.AreEqual(12, nextRecord.Item2["Count"].Value<int>());
+                    recordCount++;
+                }
+
+                // Should be 1 record
+                Assert.AreEqual(1, recordCount);
+            });
+
+            task.Wait();
+        }
+
+
+        [Test]
         public void Only2SessionsContainAtLeastOneClick()
         {
             var task = Task.Run(async () =>
