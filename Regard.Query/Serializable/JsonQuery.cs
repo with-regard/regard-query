@@ -36,6 +36,7 @@ namespace Regard.Query.Serializable
             if (query.Key != null)      result["key"]       = query.Key;
             if (query.Value != null)    result["value"]     = query.Value;
             if (query.Name != null)     result["name"]      = query.Name;
+            if (query.Format != null)   result["format"]    = query.Format;
 
             return result;
         }
@@ -173,6 +174,13 @@ namespace Regard.Query.Serializable
                         throw new InvalidOperationException("IndexedBy must be applied to an existing query");
                     }
                     return builder.IndexedBy(appliesTo, GetString(json, "key", true));
+
+                case QueryVerbs.TransformDateFormat:
+                    if (appliesTo == null)
+                    {
+                        throw new InvalidOperationException("TransformDateFormat must be applied to an existing query");
+                    }
+                    return builder.TransformDateFormat(appliesTo, GetString(json, "key"), GetString(json, "name"), GetString(json, "format"));
 
                 default:
                     throw new InvalidOperationException("Unknown JSON verb: " + verb);

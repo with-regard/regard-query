@@ -16,6 +16,7 @@ namespace Regard.Query.Tests.Serialization
             Assert.AreEqual(expected.Key, actual.Key);
             Assert.AreEqual(expected.Name, actual.Name);
             Assert.AreEqual(expected.Value, actual.Value);
+            Assert.AreEqual(expected.Format, actual.Format);
 
             if (recurse)
             {

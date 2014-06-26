@@ -138,7 +138,7 @@ namespace Regard.Query.Serializable
         /// </remarks>
         public SerializableQuery TransformDateFormat(SerializableQuery query, string key, string name, string format)
         {
-            throw new NotImplementedException();
+            return new SerializableQuery(this) { Verb = QueryVerbs.TransformDateFormat, AppliesTo = query, Key = key, Name = name, Format = format };
         }
 
         /// <summary>

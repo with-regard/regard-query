@@ -78,6 +78,9 @@ namespace Regard.Query.Serializable
                 case QueryVerbs.IndexedBy:
                     return builder.IndexedBy(apply, Key);
                     
+                case QueryVerbs.TransformDateFormat:
+                    return builder.TransformDateFormat(apply, Key, Name, Format);
+
                 default:
                     throw new InvalidOperationException("Unknown query verb:  " + Verb);
             }
@@ -114,6 +117,11 @@ namespace Regard.Query.Serializable
         /// The name that is assigned to the result of this item (null if the verb doesn't require a name)
         /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// The format that the result should be written in
+        /// </summary>
+        public string Format { get; set; }
 
         #endregion
     }
