@@ -185,15 +185,6 @@ namespace Regard.Query.MapReduce
                 // Turn into a map/reduce querty
                 var mapReduce = MapReduceQueryFactory.GenerateMapReduce(queryJson);
 
-                // Create an ingestor for this query
-                // Update on a per-node basis
-                //
-                // One disadvantage of this technique is that multiple nodes need to run the query multiple times; you can't process some events on some nodes
-                // and then aggregate the results later on. This is a scaling issue so it is not critical at this time.
-                //
-                // To fix this issue, we could send updated results around the nodes using a service bus
-                var ingestor = m_ProductDataStore.CreateIngestorForQuery(queryName, m_NodeName, mapReduce);
-
                 // Get the status of this query
                 var previousQueryStatus = await m_ProductDataStore.GetQueryStatus(queryName, m_NodeName);
 
@@ -215,6 +206,15 @@ namespace Regard.Query.MapReduce
                     await m_ProductDataStore.DeleteQueryResults(queryName, m_NodeName);
                     previousQueryStatus = JObject.FromObject(new { LastProcessedIndex = -1, QueryVersion = c_QueryVersion });
                 }
+
+                // Create an ingestor for this query
+                // Update on a per-node basis
+                //
+                // One disadvantage of this technique is that multiple nodes need to run the query multiple times; you can't process some events on some nodes
+                // and then aggregate the results later on. This is a scaling issue so it is not critical at this time.
+                //
+                // To fix this issue, we could send updated results around the nodes using a service bus
+                var ingestor = m_ProductDataStore.CreateIngestorForQuery(queryName, m_NodeName, mapReduce);
 
                 // Get the last processed index for this query
                 var lastProcessedIndex = previousQueryStatus["LastProcessedIndex"].Value<long>();
