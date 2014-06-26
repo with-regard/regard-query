@@ -457,9 +457,6 @@ namespace Regard.Query.WebAPI
         /// <summary>
         /// Retrieves the list of events for a particular user
         /// </summary>
-        /// <remarks>
-        /// Off
-        /// </remarks>
         [HttpGet, Route("product/v1/{organization}/{product}/get-events-for-user/{uid}")]
         [QueryAuthentication]
         public async Task<HttpResponseMessage> GetEventsForUser(string organization, string product, string uid)
