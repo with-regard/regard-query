@@ -13,6 +13,11 @@ namespace Regard.Query.MapReduce
     /// </summary>
     class QueryableProduct : IQueryableProduct, IUserAdmin
     {
+        /// <summary>
+        /// The version number of the query data structure
+        /// </summary>
+        private const int c_QueryVersion = 0x100;
+
         private readonly object m_Sync = new object();
 
         private readonly IndividualProductDataStore m_ProductDataStore;
@@ -194,7 +199,21 @@ namespace Regard.Query.MapReduce
 
                 if (previousQueryStatus == null)
                 {
-                    previousQueryStatus = JObject.FromObject(new {LastProcessedIndex = -1});
+                    previousQueryStatus = JObject.FromObject(new {LastProcessedIndex = -1, QueryVersion=c_QueryVersion});
+                }
+
+                // Check that the version matches
+                JToken previousQueryVersion;
+                if (!previousQueryStatus.TryGetValue("QueryVersion", out previousQueryVersion) || previousQueryVersion.Type != JTokenType.Integer)
+                {
+                    previousQueryVersion = new JValue(0x000);
+                }
+
+                // If the version doesn't then delete and re-run the query
+                if (previousQueryVersion.Value<int>() != c_QueryVersion)
+                {
+                    await m_ProductDataStore.DeleteQueryResults(queryName, m_NodeName);
+                    previousQueryStatus = JObject.FromObject(new { LastProcessedIndex = -1, QueryVersion = c_QueryVersion });
                 }
 
                 // Get the last processed index for this query
@@ -224,7 +243,7 @@ namespace Regard.Query.MapReduce
                 // Update the query status
                 if (newLastProcessedIndex != lastProcessedIndex)
                 {
-                    var updatedQueryStatus = JObject.FromObject(new {LastProcessedIndex = newLastProcessedIndex});
+                    var updatedQueryStatus = JObject.FromObject(new {LastProcessedIndex = newLastProcessedIndex, QueryVersion=c_QueryVersion});
                     await m_ProductDataStore.SetQueryStatus(queryName, m_NodeName, updatedQueryStatus);
                 }
             }
