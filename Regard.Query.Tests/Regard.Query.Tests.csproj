@@ -61,6 +61,7 @@
     <Compile Include="MapReduce\BackingStore.cs" />
     <Compile Include="MapReduce\BrokenDownBy.cs" />
     <Compile Include="MapReduce\CountUnique.cs" />
+    <Compile Include="MapReduce\IndexedBy.cs" />
     <Compile Include="MapReduce\Mean.cs" />
     <Compile Include="MapReduce\MinMax.cs" />
     <Compile Include="MapReduce\Only.cs" />

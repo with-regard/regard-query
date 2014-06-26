@@ -91,6 +91,10 @@ namespace Regard.Query.MapReduce
                     result = result.ComposeWith(new SimpleMathOp(component.Key, component.Name, (a, b) => (a>b)?a:b, (a,b) => (a>b)?a:b));
                     break;
 
+                case QueryVerbs.IndexedBy:
+                    result = result.ComposeWith(new IndexedBy(component.Key));
+                    break;
+
                 default:
                     // Not implemented
                     throw new NotImplementedException("Unknown query verb");

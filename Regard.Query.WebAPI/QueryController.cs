@@ -318,7 +318,17 @@ namespace Regard.Query.WebAPI
         /// </summary>
         [HttpGet, Route("product/v1/{organization}/{product}/run-query/{queryname}")]
         [QueryAuthentication]
-        public async Task<HttpResponseMessage> RunQuery(string organization, string product, string queryname)
+        public Task<HttpResponseMessage> RunQuery(string organization, string product, string queryname)
+        {
+            return RunQuery(organization, product, queryname, null);
+        }
+
+        /// <summary>
+        /// Runs a query previously created by register-query and returns all of the results
+        /// </summary>
+        [HttpGet, Route("product/v1/{organization}/{product}/run-query/{queryname}/{index}")]
+        [QueryAuthentication]
+        public async Task<HttpResponseMessage> RunQuery(string organization, string product, string queryname, string index)
         {
             await EnsureDataStore();
 
@@ -351,7 +361,14 @@ namespace Regard.Query.WebAPI
 
             try
             {
-                queryResult = await queryableProduct.RunQuery(queryname);
+                if (index != null)
+                {
+                    queryResult = await queryableProduct.RunIndexedQuery(queryname, index);
+                }
+                else
+                {
+                    queryResult = await queryableProduct.RunQuery(queryname);
+                }
             }
             catch (InvalidOperationException e)
             {
@@ -440,9 +457,6 @@ namespace Regard.Query.WebAPI
         /// <summary>
         /// Retrieves the list of events for a particular user
         /// </summary>
-        /// <remarks>
-        /// Off
-        /// </remarks>
         [HttpGet, Route("product/v1/{organization}/{product}/get-events-for-user/{uid}")]
         [QueryAuthentication]
         public async Task<HttpResponseMessage> GetEventsForUser(string organization, string product, string uid)

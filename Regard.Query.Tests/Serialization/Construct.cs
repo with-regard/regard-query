@@ -59,12 +59,63 @@ namespace Regard.Query.Tests.Serialization
         }
 
         [Test]
+        public void IndexedBy()
+        {
+            var builder = new SerializableQueryBuilder(null);
+            var countUnique = builder.IndexedBy(builder.AllEvents(), "Test1");
+
+            Assert.AreEqual(QueryVerbs.IndexedBy, countUnique.Verb);
+            Assert.AreEqual("Test1", countUnique.Key);
+            Assert.IsNull(countUnique.Value);
+            Assert.IsNotNull(countUnique.AppliesTo);
+        }
+
+        [Test]
         public void Sum()
         {
             var builder = new SerializableQueryBuilder(null);
             var sum = builder.Sum(builder.AllEvents(), "Test1", "Test2");
 
             Assert.AreEqual(QueryVerbs.Sum, sum.Verb);
+            Assert.AreEqual("Test1", sum.Key);
+            Assert.AreEqual("Test2", sum.Name);
+            Assert.IsNull(sum.Value);
+            Assert.IsNotNull(sum.AppliesTo);
+        }
+
+        [Test]
+        public void Min()
+        {
+            var builder = new SerializableQueryBuilder(null);
+            var sum = builder.Min(builder.AllEvents(), "Test1", "Test2");
+
+            Assert.AreEqual(QueryVerbs.Min, sum.Verb);
+            Assert.AreEqual("Test1", sum.Key);
+            Assert.AreEqual("Test2", sum.Name);
+            Assert.IsNull(sum.Value);
+            Assert.IsNotNull(sum.AppliesTo);
+        }
+
+        [Test]
+        public void Max()
+        {
+            var builder = new SerializableQueryBuilder(null);
+            var sum = builder.Max(builder.AllEvents(), "Test1", "Test2");
+
+            Assert.AreEqual(QueryVerbs.Max, sum.Verb);
+            Assert.AreEqual("Test1", sum.Key);
+            Assert.AreEqual("Test2", sum.Name);
+            Assert.IsNull(sum.Value);
+            Assert.IsNotNull(sum.AppliesTo);
+        }
+
+        [Test]
+        public void Mean()
+        {
+            var builder = new SerializableQueryBuilder(null);
+            var sum = builder.Mean(builder.AllEvents(), "Test1", "Test2");
+
+            Assert.AreEqual(QueryVerbs.Mean, sum.Verb);
             Assert.AreEqual("Test1", sum.Key);
             Assert.AreEqual("Test2", sum.Name);
             Assert.IsNull(sum.Value);

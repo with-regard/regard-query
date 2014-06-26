@@ -13,6 +13,11 @@ namespace Regard.Query.MapReduce
     /// </summary>
     class QueryableProduct : IQueryableProduct, IUserAdmin
     {
+        /// <summary>
+        /// The version number of the query data structure
+        /// </summary>
+        private const int c_QueryVersion = 0x100;
+
         private readonly object m_Sync = new object();
 
         private readonly IndividualProductDataStore m_ProductDataStore;
@@ -180,6 +185,28 @@ namespace Regard.Query.MapReduce
                 // Turn into a map/reduce querty
                 var mapReduce = MapReduceQueryFactory.GenerateMapReduce(queryJson);
 
+                // Get the status of this query
+                var previousQueryStatus = await m_ProductDataStore.GetQueryStatus(queryName, m_NodeName);
+
+                if (previousQueryStatus == null)
+                {
+                    previousQueryStatus = JObject.FromObject(new {LastProcessedIndex = -1, QueryVersion=c_QueryVersion});
+                }
+
+                // Check that the version matches
+                JToken previousQueryVersion;
+                if (!previousQueryStatus.TryGetValue("QueryVersion", out previousQueryVersion) || previousQueryVersion.Type != JTokenType.Integer)
+                {
+                    previousQueryVersion = new JValue(0x000);
+                }
+
+                // If the version doesn't then delete and re-run the query
+                if (previousQueryVersion.Value<int>() != c_QueryVersion)
+                {
+                    await m_ProductDataStore.DeleteQueryResults(queryName, m_NodeName);
+                    previousQueryStatus = JObject.FromObject(new { LastProcessedIndex = -1, QueryVersion = c_QueryVersion });
+                }
+
                 // Create an ingestor for this query
                 // Update on a per-node basis
                 //
@@ -188,14 +215,6 @@ namespace Regard.Query.MapReduce
                 //
                 // To fix this issue, we could send updated results around the nodes using a service bus
                 var ingestor = m_ProductDataStore.CreateIngestorForQuery(queryName, m_NodeName, mapReduce);
-
-                // Get the status of this query
-                var previousQueryStatus = await m_ProductDataStore.GetQueryStatus(queryName, m_NodeName);
-
-                if (previousQueryStatus == null)
-                {
-                    previousQueryStatus = JObject.FromObject(new {LastProcessedIndex = -1});
-                }
 
                 // Get the last processed index for this query
                 var lastProcessedIndex = previousQueryStatus["LastProcessedIndex"].Value<long>();
@@ -224,7 +243,7 @@ namespace Regard.Query.MapReduce
                 // Update the query status
                 if (newLastProcessedIndex != lastProcessedIndex)
                 {
-                    var updatedQueryStatus = JObject.FromObject(new {LastProcessedIndex = newLastProcessedIndex});
+                    var updatedQueryStatus = JObject.FromObject(new {LastProcessedIndex = newLastProcessedIndex, QueryVersion=c_QueryVersion});
                     await m_ProductDataStore.SetQueryStatus(queryName, m_NodeName, updatedQueryStatus);
                 }
             }
@@ -269,6 +288,49 @@ namespace Regard.Query.MapReduce
 
             // Fetch the entire set of results from the query
             var nodeEnumerator  = results.EnumerateAllValues();
+
+            return new QueryResultEnumerator(nodeEnumerator);
+        }
+
+        /// <summary>
+        /// Given an indexed query, retuns the values matching the specified index(es)
+        /// </summary>
+        /// <remarks>
+        /// For example, if a query is created as 'IndexedBy("user-id")', then the user ID can be specified in the indexValues parameters to get the
+        /// query as it would appear only to that user.
+        /// </remarks>
+        public async Task<IResultEnumerator<QueryResultLine>> RunIndexedQuery(string queryName, params string[] indexValues)
+        {
+            // Run a standard query if the indexes are empty
+            if (indexValues == null || indexValues.Length == 0)
+            {
+                return await RunQuery(queryName);
+            }
+
+            // Check if the query exists
+            // TODO: performance would be improved considerably by some sort of caching scheme
+            JObject queryDefinition = await m_QueryDataStore.GetJsonQueryDefinition(queryName);
+
+            // Result is null if no node has created this query
+            // The KV data store is actually forgiving enough that we could return a result instead here
+            if (queryDefinition == null)
+            {
+                return null;
+            }
+
+            // Ensure that the query results are up to date
+            await UpdateQuery(queryName, queryDefinition);
+
+            // Return the results
+            // Currently, this will process the data for this node only (the initial version of the product only has a single consumer node so this is fine)
+            // TODO: handle other nodes
+
+            // The event recorder runs the query and puts the results in a child store
+            IKeyValueStore results = m_ProductDataStore.GetQueryResults(queryName, m_NodeName);
+
+            // Fetch the entire set of results from the query
+            var chain = results.ChildStore(new JArray("chain"));
+            var nodeEnumerator = chain.EnumerateValuesBeginningWithKey(new JArray(indexValues));
 
             return new QueryResultEnumerator(nodeEnumerator);
         }

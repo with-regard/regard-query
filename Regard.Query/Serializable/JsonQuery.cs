@@ -167,6 +167,13 @@ namespace Regard.Query.Serializable
                     }
                     return builder.Only(appliesTo, GetString(json, "key", true), GetString(json, "value"));
 
+                case QueryVerbs.IndexedBy:
+                    if (appliesTo == null)
+                    {
+                        throw new InvalidOperationException("IndexedBy must be applied to an existing query");
+                    }
+                    return builder.IndexedBy(appliesTo, GetString(json, "key", true));
+
                 default:
                     throw new InvalidOperationException("Unknown JSON verb: " + verb);
             }

@@ -58,6 +58,14 @@ namespace Regard.Query.Tests.Serialization
         }
 
         [Test]
+        public static void IndexedBy()
+        {
+            // Create the query
+            var builder = new SerializableQueryBuilder(null);
+            Try((SerializableQuery)builder.AllEvents().IndexedBy("Test1"));
+        }
+
+        [Test]
         public static void Sum()
         {
             // Create the query

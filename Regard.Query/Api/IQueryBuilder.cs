@@ -32,6 +32,23 @@
         IRegardQuery BrokenDownBy(IRegardQuery query, string key, string name);                      // TODO: I think a final version of this will need to do ranges and other comparisons
 
         /// <summary>
+        /// Creates an index that can be used to retrieve a sub-query
+        /// </summary>
+        /// <param name="query">The query to index</param>
+        /// <param name="key">The key to index by</param>
+        /// <remarks>
+        /// It's possible that the name of this method needs to be changed to something more sensible.
+        /// <para/>
+        /// Indexing has no effect on the top-level results, but makes it possible to break them down further. For example, indexing
+        /// by user ID makes it possible to ask the query engine to return the results for a single user ID as well as for the
+        /// entire data set.
+        /// <para/>
+        /// A limitation of the current design means that only one of these is permitted by query: the results of using one are
+        /// presently considered 'undefined'.
+        /// </remarks>
+        IRegardQuery IndexedBy(IRegardQuery query, string key);
+
+        /// <summary>
         /// Given a key that exists in the database, sums the total of all its values (in each partition if there is more than one)
         /// </summary>
         /// <param name="query">The query to add a new sum to</param>

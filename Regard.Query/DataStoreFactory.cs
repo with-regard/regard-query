@@ -64,22 +64,21 @@ namespace Regard.Query
         /// <summary>
         /// Creates a data store using Azure storage
         /// </summary>
-        public static async Task<IRegardDataStore> CreateAzureTableStore(string connectionString)
+        public static Task<IRegardDataStore> CreateAzureTableStore(string connectionString)
         {
             lock (s_Sync)
             {
                 IRegardDataStore result;
                 if (s_DataStoreForConnectionString.TryGetValue(connectionString, out result))
                 {
-                    return result;
+                    return Task.FromResult(result);
                 }
                 else
                 {
-
                     // TODO: Currently we only support a single running node (actually a single ingestion node and a single query node)
                     // Eventually we should determine the node name by reading instance data
                     result = s_DataStoreForConnectionString[connectionString] = MapReduceDataStoreFactory.CreateAzureTableDataStore(connectionString, c_TablePrefix, c_TestNodeName);
-                    return result;
+                    return Task.FromResult(result);
                 }
             }
         }

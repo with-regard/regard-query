@@ -39,5 +39,10 @@
         {
             return query.Builder.CountUniqueValues(query, key, name);
         }
+
+        public static IRegardQuery IndexedBy(this IRegardQuery query, string key)
+        {
+            return query.Builder.IndexedBy(query, key);
+        }
     }
 }
