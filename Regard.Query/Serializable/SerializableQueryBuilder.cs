@@ -122,6 +122,26 @@ namespace Regard.Query.Serializable
         }
 
         /// <summary>
+        /// Transforms a field containing a date into a field containing the date in a different format
+        /// </summary>
+        /// <param name="query">The query to add a transformation to</param>
+        /// <param name="key">The field containing a date (in ISO8601 format)</param>
+        /// <param name="name">The name of the new field that is generated and which will contain the reformatted date</param>
+        /// <param name="format">A string describing the date format to use</param>
+        /// <remarks>
+        /// The only format currently supported is 'days', which creates a field containing a numeric value of date represented as the number of days
+        /// since Jan 1, 1970, in UTC, rounded to the nearest day.
+        /// <para/>
+        /// No field is added if the source field cannot be parsed as an ISO8601 date.
+        /// <para/>
+        /// The date is not added to the result, but the new name can be used as part of queries like BrokenDownBy
+        /// </remarks>
+        public SerializableQuery TransformDateFormat(SerializableQuery query, string key, string name, string format)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
         /// Creates a query that counts all the events in the source
         /// </summary>
         /// <remarks>
@@ -171,6 +191,11 @@ namespace Regard.Query.Serializable
         public IRegardQuery IndexedBy(IRegardQuery query, string key)
         {
             return IndexedBy((SerializableQuery) query, key);
+        }
+
+        public IRegardQuery TransformDateFormat(IRegardQuery query, string key, string name, string format)
+        {
+            return TransformDateFormat((SerializableQuery) query, key, name, format);
         }
     }
 }
