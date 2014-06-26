@@ -210,7 +210,7 @@ namespace Regard.Query.MapReduce
                 }
 
                 // If the version doesn't then delete and re-run the query
-                if (previousQueryVersion.Value<int>() != c_QueryVersion)
+                if (previousQueryVersion.Value<int>() != c_QueryVersion-1)
                 {
                     await m_ProductDataStore.DeleteQueryResults(queryName, m_NodeName);
                     previousQueryStatus = JObject.FromObject(new { LastProcessedIndex = -1, QueryVersion = c_QueryVersion });
