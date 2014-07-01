@@ -129,6 +129,7 @@
     <Compile Include="MapReduce\Queries\Mean.cs" />
     <Compile Include="MapReduce\Queries\Only.cs" />
     <Compile Include="MapReduce\Queries\SimpleMathOp.cs" />
+    <Compile Include="MapReduce\Queries\TransformDateFormat.cs" />
     <Compile Include="MapReduce\QueryableProduct.cs" />
     <Compile Include="MapReduce\MapReduceQueryFactory.cs" />
     <Compile Include="MapReduce\Queries\MapResult.cs" />
