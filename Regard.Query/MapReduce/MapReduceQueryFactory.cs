@@ -95,6 +95,10 @@ namespace Regard.Query.MapReduce
                     result = result.ComposeWith(new IndexedBy(component.Key));
                     break;
 
+                case QueryVerbs.TransformDateFormat:
+                    result = result.ComposeWith(new TransformDateFormat(component.Key, component.Name, component.Format));
+                    break;
+
                 default:
                     // Not implemented
                     throw new NotImplementedException("Unknown query verb");

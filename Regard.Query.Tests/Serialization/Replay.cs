@@ -61,6 +61,14 @@ namespace Regard.Query.Tests.Serialization
         }
 
         [Test]
+        public static void TransformDateFormat()
+        {
+            // Create the query
+            var builder = new SerializableQueryBuilder(null);
+            Try((SerializableQuery)builder.AllEvents().TransformDateFormat("Test1", "Test2", "Test3"));
+        }
+
+        [Test]
         public static void Sum()
         {
             // Create the query

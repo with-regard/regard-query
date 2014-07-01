@@ -44,5 +44,10 @@
         {
             return query.Builder.IndexedBy(query, key);
         }
+
+        public static IRegardQuery TransformDateFormat(this IRegardQuery query, string key, string name, string format)
+        {
+            return query.Builder.TransformDateFormat(query, key, name, format);
+        }
     }
 }

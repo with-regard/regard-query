@@ -71,6 +71,20 @@ namespace Regard.Query.Tests.Serialization
         }
 
         [Test]
+        public void TransformDateFormat()
+        {
+            var builder = new SerializableQueryBuilder(null);
+            var countUnique = builder.TransformDateFormat(builder.AllEvents(), "Test1", "Test2", "Test3");
+
+            Assert.AreEqual(QueryVerbs.TransformDateFormat, countUnique.Verb);
+            Assert.AreEqual("Test1", countUnique.Key);
+            Assert.AreEqual("Test2", countUnique.Name);
+            Assert.AreEqual("Test3", countUnique.Format);
+            Assert.IsNull(countUnique.Value);
+            Assert.IsNotNull(countUnique.AppliesTo);
+        }
+
+        [Test]
         public void Sum()
         {
             var builder = new SerializableQueryBuilder(null);

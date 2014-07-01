@@ -68,6 +68,7 @@
     <Compile Include="MapReduce\RunMapReduce.cs" />
     <Compile Include="MapReduce\Sum.cs" />
     <Compile Include="MapReduce\TestDataGenerator.cs" />
+    <Compile Include="MapReduce\TransformDateFormat.cs" />
     <Compile Include="MissingDataStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Serialization\Construct.cs" />
