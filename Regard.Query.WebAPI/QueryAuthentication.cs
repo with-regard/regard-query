@@ -11,17 +11,17 @@ namespace Regard.Query.WebAPI
 {
     internal class QueryAuthentication : Attribute, IAuthenticationFilter
     {
-        private readonly string m_TargetUsername;
-        private readonly string m_TargetPassword;
+        private static readonly string s_TargetUsername;
+        private static readonly string s_TargetPassword;
 
-        public QueryAuthentication()
+        static QueryAuthentication()
         {
             // Use the values stored in cloud configuration to check against the password
             // (This is pretty rubbish as a way to store the password but should be adequate at the moment)
             // A HMAC scheme would be much better, particularly if we eventually want to support multiple clients
             // Could also restrict IP ranges to those we know belong to Azure
-            m_TargetUsername = CloudConfigurationManager.GetSetting("Regard.JsonAPI.UserId");
-            m_TargetPassword = CloudConfigurationManager.GetSetting("Regard.JsonAPI.Password");
+            s_TargetUsername = CloudConfigurationManager.GetSetting("Regard.JsonAPI.UserId");
+            s_TargetPassword = CloudConfigurationManager.GetSetting("Regard.JsonAPI.Password");
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace Regard.Query.WebAPI
                 var password = parts[1];
 
                 // To test, check that the username and password are identical to see if authentication is actually working
-                if (m_TargetUsername == username && m_TargetPassword == password)
+                if (s_TargetUsername == username && s_TargetPassword == password)
                 {
                     // Password is valid
                     authenticationFailed = false;
