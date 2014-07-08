@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
@@ -13,24 +12,13 @@ using Regard.Query.Serializable;
 
 namespace Regard.Query.WebAPI
 {
-    // TODO: this class should be better factored
-
     /// <summary>
     /// ApiController that can be used to host the Regard query API - without any authentication or authorization
     /// </summary>
     [QueryAuthentication]
     public class QueryController : ApiController, IQueryController
-    {
-        /// <summary>
-        /// Synchronisation object (protects m_CreatingDataStore in particular)
-        /// </summary>
-        private readonly object m_Sync = new object();
-
-        /// <summary>
-        /// The data store that this will make available
-        /// </summary>
-        private IRegardDataStore m_DataStore;
-
+    { 
+        private readonly ControllerDataStoreFactory m_ControllerDataStore = new ControllerDataStoreFactory();
         /// <summary>
         /// The maximum length of a product or organization name
         /// </summary>
@@ -38,90 +26,11 @@ namespace Regard.Query.WebAPI
         private const int c_MaxQueryNameLength = 200;
 
         /// <summary>
-        /// Task that executes if we're trying to create the default data store
-        /// </summary>
-        private Task m_CreatingDataStore;
-
-        /// <summary>
-        /// Creates a new query controller with the default data store
-        /// </summary>
-        public QueryController()
-        {
-            // TODO: we could also support DI here
-        }
-
-        /// <summary>
-        /// Creates a new query controller with a specific data store
-        /// </summary>
-        /// <param name="dataStore">The data store to use, or null if the controller should create the default data store using <see cref="DataStoreFactory.CreateDefaultDataStore"></see></param>
-        public QueryController(IRegardDataStore dataStore)
-        {
-            m_DataStore = dataStore;
-        }
-
-        /// <summary>
-        /// Task that actually creates a data store
-        /// </summary>
-        private async Task ActuallyCreateDataStore()
-        {
-            // Generate a data store
-            var newDataStore = await DataStoreFactory.CreateDefaultDataStore();
-
-            // Store it in the data store variable
-            lock (m_Sync)
-            {
-                m_DataStore = newDataStore;
-            }
-        }
-
-        /// <summary>
-        /// Ensures that the m_DataStore parameter is populated
-        /// </summary>
-        private async Task EnsureDataStore()
-        {
-            Task alreadyRunning = null;
-
-            lock (m_Sync)
-            {
-                // Nothing to do if the data store is already created
-                if (m_DataStore != null)
-                {
-                    return;
-                }
-
-                // Check if something else is already retrieving the data store
-                alreadyRunning = m_CreatingDataStore;
-
-                // If nothing is running, then this is the first thing to try to create a data store, so create a new one
-                if (alreadyRunning == null)
-                {
-                    m_CreatingDataStore = alreadyRunning = ActuallyCreateDataStore();
-                }
-            }
-
-            // Wait for the data store to finish creating
-            try
-            {
-                await alreadyRunning;
-            }
-            finally
-            {
-                // The data store should exist and 
-                lock (m_Sync)
-                {
-                    m_CreatingDataStore = null;
-                }
-            }
-        }
-
-        /// <summary>
         /// Just indicates the version of this assembly
         /// </summary>
         [HttpGet, Route("version")]
-        public async Task<HttpResponseMessage> Version()
+        public HttpResponseMessage Version()
         {
-            await EnsureDataStore();
-
             return Request.CreateResponse(HttpStatusCode.OK, new { version = Assembly.GetExecutingAssembly().GetName().Version.ToString() });
         }
 
@@ -137,9 +46,6 @@ namespace Regard.Query.WebAPI
             try
             {
                 Trace.WriteLine("Executing product/create");
-
-                // Make sure that the data store is available
-                await EnsureDataStore();
 
                 // Read the payload from the message
                 var payloadString = await Request.Content.ReadAsStringAsync();
@@ -188,7 +94,10 @@ namespace Regard.Query.WebAPI
                 }
 
                 // Actually create the product
-                await m_DataStore.Products.CreateProduct(organization, product);
+                var regardDataStore = await m_ControllerDataStore.EnsureDataStore();
+
+                await regardDataStore.Products.CreateProduct(organization, product);
+
                 return Request.CreateResponse(HttpStatusCode.Created, new {});
             }
             catch (Exception e)
@@ -211,8 +120,6 @@ namespace Regard.Query.WebAPI
         [HttpPost, Route("product/v1/{organization}/{product}/register-query")]
         public async Task<HttpResponseMessage> RegisterQuery(string organization, string product)
         {
-            await EnsureDataStore();
-
             // Validate the URL
             if (string.IsNullOrEmpty(product) || string.IsNullOrEmpty(organization))
             {
@@ -224,7 +131,8 @@ namespace Regard.Query.WebAPI
             }
 
             // Check that the org/product exsits
-            var queryableProduct = await m_DataStore.Products.GetProduct(organization, product);
+            var dataStore = await m_ControllerDataStore.EnsureDataStore();
+            var queryableProduct = await dataStore.Products.GetProduct(organization, product);
             if (queryableProduct == null)
             {
                 return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Could not find product");
@@ -326,8 +234,6 @@ namespace Regard.Query.WebAPI
         [HttpGet, Route("product/v1/{organization}/{product}/run-query/{queryname}/{index}")]
         public async Task<HttpResponseMessage> RunQuery(string organization, string product, string queryname, string index)
         {
-            await EnsureDataStore();
-
             // Validate the URL
             if (string.IsNullOrEmpty(product) || string.IsNullOrEmpty(organization))
             {
@@ -340,7 +246,10 @@ namespace Regard.Query.WebAPI
 
             // TODO: return the first 'n' query results instead
             // Check that the org/product exsits
-            var queryableProduct = await m_DataStore.Products.GetProduct(organization, product);
+            var dataStore = await m_ControllerDataStore.EnsureDataStore();
+
+            var queryableProduct = await dataStore.Products.GetProduct(organization, product);
+
             if (queryableProduct == null)
             {
                 return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Could not find product");
@@ -412,8 +321,6 @@ namespace Regard.Query.WebAPI
         [HttpGet, Route("product/v1/{organization}/{product}/get-events-for-user/{uid}/{offset}")]
         public async Task<HttpResponseMessage> GetEventsForUser(string organization, string product, string uid, int offset)
         {
-            await EnsureDataStore();
-
             // Verify that the UID is a GUID
             Guid parsedUid;
             if (!Guid.TryParse(uid, out parsedUid))
@@ -421,8 +328,10 @@ namespace Regard.Query.WebAPI
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "UID is not a GUID");
             }
 
+            var dataStore = await m_ControllerDataStore.EnsureDataStore();
+
             // Get the product, and ensure that it exists
-            var queryableProduct = await m_DataStore.Products.GetProduct(organization, product);
+            var queryableProduct = await dataStore.Products.GetProduct(organization, product);
             if (queryableProduct == null)
             {
                 return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Could not find product");
@@ -464,8 +373,6 @@ namespace Regard.Query.WebAPI
         [HttpPost, Route("product/v1/{organization}/{product}/users/{uid}/opt-in")]
         public async Task<HttpResponseMessage> OptIn(string organization, string product, string uid)
         {
-            await EnsureDataStore();
-
             // Validate the URL
             if (string.IsNullOrEmpty(product) || string.IsNullOrEmpty(organization) || string.IsNullOrEmpty(uid))
             {
@@ -477,7 +384,8 @@ namespace Regard.Query.WebAPI
             }
 
             // Check that the org/product exsits
-            var queryableProduct = await m_DataStore.Products.GetProduct(organization, product);
+            var dataStore = await m_ControllerDataStore.EnsureDataStore();
+            var queryableProduct = await dataStore.Products.GetProduct(organization, product);
             if (queryableProduct == null)
             {
                 return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Could not find product");
@@ -507,8 +415,6 @@ namespace Regard.Query.WebAPI
         [HttpPost, Route("product/v1/{organization}/{product}/users/{uid}/opt-out")]
         public async Task<HttpResponseMessage> OptOut(string organization, string product, string uid)
         {
-            await EnsureDataStore();
-
             // Validate the URL
             if (string.IsNullOrEmpty(product) || string.IsNullOrEmpty(organization) || string.IsNullOrEmpty(uid))
             {
@@ -520,7 +426,8 @@ namespace Regard.Query.WebAPI
             }
 
             // Check that the org/product exsits
-            var queryableProduct = await m_DataStore.Products.GetProduct(organization, product);
+            var dataStore = await m_ControllerDataStore.EnsureDataStore();
+            var queryableProduct = await dataStore.Products.GetProduct(organization, product);
             if (queryableProduct == null)
             {
                 return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Could not find product");
@@ -546,8 +453,6 @@ namespace Regard.Query.WebAPI
         [HttpPost, Route("product/v1/{organization}/{product}/users/{uid}/delete-data")]
         public async Task<HttpResponseMessage> Delete(string organization, string product, string uid)
         {
-            await EnsureDataStore();
-
             // Validate the URL
             if (string.IsNullOrEmpty(product) || string.IsNullOrEmpty(organization) || string.IsNullOrEmpty(uid))
             {
@@ -559,7 +464,8 @@ namespace Regard.Query.WebAPI
             }
 
             // Check that the org/product exsits
-            var queryableProduct = await m_DataStore.Products.GetProduct(organization, product);
+            var dataStore = await m_ControllerDataStore.EnsureDataStore();
+            var queryableProduct = await dataStore.Products.GetProduct(organization, product);
             if (queryableProduct == null)
             {
                 return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Could not find product");

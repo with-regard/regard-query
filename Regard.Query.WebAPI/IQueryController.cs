@@ -10,7 +10,7 @@ namespace Regard.Query.WebAPI
         /// Just indicates the version of this assembly
         /// </summary>
         [HttpGet, Route("version")]
-        Task<HttpResponseMessage> Version();
+        HttpResponseMessage Version();
 
         /// <summary>
         /// Request to create a new product
