@@ -66,9 +66,6 @@ namespace Regard.Query.Tests.MapReduce.Bugs
                         userEvents.Add(evtObject);
                     }
                 }
-
-                // Commit later on
-                await m_Ingestor.Commit();
             }
 
             public async Task DeleteEventsForSomeUser()
@@ -82,12 +79,12 @@ namespace Regard.Query.Tests.MapReduce.Bugs
                 {
                     m_Ingestor.Uningest(evt);
                 }
-
-                await m_Ingestor.Commit();
             }
 
             public async Task CheckUserCountIsRight()
             {
+                await m_Ingestor.Commit();
+
                 // We should end up with a data store containing a single record that counts how many unique user IDs there are
                 var numUniqueUserIds    = m_EventsForUser.Count;
                 var values              = m_Store.EnumerateAllValues();
@@ -105,7 +102,7 @@ namespace Regard.Query.Tests.MapReduce.Bugs
         }
 
         [Test]
-        public void CountUniqueCreep()
+        public void CountUniqueCreepSimpleDelete()
         {
             Task.Run(async () =>
             {
@@ -132,7 +129,7 @@ namespace Regard.Query.Tests.MapReduce.Bugs
 
                 // Delete and check
                 await tester.DeleteEventsForSomeUser();
-                await tester.CheckUserCountIsRight();
+                await tester.CheckUserCountIsRight();                           // Result is 0 records??
             }).Wait();
         }
     }
