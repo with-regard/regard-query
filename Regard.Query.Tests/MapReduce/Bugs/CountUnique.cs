@@ -132,5 +132,39 @@ namespace Regard.Query.Tests.MapReduce.Bugs
                 await tester.CheckUserCountIsRight();                           // Result is 0 records??
             }).Wait();
         }
+
+        [Test]
+        public void CountUniqueCreepDeleteMixedWithAdd()
+        {
+            Task.Run(async () =>
+            {
+                /// https://github.com/with-regard/regard-query/issues/1
+                var queryBuilder = new SerializableQueryBuilder(null);
+                var uniqueUsers = (SerializableQuery)queryBuilder.AllEvents().CountUniqueValues("user-id", "value");
+
+                // Assume that the bug isn't down to the data store but the map/reduce algorithm itself, so we'll do this in-memory for now
+                var resultStore = new MemoryKeyValueStore();
+                var tester = new UserCreepTester(uniqueUsers, resultStore);
+
+                // Two users
+                tester.CreateNewUser();
+                tester.CreateNewUser();
+
+                // Add a few events
+                await tester.AddEventsForAllUsers(5);
+                await tester.AddEventsForAllUsers(5);
+                await tester.AddEventsForAllUsers(5);
+                await tester.AddEventsForAllUsers(5);
+
+                // Check
+                await tester.CheckUserCountIsRight();
+
+                // Delete and check
+                await tester.DeleteEventsForSomeUser();
+                tester.CreateNewUser();
+                await tester.AddEventsForAllUsers(5);
+                await tester.CheckUserCountIsRight();
+            }).Wait();
+        }
     }
 }
