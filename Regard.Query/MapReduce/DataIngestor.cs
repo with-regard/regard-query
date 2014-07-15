@@ -264,9 +264,6 @@ namespace Regard.Query.MapReduce
                     await currentCommit;
                 }
 
-                // Perform any unreductions that are necessary
-                await CommitUnreduce();
-
                 // Map the objects in the queue
                 var waitingToReduce = new Dictionary<string, List<JObject>>();
                 var keyForKey       = new Dictionary<string, JArray>();
@@ -352,6 +349,9 @@ namespace Regard.Query.MapReduce
                         }
                     }
                 }
+
+                // Perform any unreductions that are necessary
+                await CommitUnreduce();
 
                 // Ensure that all the data is committed to the data store
                 await Task.WhenAll(storeValues);
