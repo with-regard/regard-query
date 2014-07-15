@@ -22,6 +22,8 @@ Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "Regard.Query.Internal.Servi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Regard.Query.StressTest", "Regard.Query.StressTest\Regard.Query.StressTest.csproj", "{356D6008-984F-4A7B-97E1-722E939AB8FD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Regard.Query.StressTest.Cmd", "Regard.Query.StressTest.Cmd\Regard.Query.StressTest.Cmd.csproj", "{ECB3796A-9330-4C5A-87AF-A78198F85790}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,6 +58,10 @@ Global
 		{356D6008-984F-4A7B-97E1-722E939AB8FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{356D6008-984F-4A7B-97E1-722E939AB8FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{356D6008-984F-4A7B-97E1-722E939AB8FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECB3796A-9330-4C5A-87AF-A78198F85790}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECB3796A-9330-4C5A-87AF-A78198F85790}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECB3796A-9330-4C5A-87AF-A78198F85790}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECB3796A-9330-4C5A-87AF-A78198F85790}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

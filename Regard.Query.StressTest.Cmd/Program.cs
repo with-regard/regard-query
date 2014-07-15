@@ -1,0 +1,16 @@
+﻿using System;
+using System.Threading.Tasks;
+
+namespace Regard.Query.StressTest.Cmd
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Task.Run(async () =>
+            {
+                await StressTest.RunStressTest(new TestOptions(), TimeSpan.FromSeconds(20));
+            }).Wait();
+        }
+    }
+}
