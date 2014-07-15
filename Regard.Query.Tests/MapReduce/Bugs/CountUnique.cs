@@ -38,7 +38,7 @@ namespace Regard.Query.Tests.MapReduce.Bugs
             public void CreateNewUser(int eventCount = 0)
             {
                 // An improvement would be to use a known GUID sequence
-                Guid someUserGuid = new Guid();
+                Guid someUserGuid = Guid.NewGuid();
                 var userEvents = m_EventsForUser[someUserGuid.ToString()] = new List<JObject>();
 
                 for (int anEvent = 0; anEvent < eventCount; ++anEvent)
