@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Regard.Query", "Regard.Query\Regard.Query.csproj", "{18506010-74BB-4546-82A8-29FDFF88DBBF}"
 EndProject
@@ -19,6 +19,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Regard.Query.BasicEndpoint", "Regard.Query.BasicEndpoint\Regard.Query.BasicEndpoint.csproj", "{0526AD6B-4EE3-49E6-A095-0D8EA175B244}"
 EndProject
 Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "Regard.Query.Internal.Service", "Regard.Query.Internal.Service\Regard.Query.Internal.Service.ccproj", "{83129631-B9A6-499B-BE05-49498C5DD6F9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Regard.Query.StressTest", "Regard.Query.StressTest\Regard.Query.StressTest.csproj", "{356D6008-984F-4A7B-97E1-722E939AB8FD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -50,6 +52,10 @@ Global
 		{83129631-B9A6-499B-BE05-49498C5DD6F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{83129631-B9A6-499B-BE05-49498C5DD6F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{83129631-B9A6-499B-BE05-49498C5DD6F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{356D6008-984F-4A7B-97E1-722E939AB8FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{356D6008-984F-4A7B-97E1-722E939AB8FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{356D6008-984F-4A7B-97E1-722E939AB8FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{356D6008-984F-4A7B-97E1-722E939AB8FD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
