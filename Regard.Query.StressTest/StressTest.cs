@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
@@ -113,12 +114,14 @@ namespace Regard.Query.StressTest
             DateTime nextStatTime       = DateTime.Now + TimeSpan.FromMilliseconds(statInterval);
             int totalRequests           = 0;
             int missedRequests          = 0;
+            int totalErrors             = 0;
 
             // Lambda saves us some copy/paste work
             Action displayStats = () =>
             {
-                Trace.WriteLine("Total requests:  " + totalRequests);
-                Trace.WriteLine("Missed requests: " + missedRequests);
+                Trace.WriteLine("Total requests:                         " + totalRequests);
+                Trace.WriteLine("Missed requests:                        " + missedRequests);
+                Trace.WriteLine("Requests that did not respond with 200: " + totalErrors);
                 Trace.WriteLine("");
             };
 
@@ -167,7 +170,17 @@ namespace Regard.Query.StressTest
 
                     // Add a request
                     totalRequests++;
-                    activeRequests.Add(SendARequest(options));
+                    activeRequests.Add(Task.Run(async () =>
+                    {
+                        // Wait for result
+                        var resultCode = await SendARequest(options);
+
+                        // Mark as an error if there's a problem
+                        if (resultCode != HttpStatusCode.OK)
+                        {
+                            Interlocked.Increment(ref totalErrors);
+                        }
+                    }));
                 }
 
                 // Skip events if the active set is full
