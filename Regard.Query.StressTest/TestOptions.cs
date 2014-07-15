@@ -1,4 +1,6 @@
-﻿namespace Regard.Query.StressTest
+﻿using System.Diagnostics;
+
+namespace Regard.Query.StressTest
 {
     /// <summary>
     /// Options that describe how a stress test should be run
@@ -64,5 +66,18 @@
         /// The name of the organization that events will be generated for
         /// </summary>
         public string Organization { get; set; }
+
+        /// <summary>
+        /// Writes option details to the trace log
+        /// </summary>
+        public void WriteTrace()
+        {
+            Trace.WriteLine(" Requests per second:              " + RequestsPerSecond);
+            Trace.WriteLine(" Events per request:               " + EventsPerRequest);
+            Trace.WriteLine(" Number of unique users:           " + NumUsers);
+            Trace.WriteLine(" Maximum simultaneous requests:    " + MaxSimultaneousRequests);
+            Trace.WriteLine(" Organization:                     " + Product);
+            Trace.WriteLine(" Product:                          " + Product);
+        }
     }
 }
