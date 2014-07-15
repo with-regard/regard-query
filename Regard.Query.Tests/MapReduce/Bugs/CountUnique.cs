@@ -177,6 +177,61 @@ namespace Regard.Query.Tests.MapReduce.Bugs
         }
 
         [Test]
+        public void CountUniqueCreepJustAddData()
+        {
+            Task.Run(async () =>
+            {
+                /// https://github.com/with-regard/regard-query/issues/1
+                var queryBuilder = new SerializableQueryBuilder(null);
+                var uniqueUsers = (SerializableQuery)queryBuilder.AllEvents().CountUniqueValues("user-id", "value");
+
+                // Assume that the bug isn't down to the data store but the map/reduce algorithm itself, so we'll do this in-memory for now
+                var resultStore = new MemoryKeyValueStore();
+                var tester = new UserCreepTester(uniqueUsers, resultStore);
+
+                // Two users
+                tester.CreateNewUser();
+                tester.CreateNewUser();
+
+                // Add a few events and check
+                for (int x = 0; x < 5; ++x)
+                {
+                    tester.AddEventsForAllUsers(5);
+                    await tester.CheckUserCountIsRight();
+                }
+            }).Wait();
+        }
+
+
+        [Test]
+        public void CountUniqueCreepDeleteDataLeftInQueue()
+        {
+            Task.Run(async () =>
+            {
+                /// https://github.com/with-regard/regard-query/issues/1
+                var queryBuilder = new SerializableQueryBuilder(null);
+                var uniqueUsers = (SerializableQuery)queryBuilder.AllEvents().CountUniqueValues("user-id", "value");
+
+                // Assume that the bug isn't down to the data store but the map/reduce algorithm itself, so we'll do this in-memory for now
+                var resultStore = new MemoryKeyValueStore();
+                var tester = new UserCreepTester(uniqueUsers, resultStore);
+
+                // Two users
+                tester.CreateNewUser();
+                tester.CreateNewUser();
+
+                // Add events for all users
+                tester.AddEventsForAllUsers(5);
+
+                // Then delete the events we just added *before* committing
+                tester.DeleteEventsForSomeUser();
+
+                // BUG! The deletion is processed before the addition!
+                await tester.CheckUserCountIsRight();
+            }).Wait();
+        }
+
+        [Test]
         public void CountUniqueCreepDeleteMixedWithAdd()
         {
             Task.Run(async () =>
