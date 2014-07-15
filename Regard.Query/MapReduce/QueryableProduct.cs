@@ -16,7 +16,7 @@ namespace Regard.Query.MapReduce
         /// <summary>
         /// The version number of the query data structure
         /// </summary>
-        private const int c_QueryVersion = 0x100;
+        private const int c_QueryVersion = 0x101;
 
         private readonly object m_Sync = new object();
 
