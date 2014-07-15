@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net;
+using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace Regard.Query.StressTest
 {
@@ -11,13 +14,73 @@ namespace Regard.Query.StressTest
     public class StressTest
     {
         /// <summary>
+        /// The user IDs used by the tests
+        /// </summary>
+        private static Dictionary<int, Guid> s_UserIds = new Dictionary<int, Guid>();
+
+        private static object s_UidLock = new object();
+        private static Random s_Rng = new Random();
+
+        /// <summary>
         /// Sends a single request
         /// </summary>
-        public static async Task SendARequest(TestOptions options)
+        public static async Task<HttpStatusCode> SendARequest(TestOptions options)
         {
             if (options == null) throw new ArgumentNullException("options");
 
-            // TODO: implement me
+            // Session and user ID
+            Guid sessionId = Guid.NewGuid();
+            int userNumber = s_Rng.Next(options.NumUsers);
+            Guid userId;
+
+            lock (s_UidLock)
+            {
+                if (!s_UserIds.TryGetValue(userNumber, out userId))
+                {
+                    // Generate a new user ID for this user number
+                    userId = s_UserIds[userNumber] = Guid.NewGuid();
+                }
+            }
+
+            // Generate the request payload
+            JArray payload = new JArray();
+
+            for (int evtNum = 0; evtNum < options.EventsPerRequest; ++evtNum)
+            {
+                // Create the contents of the 'data' field
+                JObject internalEventData = new JObject();
+                internalEventData["action"] = options.EventActions[s_Rng.Next(options.EventActions.Length)];
+
+                // Create the actual event data
+                JObject eventData = new JObject();
+
+                eventData["user-id"]    = userId.ToString();
+                eventData["session-id"] = sessionId.ToString();
+                eventData["event-type"] = "stress-test";
+                eventData["time"]       = DateTime.UtcNow.ToString("o");
+                eventData["data"]       = internalEventData;
+
+                payload.Add(eventData);
+            }
+
+            // Send the event
+            var payloadBytes = Encoding.UTF8.GetBytes(payload.ToString());
+            var targetUrl = options.EndPointUrl + "/track/v1/" + options.Organization + "/" + options.Product + "/event";
+
+            // Send to the service
+            var request = WebRequest.Create(new Uri(targetUrl));
+            request.Method = "POST";
+            request.ContentType = "application/json";
+            request.ContentLength = payloadBytes.Length;
+
+            var payloadStream = await request.GetRequestStreamAsync();
+            payloadStream.Write(payloadBytes, 0, payloadBytes.Length);
+            payloadStream.Close();
+
+            using (var response = (HttpWebResponse)await request.GetResponseAsync())
+            {
+                return response.StatusCode;
+            }
         }
 
         /// <summary>
