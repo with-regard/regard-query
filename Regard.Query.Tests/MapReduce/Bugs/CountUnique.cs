@@ -97,6 +97,31 @@ namespace Regard.Query.Tests.MapReduce.Bugs
                 {
                     m_Ingestor.Uningest(evt);
                 }
+
+                // Delete the user ID
+                m_EventsForUser.Remove(userId);
+            }
+
+            public void DeleteAnEventForAUser()
+            {
+                // Do nothing if there are no users
+                if (!m_EventsForUser.Any())
+                {
+                    return;
+                }
+
+                // Not especially random, but I don't think it matters for this test
+                var userId = m_EventsForUser.Keys.First();
+
+                var userEvents = m_EventsForUser[userId];
+
+                m_Ingestor.Uningest(userEvents.First());
+                userEvents.RemoveAt(0);
+
+                if (!userEvents.Any())
+                {
+                    m_EventsForUser.Remove(userId);
+                }
             }
 
             public async Task CheckUserCountIsRight()
