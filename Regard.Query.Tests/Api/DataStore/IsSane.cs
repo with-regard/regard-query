@@ -1,4 +1,6 @@
-﻿using NUnit.Framework;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using NUnit.Framework;
 
 namespace Regard.Query.Tests.Api.DataStore
 {
@@ -23,6 +25,19 @@ namespace Regard.Query.Tests.Api.DataStore
         public void ThereIsAProductAdminInterface()
         {
             Assert.IsNotNull(TestDataStoreFactory.CreateEmptyDataStore(m_DataStoreType).Products);
+        }
+
+        [Test]
+        public void ThereCanOnlyBeOneAzureStorePerProcess()
+        {
+            // Technically per node
+            Task.Run(async () =>
+            {
+                var aDataStore = await DataStoreFactory.CreateAzureTableStore(TestDataStoreFactory.GetTestConnectionString(), "TestStore", "TestNode");
+                var anotherDataStore = await DataStoreFactory.CreateAzureTableStore(TestDataStoreFactory.GetTestConnectionString(), "TestStore", "TestNode");
+
+                Assert.IsTrue(ReferenceEquals(aDataStore, anotherDataStore));
+            }).Wait();
         }
     }
 }
