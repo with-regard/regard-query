@@ -35,11 +35,23 @@ namespace Regard.Query.Tests.MapReduce.Bugs
             /// <summary>
             /// Creates a new user with no events
             /// </summary>
-            public void CreateNewUser()
+            public void CreateNewUser(int eventCount = 0)
             {
                 // An improvement would be to use a known GUID sequence
                 Guid someUserGuid = new Guid();
-                m_EventsForUser[someUserGuid.ToString()] = new List<JObject>();
+                var userEvents = m_EventsForUser[someUserGuid.ToString()] = new List<JObject>();
+
+                for (int anEvent = 0; anEvent < eventCount; ++anEvent)
+                {
+                    JObject evtObject = new JObject();
+
+                    evtObject["user-id"] = someUserGuid.ToString();
+                    evtObject["action"] = "testing";
+                    evtObject["sequenceCount"] = anEvent;
+
+                    m_Ingestor.Ingest(evtObject);
+                    userEvents.Add(evtObject);
+                }
             }
 
             public void RecreateIngestor()
@@ -47,7 +59,7 @@ namespace Regard.Query.Tests.MapReduce.Bugs
                 m_Ingestor = new DataIngestor(m_Query.GenerateMapReduce(), m_Store);
             }
 
-            public async Task AddEventsForAllUsers(int eventCount)
+            public void AddEventsForAllUsers(int eventCount)
             {
                 // Just add a bunch of events
                 foreach (string userId in m_EventsForUser.Keys)
@@ -68,8 +80,14 @@ namespace Regard.Query.Tests.MapReduce.Bugs
                 }
             }
 
-            public async Task DeleteEventsForSomeUser()
+            public void DeleteEventsForSomeUser()
             {
+                // Do nothing if there are no users
+                if (!m_EventsForUser.Any())
+                {
+                    return;
+                }
+
                 // Not especially random, but I don't think it matters for this test
                 var userId = m_EventsForUser.Keys.First();
 
@@ -119,16 +137,16 @@ namespace Regard.Query.Tests.MapReduce.Bugs
                 tester.CreateNewUser();
 
                 // Add a few events
-                await tester.AddEventsForAllUsers(5);
-                await tester.AddEventsForAllUsers(5);
-                await tester.AddEventsForAllUsers(5);
-                await tester.AddEventsForAllUsers(5);
+                tester.AddEventsForAllUsers(5);
+                tester.AddEventsForAllUsers(5);
+                tester.AddEventsForAllUsers(5);
+                tester.AddEventsForAllUsers(5);
 
                 // Check
                 await tester.CheckUserCountIsRight();
 
                 // Delete and check
-                await tester.DeleteEventsForSomeUser();
+                tester.DeleteEventsForSomeUser();
                 await tester.CheckUserCountIsRight();                           // Result is 0 records??
             }).Wait();
         }
@@ -151,19 +169,59 @@ namespace Regard.Query.Tests.MapReduce.Bugs
                 tester.CreateNewUser();
 
                 // Add a few events
-                await tester.AddEventsForAllUsers(5);
-                await tester.AddEventsForAllUsers(5);
-                await tester.AddEventsForAllUsers(5);
-                await tester.AddEventsForAllUsers(5);
+                tester.AddEventsForAllUsers(5);
+                tester.AddEventsForAllUsers(5);
+                tester.AddEventsForAllUsers(5);
+                tester.AddEventsForAllUsers(5);
 
                 // Check
                 await tester.CheckUserCountIsRight();
 
                 // Delete and check
-                await tester.DeleteEventsForSomeUser();
+                tester.DeleteEventsForSomeUser();
                 tester.CreateNewUser();
-                await tester.AddEventsForAllUsers(5);
+                tester.AddEventsForAllUsers(5);
                 await tester.CheckUserCountIsRight();
+            }).Wait();
+        }
+
+        [Test]
+        [Explicit]
+        public void SoakTest()
+        {
+            Task.Run(async () =>
+            {
+                const int c_Seed = 1000;
+                const int c_NumOperations = 10000;
+
+                /// https://github.com/with-regard/regard-query/issues/1
+                var queryBuilder = new SerializableQueryBuilder(null);
+                var uniqueUsers = (SerializableQuery)queryBuilder.AllEvents().CountUniqueValues("user-id", "value");
+
+                // Assume that the bug isn't down to the data store but the map/reduce algorithm itself, so we'll do this in-memory for now
+                var resultStore = new MemoryKeyValueStore();
+                var tester = new UserCreepTester(uniqueUsers, resultStore);
+
+                var rng = new Random(c_Seed);
+
+                for (int x = 0; x < c_NumOperations; ++x)
+                {
+                    // Add 1-5 users, each with 5 events
+                    // Create at least one to avoid known deletion bug detected above
+                    for (int user = 0; user < rng.Next(5) + 1; ++user)
+                    {
+                        tester.CreateNewUser(5);
+                    }
+
+                    // Delete 0-3 users (over time, user count should grow)
+                    for (int user = 0; user < rng.Next(3); ++user)
+                    {
+                        tester.DeleteEventsForSomeUser();
+                    }
+
+                    // Check all is well
+                    await tester.CheckUserCountIsRight();
+                }
             }).Wait();
         }
     }
