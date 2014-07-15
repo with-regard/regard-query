@@ -186,7 +186,6 @@ namespace Regard.Query.Tests.MapReduce.Bugs
         }
 
         [Test]
-        [Explicit]
         public void SoakTest()
         {
             Task.Run(async () =>
@@ -204,12 +203,16 @@ namespace Regard.Query.Tests.MapReduce.Bugs
 
                 var rng = new Random(c_Seed);
 
+                DateTime start = DateTime.Now;
+                int userCount = 0;
+
                 for (int x = 0; x < c_NumOperations; ++x)
                 {
                     // Add 1-5 users, each with 5 events
                     // Create at least one to avoid known deletion bug detected above
                     for (int user = 0; user < rng.Next(5) + 1; ++user)
                     {
+                        ++userCount;
                         tester.CreateNewUser(5);
                     }
 
@@ -222,6 +225,10 @@ namespace Regard.Query.Tests.MapReduce.Bugs
                     // Check all is well
                     await tester.CheckUserCountIsRight();
                 }
+
+                DateTime end = DateTime.Now;
+
+                Console.WriteLine("{0} users ({1} events) processed in {2}ms", userCount, userCount*5, (end-start).TotalMilliseconds);
             }).Wait();
         }
     }
