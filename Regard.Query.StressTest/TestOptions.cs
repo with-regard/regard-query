@@ -76,7 +76,7 @@ namespace Regard.Query.StressTest
             Trace.WriteLine(" Events per request:               " + EventsPerRequest);
             Trace.WriteLine(" Number of unique users:           " + NumUsers);
             Trace.WriteLine(" Maximum simultaneous requests:    " + MaxSimultaneousRequests);
-            Trace.WriteLine(" Organization:                     " + Product);
+            Trace.WriteLine(" Organization:                     " + Organization);
             Trace.WriteLine(" Product:                          " + Product);
         }
     }

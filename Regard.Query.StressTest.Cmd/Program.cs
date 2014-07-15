@@ -11,6 +11,8 @@ namespace Regard.Query.StressTest.Cmd
             {
                 await StressTest.RunStressTest(new TestOptions(), TimeSpan.FromSeconds(20));
             }).Wait();
+
+            Console.ReadKey();
         }
     }
 }
