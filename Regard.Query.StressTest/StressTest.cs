@@ -143,7 +143,7 @@ namespace Regard.Query.StressTest
                 }
 
                 // If the events are full then wait until there's a free slot
-                while (activeRequests.Count > options.MaxSimultaneousRequests)
+                while (activeRequests.Count >= options.MaxSimultaneousRequests)
                 {
                     // Wait for a task to finish
                     await Task.WhenAny(activeRequests);
