@@ -28,11 +28,14 @@ namespace Regard.Query.StressTest
         /// </remarks>
         public static async Task RunStressTest(TestOptions options, TimeSpan? maxDuration = null)
         {
+            const int statInterval = 10000;
+
             if (options == null) throw new ArgumentNullException("options");
 
             // Write some introductory waffle
             Trace.WriteLine("=== REGARD STRESS TEST STARTING");
             options.WriteTrace();
+            Trace.WriteLine("");
 
             // Currently active requests
             List<Task> activeRequests   = new List<Task>();
@@ -42,6 +45,19 @@ namespace Regard.Query.StressTest
 
             TimeSpan timeBetweenEvents  = TimeSpan.FromMilliseconds(1000.0/(double) options.RequestsPerSecond);
             DateTime nextEventTime      = DateTime.Now + timeBetweenEvents;
+
+            // Store some stats
+            DateTime nextStatTime       = DateTime.Now + TimeSpan.FromMilliseconds(statInterval);
+            int totalRequests           = 0;
+            int missedRequests          = 0;
+
+            // Lambda saves us some copy/paste work
+            Action displayStats = () =>
+            {
+                Trace.WriteLine("Total requests:  " + totalRequests);
+                Trace.WriteLine("Missed requests: " + missedRequests);
+                Trace.WriteLine("");
+            };
 
             for (;;)
             {
@@ -87,17 +103,27 @@ namespace Regard.Query.StressTest
                     nextEventTime += timeBetweenEvents;
 
                     // Add a request
+                    totalRequests++;
                     activeRequests.Add(SendARequest(options));
                 }
 
                 // Skip events if the active set is full
-                while (nextEventTime < now)
-                {
+                while (nextEventTime < now) {
+                    missedRequests++;
                     nextEventTime += timeBetweenEvents;
+                }
+                
+                // Display stats if it's time
+                if (now >= nextStatTime)
+                {
+                    nextStatTime = now + TimeSpan.FromMilliseconds(statInterval);
+                    displayStats();
                 }
             }
 
+            // Finish up by displaying the statistics
             Trace.WriteLine("Finishing requests");
+            displayStats();
         }
     }
 }
