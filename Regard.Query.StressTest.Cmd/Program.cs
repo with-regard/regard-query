@@ -9,7 +9,7 @@ namespace Regard.Query.StressTest.Cmd
         {
             Task.Run(async () =>
             {
-                await StressTest.RunStressTest(new TestOptions(), TimeSpan.FromSeconds(20));
+                await StressTest.RunStressTest(new TestOptions(), TimeSpan.FromSeconds(60));
             }).Wait();
 
             Console.ReadKey();
