@@ -357,15 +357,16 @@ namespace Regard.Query.Tests.MapReduce.Bugs
 
                 DateTime start = DateTime.Now;
                 int userCount = 0;
+                int eventCount = 0;
 
                 for (int userId = 0; userId < c_NumUsers; ++userId)
                 {
                     // Run events for some number of users
                     tester.CreateNewUser(5);
                     ++userCount;
+                    eventCount += 5;
                 }
 
-                int eventCount = 0;
                 for (int x = 0; x < c_NumOperations; ++x)
                 {
                     for (int user = 0; user < rng.Next(5) + 1; ++user)
