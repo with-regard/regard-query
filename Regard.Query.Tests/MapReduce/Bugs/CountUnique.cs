@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Regard.Query.Api;
 using Regard.Query.MapReduce;
+using Regard.Query.MapReduce.Azure;
 using Regard.Query.Serializable;
 
 namespace Regard.Query.Tests.MapReduce.Bugs
@@ -19,9 +20,11 @@ namespace Regard.Query.Tests.MapReduce.Bugs
         /// </summary>
         private class UserCreepTester
         {
+            private readonly Random m_Rng = new Random();
             private readonly IKeyValueStore m_Store;
             private readonly SerializableQuery m_Query; 
             private DataIngestor m_Ingestor;
+            private readonly List<string> m_KnownUserIds = new List<string>(); 
 
             private Dictionary<string, List<JObject>> m_EventsForUser = new Dictionary<string, List<JObject>>();
 
@@ -39,7 +42,26 @@ namespace Regard.Query.Tests.MapReduce.Bugs
             {
                 // An improvement would be to use a known GUID sequence
                 Guid someUserGuid = Guid.NewGuid();
+                m_KnownUserIds.Add(someUserGuid.ToString());
                 var userEvents = m_EventsForUser[someUserGuid.ToString()] = new List<JObject>();
+
+                for (int anEvent = 0; anEvent < eventCount; ++anEvent)
+                {
+                    JObject evtObject = new JObject();
+
+                    evtObject["user-id"] = someUserGuid.ToString();
+                    evtObject["action"] = "testing";
+                    evtObject["sequenceCount"] = anEvent;
+
+                    m_Ingestor.Ingest(evtObject);
+                    userEvents.Add(evtObject);
+                }
+            }
+
+            public void SendEventsForRandomExistingUser(int eventCount)
+            {
+                string someUserGuid = m_KnownUserIds[m_Rng.Next(m_KnownUserIds.Count)];
+                var userEvents = m_EventsForUser[someUserGuid.ToString()] ;
 
                 for (int anEvent = 0; anEvent < eventCount; ++anEvent)
                 {
@@ -100,6 +122,7 @@ namespace Regard.Query.Tests.MapReduce.Bugs
 
                 // Delete the user ID
                 m_EventsForUser.Remove(userId);
+                m_KnownUserIds.Remove(userId);
             }
 
             public void DeleteAnEventForAUser()
@@ -138,6 +161,7 @@ namespace Regard.Query.Tests.MapReduce.Bugs
                     ++numRecords;
                     var count = val.Item2["value"].Value<int>();
                     Assert.AreEqual(numUniqueUserIds, count);
+                    Assert.IsTrue(val.Item2["Count"].Value<int>() >= 0);
                 }
 
                 Assert.AreEqual(1, numRecords);
@@ -309,6 +333,54 @@ namespace Regard.Query.Tests.MapReduce.Bugs
                 DateTime end = DateTime.Now;
 
                 Console.WriteLine("{0} users ({1} events) processed in {2}ms", userCount, userCount*5, (end-start).TotalMilliseconds);
+            }).Wait();
+        }
+
+        [Test]
+        public void SoakTestExistingUsers()
+        {
+            Task.Run(async () =>
+            {
+                const int c_Seed = 1000;
+                const int c_NumOperations = 10000;
+                const int c_NumUsers = 20;
+
+                /// https://github.com/with-regard/regard-query/issues/1
+                var queryBuilder = new SerializableQueryBuilder(null);
+                var uniqueUsers = (SerializableQuery)queryBuilder.AllEvents().CountUniqueValues("user-id", "value");
+
+                // Assume that the bug isn't down to the data store but the map/reduce algorithm itself, so we'll do this in-memory for now
+                var resultStore = new MemoryKeyValueStore();
+                var tester = new UserCreepTester(uniqueUsers, resultStore);
+
+                var rng = new Random(c_Seed);
+
+                DateTime start = DateTime.Now;
+                int userCount = 0;
+
+                for (int userId = 0; userId < c_NumUsers; ++userId)
+                {
+                    // Run events for some number of users
+                    tester.CreateNewUser(5);
+                    ++userCount;
+                }
+
+                int eventCount = 0;
+                for (int x = 0; x < c_NumOperations; ++x)
+                {
+                    for (int user = 0; user < rng.Next(5) + 1; ++user)
+                    {
+                        eventCount += 5;
+                        tester.SendEventsForRandomExistingUser(5);
+                    }
+
+                    // Check all is well
+                    await tester.CheckUserCountIsRight();
+                }
+
+                DateTime end = DateTime.Now;
+
+                Console.WriteLine("{0} users ({1} events) processed in {2}ms", userCount, eventCount, (end - start).TotalMilliseconds);
             }).Wait();
         }
     }
