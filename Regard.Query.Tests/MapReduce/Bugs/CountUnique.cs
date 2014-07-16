@@ -147,7 +147,7 @@ namespace Regard.Query.Tests.MapReduce.Bugs
                 }
             }
 
-            public async Task CheckUserCountIsRight()
+            public async Task CheckUserCountIsRight(int? eventCount = null)
             {
                 await m_Ingestor.Commit();
 
@@ -162,6 +162,11 @@ namespace Regard.Query.Tests.MapReduce.Bugs
                     var count = val.Item2["value"].Value<int>();
                     Assert.AreEqual(numUniqueUserIds, count);
                     Assert.IsTrue(val.Item2["Count"].Value<int>() >= 0);
+
+                    if (eventCount != null)
+                    {
+                        Assert.AreEqual(eventCount.Value, val.Item2["Count"].Value<int>());
+                    }
                 }
 
                 Assert.AreEqual(1, numRecords);
@@ -350,6 +355,7 @@ namespace Regard.Query.Tests.MapReduce.Bugs
                 var uniqueUsers = (SerializableQuery)queryBuilder.AllEvents().CountUniqueValues("user-id", "value");
 
                 // Assume that the bug isn't down to the data store but the map/reduce algorithm itself, so we'll do this in-memory for now
+                //var resultStore = new AzureKeyValueStore("UseDevelopmentStorage=true", "CountUniqueSoakTest");
                 var resultStore = new MemoryKeyValueStore();
                 var tester = new UserCreepTester(uniqueUsers, resultStore);
 
@@ -376,7 +382,7 @@ namespace Regard.Query.Tests.MapReduce.Bugs
                     }
 
                     // Check all is well
-                    await tester.CheckUserCountIsRight();
+                    await tester.CheckUserCountIsRight(eventCount);
                 }
 
                 DateTime end = DateTime.Now;
