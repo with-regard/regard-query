@@ -348,7 +348,7 @@ namespace Regard.Query.Tests.MapReduce.Bugs
             Task.Run(async () =>
             {
                 const int c_Seed = 1000;
-                const int c_NumOperations = 100;
+                const int c_NumOperations = 20;
                 const int c_NumUsers = 20;
 
                 /// https://github.com/with-regard/regard-query/issues/1
