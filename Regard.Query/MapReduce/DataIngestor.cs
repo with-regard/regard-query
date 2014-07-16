@@ -311,6 +311,8 @@ namespace Regard.Query.MapReduce
                 }
                 waitingToReduce.Clear();
 
+                await m_Store.Commit();
+
                 // Finally, re-reduce against the items already in the key/value store
                 List<Task> storeValues = new List<Task>();
                 foreach (var reducePair in reducedObjects)
@@ -349,6 +351,8 @@ namespace Regard.Query.MapReduce
                         }
                     }
                 }
+
+                await m_Store.Commit();
 
                 // Perform any unreductions that are necessary
                 await CommitUnreduce();
