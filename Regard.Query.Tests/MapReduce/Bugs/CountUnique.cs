@@ -9,6 +9,7 @@ using Regard.Query.Api;
 using Regard.Query.MapReduce;
 using Regard.Query.MapReduce.Azure;
 using Regard.Query.Serializable;
+using Regard.Query.Tests.Api;
 
 namespace Regard.Query.Tests.MapReduce.Bugs
 {
@@ -347,7 +348,7 @@ namespace Regard.Query.Tests.MapReduce.Bugs
             Task.Run(async () =>
             {
                 const int c_Seed = 1000;
-                const int c_NumOperations = 10000;
+                const int c_NumOperations = 100;
                 const int c_NumUsers = 20;
 
                 /// https://github.com/with-regard/regard-query/issues/1
@@ -355,8 +356,9 @@ namespace Regard.Query.Tests.MapReduce.Bugs
                 var uniqueUsers = (SerializableQuery)queryBuilder.AllEvents().CountUniqueValues("user-id", "value");
 
                 // Assume that the bug isn't down to the data store but the map/reduce algorithm itself, so we'll do this in-memory for now
-                //var resultStore = new AzureKeyValueStore("UseDevelopmentStorage=true", "CountUniqueSoakTest");
-                var resultStore = new MemoryKeyValueStore();
+                var key = (new Random()).Next(int.MaxValue);
+                var resultStore = new AzureKeyValueStore(TestDataStoreFactory.GetTestConnectionString(), "TestTable" + key);
+                // var resultStore = new MemoryKeyValueStore();
                 var tester = new UserCreepTester(uniqueUsers, resultStore);
 
                 var rng = new Random(c_Seed);
