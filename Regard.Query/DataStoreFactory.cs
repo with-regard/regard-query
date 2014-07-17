@@ -25,6 +25,8 @@ namespace Regard.Query
         /// </summary>
         private const string c_TestNodeName = "TestNode";
 
+        private static string s_StorageConnectionString;
+
         /// <summary>
         /// Creates the default data store for the current process
         /// </summary>
@@ -38,18 +40,29 @@ namespace Regard.Query
         public static async Task<IRegardDataStore> CreateDefaultDataStore()
         {
             // Get the connection string for the Azure storage that is configured for this instance
-            string storageConnectionString = CloudConfigurationManager.GetSetting("Regard.Storage.ConnectionString");
+            string storageConnectionString = s_StorageConnectionString;
 
-            if (!string.IsNullOrEmpty(storageConnectionString))
+            // Fetch the connection string from the appropriate configuration object
+            if (string.IsNullOrEmpty(storageConnectionString))
             {
-                Trace.WriteLine("Retrieving data from Azure cloud storage using cloud settings");
-                return await CreateAzureTableStore(storageConnectionString);
+                storageConnectionString = s_StorageConnectionString = CloudConfigurationManager.GetSetting("Regard.Storage.ConnectionString");
+                if (!string.IsNullOrEmpty(storageConnectionString))
+                {
+                    Trace.WriteLine("Retrieving data from Azure cloud storage using cloud settings");
+                }
+                else
+                {
+                    storageConnectionString = ConfigurationManager.AppSettings["Regard.StorageConnectionString"];
+                    if (!string.IsNullOrEmpty(storageConnectionString))
+                    {
+                        Trace.WriteLine("Retrieving data from Azure cloud storage using app settings");
+                    }
+                }
             }
 
-            storageConnectionString = ConfigurationManager.AppSettings["Regard.StorageConnectionString"];
+            // Create the table storage
             if (!string.IsNullOrEmpty(storageConnectionString))
             {
-                Trace.WriteLine("Retrieving data from Azure cloud storage using app settings");
                 return await CreateAzureTableStore(storageConnectionString);
             }
 
