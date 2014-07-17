@@ -12,6 +12,9 @@
       <Setting name="Regard.HealthCheck.SharedSecret" />
       <Setting name="Regard.JsonAPI.UserId"/>
       <Setting name="Regard.JsonAPI.Password"/>
+      <Setting name="Regard.ServiceBus.QueryUpdate.ConnectionString"/>
+      <Setting name="Regard.ServiceBus.QueryUpdate.EventTopic"/>
+      <Setting name="Regard.ServiceBus.QueryUpdate.Subscription"/>
     </ConfigurationSettings>
     <Sites>
       <Site name="Web">
