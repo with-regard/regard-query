@@ -151,6 +151,9 @@ namespace Regard.Query.Services.QueryRefresh
                             // Decode the message payload
                             JObject messagePayload;
 
+                            // We'll mark this message as completed, even if it doesn't process OK
+                            completedMessageLockTokens.Add(receivedMessage.LockToken);
+
                             using (var rawMessage = receivedMessage.GetBody<Stream>())
                             {
                                 using (var memoryStream = new MemoryStream())
@@ -163,14 +166,11 @@ namespace Regard.Query.Services.QueryRefresh
 
                             // Process this message
                             updateTasks.Add(ProcessUpdateQuery(dataStore, messagePayload));
-
-                            // We'll mark this message as completed
-                            completedMessageLockTokens.Add(receivedMessage.LockToken);
                         }
                         catch (Exception e)
                         {
                             // Log exceptions and continue processing messages
-                            Trace.TraceError("Exception while processing update requeusts: {0}", e.Message);
+                            Trace.TraceError("Exception while processing update requests: {0}", e.Message);
                         }
                     }
 
