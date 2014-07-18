@@ -292,6 +292,28 @@ namespace Regard.Query.Tests.Api.Query
             }).Wait();
         }
 
+        [Test]
+        public void CanUpdateAllQueries()
+        {
+            Task.Run(async () =>
+            {
+                // No assertions as updating queries just means they run faster later on
+                // If we add instrumentation later on, we could check that it updates (but that's arguably a side-effect and not a solid guarantee of what should happen when you run a test)
+                var store = await TestQueryBuilder.CreateEmptyDataStore(m_DataStoreType);
+                var testProduct = await store.Products.GetProduct("WithRegard", "Test");
+
+                var builder = testProduct.CreateQueryBuilder();
+                var uniqueClicksQuery = builder.AllEvents().Only("EventType", "Click").CountUniqueValues("SessionId", "NumSessions");
+                await testProduct.RegisterQuery("test", uniqueClicksQuery);
+
+                // Run the events through
+                await TestQueryBuilder.IngestBasic12TestDocuments(store);
+
+                // Update all queries
+                await testProduct.UpdateAllQueries();
+            }).Wait();
+        }
+
         /// <summary>
         /// Asserts that a query result contains a particular field
         /// </summary>
