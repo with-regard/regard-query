@@ -197,8 +197,10 @@ namespace Regard.Query.Services.QueryRefresh
             try
             {
                 // The payload specifies an organization/product to update
-                var organization    = messagePayload["Organization"].ToString();
-                var product         = messagePayload["Product"].ToString();
+                var organization    = messagePayload["Organization"].Value<string>();
+                var product         = messagePayload["Product"].Value<string>();
+
+                Trace.WriteLine("Processing update for " + organization + "/" + product);
 
                 // Fetch this product
                 var queryable       = await dataStore.Products.GetProduct(organization, product);
