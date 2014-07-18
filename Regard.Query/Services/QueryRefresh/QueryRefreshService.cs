@@ -203,13 +203,18 @@ namespace Regard.Query.Services.QueryRefresh
                 var organization    = messagePayload["Organization"].Value<string>();
                 var product         = messagePayload["Product"].Value<string>();
 
-                Trace.WriteLine("Processing update for " + organization + "/" + product);
-
                 // Fetch this product
                 var queryable       = await dataStore.Products.GetProduct(organization, product);
 
                 // Update its queries
-                await queryable.UpdateAllQueries();
+                if (queryable != null)
+                {
+                    await queryable.UpdateAllQueries();
+                }
+                else
+                {
+                    Trace.TraceWarning("Unable to process update for missing product: " + organization + "/" + product);                    
+                }
             }
             catch (Exception e)
             {
