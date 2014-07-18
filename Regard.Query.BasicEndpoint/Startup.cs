@@ -16,8 +16,8 @@ namespace Regard.Query.BasicEndpoint
             ThreadPool.SetMaxThreads(40, 100);
 
             // Monitor for query update requests
-            var queryService = new QueryRefreshService();
-            queryService.Start();
+            //var queryService = new QueryRefreshService();
+            //queryService.Start();
 
             // Configure for attribute routes
             var httpConfiguration = new HttpConfiguration();
