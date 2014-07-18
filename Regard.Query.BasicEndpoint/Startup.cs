@@ -1,6 +1,7 @@
 ﻿using System.Threading;
 using System.Web.Http;
 using Owin;
+using Regard.Query.Services.QueryRefresh;
 
 namespace Regard.Query.BasicEndpoint
 {
@@ -13,6 +14,10 @@ namespace Regard.Query.BasicEndpoint
         {
             // We need some completion threads for finishing data writes
             ThreadPool.SetMaxThreads(40, 100);
+
+            // Monitor for query update requests
+            var queryService = new QueryRefreshService();
+            queryService.Start();
 
             // Configure for attribute routes
             var httpConfiguration = new HttpConfiguration();
