@@ -175,7 +175,10 @@ namespace Regard.Query.Services.QueryRefresh
                     }
 
                     // Mark the messages as completed
-                    serviceBus.CompleteBatch(completedMessageLockTokens);
+                    if (completedMessageLockTokens.Count > 0)
+                    {
+                        serviceBus.CompleteBatch(completedMessageLockTokens);
+                    }
 
                     // Wait for the update tasks to complete before continuing
                     Task.WhenAll(updateTasks).Wait();
