@@ -38,6 +38,16 @@ namespace Regard.Query.Api
         Task<IResultEnumerator<QueryResultLine>> RunIndexedQuery(string queryName, params string[] indexValues);
 
         /// <summary>
+        /// Ensures that the actualised data and indexes are up to date for this product
+        /// </summary>
+        /// <remarks>
+        /// When using the map/reduce query engine, it can take a while to run queries that haven't been accessed recently and
+        /// that have many events. This task makes sure that they are all up to date: it's a good idea to call this once
+        /// every 5000 events or so.
+        /// </remarks>
+        Task UpdateAllQueries();
+
+        /// <summary>
         /// Retrieves all of the raw events associated with a particular user ID
         /// </summary>
         /// <remarks>

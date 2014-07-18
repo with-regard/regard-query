@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Regard.Query.Api;
@@ -66,6 +68,36 @@ namespace Regard.Query.MapReduce.DataAccessor
             }
 
             return queryDefinition;
+        }
+
+        /// <summary>
+        /// Returns the list of all query names registered to this product
+        /// </summary>
+        public async Task<IEnumerable<string>> GetQueryNames()
+        {
+            var queryNames = new HashSet<string>();
+
+            // Iterate across queries registered by all nodes...
+            var projectQueries = m_RawDataStore.EnumerateAllValues();
+
+            for (var query = await projectQueries.FetchNext(); query != null; query = await projectQueries.FetchNext())
+            {
+                JToken queryListToken;
+
+                // Should contain a 'queries' element with this list of queries in it
+                if (query.Item2.TryGetValue("Queries", out queryListToken))
+                {
+                    JObject queryList = queryListToken.Value<JObject>();
+
+                    // Add the names of all queries
+                    foreach (var queryProperty in queryList.Properties())
+                    {
+                        queryNames.Add(queryProperty.Name);
+                    }
+                }
+            }
+
+            return queryNames;
         }
 
         /// <summary>

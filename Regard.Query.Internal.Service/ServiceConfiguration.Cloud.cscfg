@@ -14,6 +14,9 @@
       <Setting name="Regard.HealthCheck.SharedSecret" value="[Secure random string]" />
       <Setting name="Regard.JsonAPI.UserId" value="[uid]"/>
       <Setting name="Regard.JsonAPI.Password" value="[pass]"/>
+      <Setting name="Regard.ServiceBus.QueryUpdate.ConnectionString" value=""/>
+      <Setting name="Regard.ServiceBus.QueryUpdate.EventTopic" value=""/>
+      <Setting name="Regard.ServiceBus.QueryUpdate.Subscription" value=""/>
     </ConfigurationSettings>
     <Certificates>
       <Certificate name="RegardSSL" thumbprint="8420C0773626D5137A820156EB5BD9D6FDB9BEE9" thumbprintAlgorithm="sha1" />
